@@ -22,7 +22,7 @@ export default function AnimatedDropdown({
   label,
   value,
   onChange,
-  placeholder = '-- Brand select karo --',
+  placeholder = '-- Select Printer Brand --',
   error,
 }) {
   const [isOpen, setIsOpen] = useState(false)

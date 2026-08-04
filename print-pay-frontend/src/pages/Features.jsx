@@ -18,56 +18,56 @@ const featuresList = [
   {
     icon: QrCode,
     title: 'QR-Based Smart Printing',
-    desc: 'Customer counter ka QR scan karta hai, file upload karta hai, pay karta hai aur print automatic nikal aata hai.',
+    desc: 'Customers scan your counter QR code, upload files, complete payment, and documents print automatically.',
     highlight: 'Scan → Upload → Pay → Auto Print',
   },
   {
     icon: Printer,
     title: 'Any Printer Supported',
-    desc: 'Purana USB printer ho ya naya, koi mehanga WiFi printer lene ki zaroorat nahi. Sabhi normal printers supported hain.',
-    highlight: 'No WiFi printer required',
+    desc: 'Compatible with all standard USB desktop printers. No expensive WiFi or smart printers required.',
+    highlight: 'No WiFi Printer Needed',
   },
   {
     icon: Download,
     title: 'Easy Software Installation',
-    desc: '2-step setup process. Windows PC par bas software install karo aur shop login ID daal kar start karo.',
-    highlight: '2-min setup',
+    desc: 'Simple 2-step setup. Install the lightweight Windows application and log in with your Shop ID.',
+    highlight: '2-Minute Setup',
   },
   {
     icon: ShieldCheck,
     title: 'Secure Document Processing',
-    desc: 'Customer ki file system se print hote hi turant permanently delete ho jaati hai. 100% data privacy guarantee.',
-    highlight: 'Auto-deleted after printing',
+    desc: 'Customer files are permanently auto-deleted from the system right after printing. 100% privacy guaranteed.',
+    highlight: 'Auto-Deleted After Printing',
   },
   {
     icon: LayoutDashboard,
     title: 'Shop Owner Dashboard',
-    desc: 'Apne mobile ya laptop se kabhi bhi total orders, today income aur active printer status track karein.',
-    highlight: 'Real-time analytics',
+    desc: 'Track total print orders, daily revenue, and active printer status anytime from mobile or desktop.',
+    highlight: 'Real-Time Analytics',
   },
   {
     icon: SlidersHorizontal,
-    title: 'Separate B&W & Color Printer',
-    desc: 'B&W documents ke liye alag printer aur Color printouts ke liye alag printer easy drop-down se select karein.',
-    highlight: 'Custom rate per page',
+    title: 'Separate B&W & Color Printers',
+    desc: 'Configure separate default printers for Black & White and Color jobs with custom rates per page.',
+    highlight: 'Custom Per-Page Rates',
   },
   {
     icon: TrendingUp,
-    title: 'Order & Income Management',
-    desc: 'Daily earnings breakdown, payment history aur instant online settlement setup apne hisab se karein.',
-    highlight: 'Transparent tracking',
+    title: 'Order & Revenue Management',
+    desc: 'Comprehensive earnings breakdown, transaction history, and direct payment gateway settlements.',
+    highlight: 'Transparent Tracking',
   },
   {
     icon: Zap,
     title: 'Super Fast Performance',
-    desc: 'Lightweight software bina PC ko slow kiye background mein fast print job trigger karta hai.',
-    highlight: 'Zero PC lag',
+    desc: 'Lightweight background application ensures zero PC lag while processing background print jobs.',
+    highlight: 'Zero PC Lag',
   },
   {
     icon: RefreshCw,
-    title: 'Regular Updates & Improvements',
-    desc: 'Naye features aur security updates aapko automated software updates ke roop mein milte rahenge.',
-    highlight: 'Lifetime improvements',
+    title: 'Regular Updates & Enhancements',
+    desc: 'Receive automated software updates with new features, speed optimizations, and security patches.',
+    highlight: 'Lifetime Updates',
   },
 ]
 
@@ -93,10 +93,10 @@ export default function Features() {
           Powerful Capabilities
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          QR Se Print Ke Smart Features
+          Smart Features of QR Se Print
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
-          Har feature Indian shop owners aur cyber cafes ki zaroorat ko dhyan mein rakh kar design kiya gaya hai.
+          Every feature is tailored specifically to empower Indian print shop owners and cyber cafés.
         </p>
       </div>
 
@@ -136,9 +136,9 @@ export default function Features() {
 
       {/* Bottom CTA */}
       <div className="bg-stone-900 text-white rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center gap-6">
-        <h2 className="text-3xl font-extrabold">In Saare Features Ka Fayda Uthane Ke Liye Ready Hain?</h2>
+        <h2 className="text-3xl font-extrabold">Ready to Leverage These Features in Your Shop?</h2>
         <p className="text-stone-400 text-sm sm:text-base max-w-xl">
-          Apni dukan ke counter par QR lagaiye aur aaj se hi automatic printing start karein!
+          Place a QR code on your counter and launch automated printing today!
         </p>
         <Link to="/register">
           <motion.button

@@ -6,29 +6,29 @@ import Accordion from '../components/UI/Accordion'
 
 const faqItems = [
   {
-    question: 'Kya Monthly plan mein har mahine 399 Dena hoga?',
+    question: 'Do I need to pay ₹399 every month on the Monthly plan?',
     answer:
-      'Haan, Monthly plan mein jab tak aap ₹399/month pay karenge, tab tak aapki auto-print service active rahegi.',
+      'Yes, the Monthly plan keeps your auto-print service active as long as the monthly subscription is renewed.',
   },
   {
-    question: 'One-Time ₹599 plan lene ke baad koi chhupa hua charge hai?',
+    question: 'Are there any hidden charges on the ₹599 One-Time plan?',
     answer:
-      'Bilkul nahi! One-Time plan lene par aapko Lifetime access aur sabhi future updates free milenge. Koi renewal charge kabhi nahi lagega.',
+      'Absolutely none! The One-Time plan grants lifetime access including all future software updates with zero renewal fees.',
   },
   {
-    question: 'Kya main baad mein Monthly se One-Time plan par shift kar sakta hu?',
+    question: 'Can I upgrade from Monthly to the One-Time Lifetime plan later?',
     answer:
-      'Haan, aap kabhi bhi Shop Login karke apne account ko One-Time lifetime plan par upgrade kar sakte hain.',
+      'Yes, you can upgrade your account to the One-Time lifetime plan anytime from your Shop Owner Login dashboard.',
   },
   {
-    question: 'Setup mein agar koi samasya aayi toh help kaise milegi?',
+    question: 'How will I receive setup assistance?',
     answer:
-      'Aapko humare WhatsApp Assistant aur AnyDesk support (One-time plan mein) ke dwara 1-on-1 setup assistant guide karega.',
+      'Our dedicated team guides you 1-on-1 via WhatsApp and AnyDesk remote desktop support.',
   },
   {
-    question: 'Kya payment gateway setup mein help milegi?',
+    question: 'Will I get help setting up online payment gateways?',
     answer:
-      'One-Time ₹599 plan mein hum direct aapke PhonePe / Google Pay / Paytm QR code ko setup karwane mein complete help karte hain.',
+      'Yes! On the One-Time ₹599 plan, we assist you in setting up direct UPI payments via PhonePe, Google Pay, or Paytm.',
   },
 ]
 
@@ -41,7 +41,7 @@ export default function Pricing() {
           Simple & Transparent Pricing
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          Apni Shop Ke Liye Best Plan Chuno
+          Choose the Best Plan for Your Shop
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
           No hidden fees. Unlimited printing support. Soft pricing built specifically for Indian shop owners.
@@ -68,12 +68,12 @@ export default function Pricing() {
             </div>
 
             <p className="text-stone-500 text-sm mb-6">
-              "Har mahine time par pay karo — tabhi service active rahegi"
+              "Pay monthly on time to keep your automated printing active"
             </p>
 
             <div className="flex items-baseline gap-1 mb-8">
               <span className="text-4xl font-extrabold text-stone-900">₹399</span>
-              <span className="text-stone-500 font-semibold text-sm">/mahina</span>
+              <span className="text-stone-500 font-semibold text-sm">/month</span>
             </div>
 
             <div className="space-y-3.5 mb-8 border-t border-stone-100 pt-6 text-sm text-stone-700">
@@ -87,37 +87,37 @@ export default function Pricing() {
                 <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>Personalize QR For Shop</span>
+                <span>Personalized Shop QR Code</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>Unlimited Print</span>
+                <span>Unlimited Printouts</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>Assistant in Setup</span>
+                <span>Setup Assistance</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>On Demand Service will be added</span>
+                <span>On-Demand Service Additions</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>Bug fix on update</span>
+                <span>Continuous Updates & Bug Fixes</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>WhatsApp Assistant</span>
+                <span>Dedicated WhatsApp Support</span>
               </div>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function Pricing() {
             </div>
 
             <p className="text-stone-500 text-sm mb-6">
-              "Ek baar pay — Lifetime Access & Update — No renewal kabhi nahi"
+              "One-time payment — Lifetime Access & Updates — Zero renewal fees ever"
             </p>
 
             <div className="flex items-baseline gap-2 mb-8">
@@ -174,43 +174,43 @@ export default function Pricing() {
                 <div className="w-5 h-5 rounded-full bg-[#F0245C] text-white flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>Personalize QR For Shop</span>
+                <span>Personalized Shop QR Code</span>
               </div>
               <div className="flex items-center gap-3 font-medium">
                 <div className="w-5 h-5 rounded-full bg-[#F0245C] text-white flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>Unlimited Print</span>
+                <span>Unlimited Printouts</span>
               </div>
               <div className="flex items-center gap-3 font-medium">
                 <div className="w-5 h-5 rounded-full bg-[#F0245C] text-white flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>Assistant in Setup</span>
+                <span>Setup Assistance</span>
               </div>
               <div className="flex items-center gap-3 font-semibold text-amber-900 bg-amber-50 p-2 rounded-xl border border-amber-200">
                 <div className="w-5 h-5 rounded-full bg-amber-400 text-stone-900 flex items-center justify-center flex-shrink-0 font-extrabold">
                   <Zap className="w-3.5 h-3.5 fill-stone-900" />
                 </div>
-                <span>Assistant in Online Payment Gateway Setup</span>
+                <span>Payment Gateway Setup Assistant</span>
               </div>
               <div className="flex items-center gap-3 font-semibold text-amber-900 bg-amber-50 p-2 rounded-xl border border-amber-200">
                 <div className="w-5 h-5 rounded-full bg-amber-400 text-stone-900 flex items-center justify-center flex-shrink-0 font-extrabold">
                   <Zap className="w-3.5 h-3.5 fill-stone-900" />
                 </div>
-                <span>Bug Fix Within 2Hr</span>
+                <span>Priority 2-Hour Bug Fix</span>
               </div>
               <div className="flex items-center gap-3 font-medium">
                 <div className="w-5 h-5 rounded-full bg-[#F0245C] text-white flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>WhatsApp Assistant</span>
+                <span>Dedicated WhatsApp Support</span>
               </div>
               <div className="flex items-center gap-3 font-medium">
                 <div className="w-5 h-5 rounded-full bg-[#F0245C] text-white flex items-center justify-center flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                <span>AnyDesk Assistant</span>
+                <span>AnyDesk Remote Support</span>
               </div>
             </div>
           </div>
@@ -232,22 +232,22 @@ export default function Pricing() {
       {/* FAQ SECTION */}
       <div id="faq" className="max-w-3xl mx-auto w-full pt-10 border-t border-stone-200">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-extrabold text-stone-900">Aapke Sawal & Jawab (FAQ)</h2>
-          <p className="text-stone-500 text-sm mt-1">Billing aur setup ke baare mein aksar poochhe jaane wale sawal</p>
+          <h2 className="text-3xl font-extrabold text-stone-900">Frequently Asked Questions (FAQ)</h2>
+          <p className="text-stone-500 text-sm mt-1">Everything you need to know about billing and setup</p>
         </div>
 
         <Accordion items={faqItems} />
 
         <div className="mt-12 text-center bg-stone-100 p-8 rounded-3xl border border-stone-200">
-          <h3 className="font-extrabold text-stone-900 text-xl">Taiyar hain apni shop ki income badhane ke liye?</h3>
-          <p className="text-stone-600 text-sm mt-1 mb-6">Registration mein bas 2 minute lagte hain!</p>
+          <h3 className="font-extrabold text-stone-900 text-xl">Ready to Increase Your Shop's Revenue?</h3>
+          <p className="text-stone-600 text-sm mt-1 mb-6">Registration takes less than 2 minutes!</p>
           <Link to="/register">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="bg-[#F0245C] text-white px-8 py-3.5 rounded-full font-extrabold shadow-md inline-flex items-center gap-2"
             >
-              <span>Abhi Register Karo</span>
+              <span>Register Now</span>
               <ArrowRight className="w-4 h-4" />
             </motion.button>
           </Link>

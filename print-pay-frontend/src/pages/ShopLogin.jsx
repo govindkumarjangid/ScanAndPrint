@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
-import { Printer, KeyRound, Lock, ArrowRight, CheckCircle2, Shield } from 'lucide-react'
+import { Printer, CheckCircle2, ArrowRight } from 'lucide-react'
 
 export default function ShopLogin() {
   const location = useLocation()
-  const navigate = useNavigate()
   const registeredShopName = location.state?.registeredShopName
 
   const [shopId, setShopId] = useState('')
@@ -44,7 +43,7 @@ export default function ShopLogin() {
             className="w-full bg-emerald-50 border border-emerald-300 p-4 rounded-2xl text-emerald-800 text-xs text-center flex items-center justify-center gap-2 font-medium"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span><strong>{registeredShopName}</strong> successfully registered! Login below.</span>
+            <span><strong>{registeredShopName}</strong> successfully registered! Please log in below.</span>
           </motion.div>
         )}
 
@@ -55,7 +54,7 @@ export default function ShopLogin() {
               <span>🔒 Shop Owner Login</span>
             </h2>
             <p className="text-stone-500 text-xs sm:text-sm mt-1">
-              Apna Shop ID aur Password daalo
+              Enter your Shop ID and Password to continue
             </p>
           </div>
 
@@ -68,7 +67,7 @@ export default function ShopLogin() {
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
               <h3 className="font-extrabold text-lg">Login Successful!</h3>
               <p className="text-xs text-emerald-800">
-                Shop Dashboard loading... (API Integration ready)
+                Loading Shop Dashboard...
               </p>
               <button
                 onClick={() => setLoginSuccess(false)}
@@ -119,7 +118,7 @@ export default function ShopLogin() {
                 disabled={isSubmitting}
                 className="w-full bg-[#F0245C] hover:bg-[#D81B4E] text-white font-extrabold py-3.5 rounded-full shadow-lg shadow-[#F0245C]/30 flex items-center justify-center gap-2 cursor-pointer mt-2 transition-all"
               >
-                <span>{isSubmitting ? 'Verifying...' : 'Login Karo'}</span>
+                <span>{isSubmitting ? 'Verifying...' : 'Login'}</span>
                 <ArrowRight className="w-4 h-4" />
               </motion.button>
             </form>
@@ -127,9 +126,9 @@ export default function ShopLogin() {
 
           {/* Reset Link */}
           <div className="pt-2 border-t border-stone-100 text-xs text-stone-600">
-            Password bhool gaye ya pehli baar set karna hai?{' '}
+            Forgot your password or setting up for the first time?{' '}
             <Link to="/contact" className="font-bold text-[#F0245C] hover:underline">
-              Yahan se reset/set karo
+              Reset / Set Password Here
             </Link>
           </div>
         </div>

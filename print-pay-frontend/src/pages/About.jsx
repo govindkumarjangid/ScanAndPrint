@@ -13,49 +13,48 @@ import {
   MessageSquareCheck,
   Target,
   Compass,
-  CheckCircle2,
   ArrowRight,
 } from 'lucide-react'
 
-// 5-step origin story narrative
+// 5-step origin story narrative in Pure English
 const originNarrative = [
   {
     step: '1',
-    title: 'Ek Chhoti Cyber Cafe Ki Shuruat',
-    desc: 'Humne ek chhotey se sheher mein Cyber Cafe aur Xerox center shuru kiya tha. Log daily form bharne aur document print out lene aate the.',
+    title: 'Starting a Local Cyber Café',
+    desc: 'We started a small cyber café and xerox shop in a local town. Customers visited daily for online form submissions and document printouts.',
   },
   {
     step: '2',
-    title: 'Daily Frustration & Crowd Management',
-    desc: 'Counter par 30-40 log ek sath खड़े hoke bolte - "Bhaiya WhatsApp check karo, admit card bhej diya". Har baar PC mein WhatsApp open karo, download karo, aur manual print command do.',
+    title: 'Daily Crowd & Frustration',
+    desc: '30-40 customers would crowd the counter shouting, "Brother, I sent the file on WhatsApp, please print it." Manually opening WhatsApp Web, downloading files, and issuing print commands consumed all our time.',
   },
   {
     step: '3',
-    title: 'Apni Shop Ke Liye Software Banaya',
-    desc: 'Is pareshaan se bachne ke liye humne ek smart QR system coder ki tarah develop kiya jisse customer QR scan kare, pay kare aur automatic computer se print nikal aaye.',
+    title: 'Developing an Automated System',
+    desc: 'To eliminate this bottleneck, we engineered a smart QR printing system that allowed customers to scan, pay online, and auto-print directly from their phones.',
   },
   {
     step: '4',
-    title: 'Real Customer Feedback & Refinement',
-    desc: 'Aas-paas ke 10 cyber cafe valon ne jab dekha toh unhone bhi manga. Unke feedback par humne Black & White vs Color printer mapping aur Instant QR branding features add kiye.',
+    title: 'Refinement from Real Feedback',
+    desc: 'Nearby shop owners requested the system for their own centers. Based on their input, we added Black & White vs Color printer mapping and instant custom QR branding.',
   },
   {
     step: '5',
-    title: 'Poore Bharat Ke Shop Owners Ke Liye Open',
-    desc: 'Aaj QR Se Print poore India ke CSC centers, xerox centers aur digital service providers ka sabse trusted smart print network ban chuka hai!',
+    title: 'Nationwide Launch for All Shops',
+    desc: 'Today, QR Se Print is the most trusted smart printing platform powering CSC centers, xerox shops, and digital service centers across India!',
   },
 ]
 
 // "Who it's for" audience list
 const audienceList = [
-  { icon: Store, title: 'Cyber Cafes', desc: 'Lambi line khatam, automatic printing start.' },
-  { icon: Printer, title: 'Print & Xerox Shops', desc: 'Customer phone se photo/PDF direct print.' },
-  { icon: ShieldCheck, title: 'CSC Centers', desc: 'Sarkari digital kaam fast aur hassle-free.' },
-  { icon: Building2, title: 'Digital Service Centres', desc: 'Bina WhatsApp share kiye direct print.' },
-  { icon: GraduationCap, title: 'Schools & Colleges', desc: 'Student notes & admit card quick print.' },
-  { icon: BookOpen, title: 'Coaching Institutes', desc: 'Assignment & test paper instant printout.' },
-  { icon: Layers, title: 'Libraries & Offices', desc: 'Daily self-service document printing.' },
-  { icon: TrendingUp, title: 'Small & Medium Businesses', desc: 'Digital payment + auto-print all in one.' },
+  { icon: Store, title: 'Cyber Cafes', desc: 'Eliminate long queues with instant automatic printing.' },
+  { icon: Printer, title: 'Print & Xerox Shops', desc: 'Customers print photos and PDFs directly from their phones.' },
+  { icon: ShieldCheck, title: 'CSC Centers', desc: 'Process government digital services fast and hassle-free.' },
+  { icon: Building2, title: 'Digital Service Centres', desc: 'Direct phone-to-printer workflow without sharing WhatsApp.' },
+  { icon: GraduationCap, title: 'Schools & Colleges', desc: 'Quick student notes and admit card printouts.' },
+  { icon: BookOpen, title: 'Coaching Institutes', desc: 'Instant assignment and test paper printing.' },
+  { icon: Layers, title: 'Libraries & Offices', desc: 'Convenient self-service document printing.' },
+  { icon: TrendingUp, title: 'Small & Medium Businesses', desc: 'Digital payments and auto-printing combined.' },
 ]
 
 export default function About() {
@@ -64,13 +63,13 @@ export default function About() {
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
         <span className="text-[#F0245C] font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
-          Hamari Kahani
+          Our Journey
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          Shop Owner Ne Hi Banaya, Shop Owners Ke Liye
+          Built by Shop Owners, for Shop Owners
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
-          QR Se Print kisi corporate boardroom mein nahi, balki ek asli cyber café ke counter par paida hua platform hai.
+          QR Se Print was born on an active cyber café counter, not in a distant corporate boardroom.
         </p>
       </div>
 
@@ -78,7 +77,7 @@ export default function About() {
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-sm">
         <div className="max-w-2xl mb-10">
           <span className="text-[#F0245C] font-bold text-xs uppercase">5-Step Origin Story</span>
-          <h2 className="text-3xl font-extrabold text-stone-900 mt-1">Kaise Shuru Hua QR Se Print?</h2>
+          <h2 className="text-3xl font-extrabold text-stone-900 mt-1">How QR Se Print Started</h2>
         </div>
 
         <div className="space-y-8">
@@ -110,9 +109,9 @@ export default function About() {
           <div className="w-12 h-12 rounded-2xl bg-[#F0245C] text-white flex items-center justify-center font-bold">
             <Target className="w-6 h-6" />
           </div>
-          <h3 className="text-2xl font-extrabold text-stone-900">Hamara Mission</h3>
+          <h3 className="text-2xl font-extrabold text-stone-900">Our Mission</h3>
           <p className="text-stone-700 leading-relaxed text-sm sm:text-base">
-            Bharat ke har chhote cyber café aur xerox center ko simple, affordable aur fast automation dena jisse unka samay bache aur daily income 2x badh sake.
+            To provide every small cyber café and xerox center in India with simple, affordable, and fast automation that saves time and doubles daily revenue.
           </p>
         </div>
 
@@ -123,7 +122,7 @@ export default function About() {
           </div>
           <h3 className="text-2xl font-extrabold text-stone-900">100% Direct Support Model</h3>
           <p className="text-stone-600 leading-relaxed text-sm sm:text-base">
-            Hum koi fake third-party ticketing portal use nahi karte. Har shop owner ko direct WhatsApp Support aur AnyDesk assistant dwara instant solution diya jata hai.
+            We skip confusing third-party ticket systems. Every shop owner gets direct 1-on-1 WhatsApp and AnyDesk remote desktop support.
           </p>
         </div>
 
@@ -132,7 +131,7 @@ export default function About() {
       {/* Audience List */}
       <div>
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <h2 className="text-3xl font-extrabold text-stone-900">Kis-Kis Ke Liye Hai Platform?</h2>
+          <h2 className="text-3xl font-extrabold text-stone-900">Who is the Platform For?</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {audienceList.map((aud, idx) => {
@@ -161,7 +160,7 @@ export default function About() {
           India's Most Trusted Smart Printing Platform
         </h2>
         <p className="text-stone-400 text-base max-w-xl">
-          Hum chahte hain ki Bharat ka har cyber cafe bina kisi manual jhanjhat ke smooth digital services aur self-service printing offer kar sake.
+          Empowering every print shop in India to offer seamless, self-service digital document printing without manual intervention.
         </p>
         <Link to="/register" className="mt-4">
           <motion.button

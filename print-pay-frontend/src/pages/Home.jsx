@@ -6,7 +6,6 @@ import {
   Printer,
   Zap,
   ShieldCheck,
-  Smartphone,
   CheckCircle2,
   ArrowRight,
   Sparkles,
@@ -15,40 +14,38 @@ import {
   BookOpen,
   Store,
   Layers,
-  FileCheck,
   Check,
-  UserCheck,
   TrendingUp,
 } from 'lucide-react'
 
-// "Who it's for" audience list
+// "Who it's for" audience list in Pure English
 const audienceList = [
-  { icon: Store, title: 'Cyber Cafes', desc: 'Lambi line khatam, automatic printing start.' },
-  { icon: Printer, title: 'Print & Xerox Shops', desc: 'Customer phone se photo/PDF direct print.' },
-  { icon: ShieldCheck, title: 'CSC Centers', desc: 'Sarkari digital kaam fast aur hassle-free.' },
-  { icon: Building2, title: 'Digital Service Centres', desc: 'Bina WhatsApp share kiye direct print.' },
-  { icon: GraduationCap, title: 'Schools & Colleges', desc: 'Student notes & admit card quick print.' },
-  { icon: BookOpen, title: 'Coaching Institutes', desc: 'Assignment & test paper instant printout.' },
-  { icon: Layers, title: 'Libraries & Offices', desc: 'Daily self-service document printing.' },
-  { icon: TrendingUp, title: 'Small & Medium Businesses', desc: 'Digital payment + auto-print all in one.' },
+  { icon: Store, title: 'Cyber Cafes', desc: 'Eliminate long queues with instant automatic printing.' },
+  { icon: Printer, title: 'Print & Xerox Shops', desc: 'Customers print photos and PDFs directly from their phones.' },
+  { icon: ShieldCheck, title: 'CSC Centers', desc: 'Process government digital services fast and hassle-free.' },
+  { icon: Building2, title: 'Digital Service Centres', desc: 'Direct phone-to-printer workflow without sharing WhatsApp.' },
+  { icon: GraduationCap, title: 'Schools & Colleges', desc: 'Quick student notes and admit card printouts.' },
+  { icon: BookOpen, title: 'Coaching Institutes', desc: 'Instant assignment and test paper printing.' },
+  { icon: Layers, title: 'Libraries & Offices', desc: 'Convenient self-service document printing.' },
+  { icon: TrendingUp, title: 'Small & Medium Businesses', desc: 'Digital payments and auto-printing combined.' },
 ]
 
-// Feature highlight snippets
+// Feature highlight snippets in Pure English
 const highlights = [
   {
     icon: QrCode,
     title: 'Scan → Upload → Pay → Auto Print',
-    desc: 'Customer counter ka QR scan karega, file upload karega, payment karega — PC par print automatic nikal jayega!',
+    desc: 'Customers scan your counter QR code, upload files, and pay online — documents print automatically on your PC!',
   },
   {
     icon: Printer,
-    title: 'Koi WiFi Printer Nahi Chahiye',
-    desc: 'Aapke normal USB / Desktop printer par hi software install hoga aur 100% kaam karega.',
+    title: 'No WiFi Printer Required',
+    desc: 'Works seamlessly with your existing standard USB or desktop printer. No expensive hardware needed.',
   },
   {
     icon: ShieldCheck,
     title: 'Auto-Deleted Private Files',
-    desc: 'Print hote hi customer ki file automatically delete ho jaati hai. Privacy aur trust 100%.',
+    desc: 'Customer files are automatically deleted immediately after printing. 100% data privacy and trust.',
   },
 ]
 
@@ -85,19 +82,19 @@ export default function Home() {
             {/* Pill Tag */}
             <div className="inline-flex items-center gap-2 bg-amber-100/80 border border-amber-300/80 px-4 py-1.5 rounded-full text-amber-900 text-xs sm:text-sm font-bold shadow-xs">
               <Sparkles className="w-4 h-4 text-amber-600 fill-amber-500" />
-              <span>India ka #1 Smart Printing Network for Shops</span>
+              <span>India's #1 Smart Printing Network for Shops</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-stone-900 leading-[1.15]">
-              Customer QR Scan Karega,{' '}
-              <span className="marker-highlight text-stone-900">Print Khud Nikal</span> Jaye!
+              Customers Scan QR Code &{' '}
+              <span className="marker-highlight text-stone-900">Print Documents</span> Automatically!
             </h1>
 
-            {/* Subheadline in Hinglish */}
+            {/* Subheadline in Pure English */}
             <p className="text-stone-600 text-lg sm:text-xl font-medium leading-relaxed max-w-2xl">
-              Ab customer se WhatsApp par file maangna, PC mein download karna aur manually print dena band karo.
-              <span className="font-bold text-stone-900"> QR Se Print</span> karega sab automatic!
+              Stop manually asking customers for files on WhatsApp, downloading them, and printing. Let{' '}
+              <span className="font-bold text-stone-900">QR Se Print</span> automate your entire printing workflow!
             </p>
 
             {/* Steps Pills */}
@@ -152,7 +149,7 @@ export default function Home() {
                 <Check className="w-4 h-4 text-emerald-600 stroke-[3]" /> Unlimited Prints
               </span>
               <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-600 stroke-[3]" /> Normal Printer Supported
+                <Check className="w-4 h-4 text-emerald-600 stroke-[3]" /> Standard Printer Supported
               </span>
             </div>
           </motion.div>
@@ -217,16 +214,15 @@ export default function Home() {
               Real Shop Owner Story
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900">
-              "Bhaiya WhatsApp pe file bhej di hai, print nikal do!" — Is problem se pareshaan ho gaye the.
+              "Brother, I sent the file on WhatsApp, please print it!" — We were tired of hearing this every day.
             </h2>
             <p className="text-stone-700 leading-relaxed text-base sm:text-lg">
-              Daily cyber café chalaate waqt counter par 50 log WhatsApp par photo aur PDF bhejte the. Subah se shaam tak PC mein WhatsApp Web scan karo, files download karo, print karo, aur ₹5 lene ke liye QR dikhao.
-              Isi daily frustration se janam hua <span className="font-bold text-[#F0245C]">QR Se Print</span> ka — humne pehle apni shop ke liye banaya, aur jab kaam 10x fast ho gaya, tab saare shop owners ke liye release kar diya!
+              While running a daily cyber café, over 50 customers would crowd the counter asking to print files via WhatsApp. From morning to evening, we spent hours scanning WhatsApp Web, downloading files, and collecting ₹5 payments. That daily frustration inspired <span className="font-bold text-[#F0245C]">QR Se Print</span> — built first for our own shop, and once our efficiency grew 10x, opened up for all shop owners nationwide!
             </p>
 
             <div className="pt-2">
               <Link to="/about" className="inline-flex items-center gap-2 text-[#F0245C] font-bold text-sm hover:underline">
-                <span>Puri Kahani Padho (Origin Story)</span>
+                <span>Read Our Full Story (Origin Story)</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -239,10 +235,10 @@ export default function Home() {
         <div className="text-center max-w-2xl mx-auto mb-12 flex flex-col gap-3">
           <span className="text-[#F0245C] font-bold text-xs tracking-wider uppercase">Target Audience</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">
-            QR Se Print Kis-Kis Ke Liye Hai?
+            Who is QR Se Print For?
           </h2>
           <p className="text-stone-600 text-base">
-            Agar aapke paas customer printout lene aate hain, toh ye aapka 80% time aur mehnat bachayega.
+            If customers visit your shop for printouts, this will save 80% of your time and effort.
           </p>
         </div>
 
@@ -278,9 +274,9 @@ export default function Home() {
         <div className="bg-stone-900 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12">
             <div>
-              <span className="text-amber-400 font-bold text-xs uppercase tracking-wider">Features Snippet</span>
+              <span className="text-amber-400 font-bold text-xs uppercase tracking-wider">Feature Highlights</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
-                Kyun Best Hai QR Se Print?
+                Why Choose QR Se Print?
               </h2>
             </div>
             <Link to="/features">
@@ -289,7 +285,7 @@ export default function Home() {
                 whileTap={{ scale: 0.97 }}
                 className="bg-[#F0245C] hover:bg-[#D81B4E] text-white px-6 py-3 rounded-full font-bold text-sm shadow-md flex items-center gap-2"
               >
-                <span>Saare Features Dekho</span>
+                <span>Explore All Features</span>
                 <ArrowRight className="w-4 h-4" />
               </motion.button>
             </Link>
@@ -316,10 +312,10 @@ export default function Home() {
       <section className="px-4 sm:px-6 max-w-[1200px] mx-auto w-full">
         <div className="bg-gradient-to-r from-[#F0245C] to-[#ff4d7e] rounded-3xl p-8 sm:p-12 text-white shadow-xl text-center flex flex-col items-center gap-6">
           <h2 className="text-3xl sm:text-4xl font-extrabold max-w-2xl leading-tight">
-            Aaj Hi Apni Shop Ko Smart & Automated Banao!
+            Automate & Upgrade Your Shop Today!
           </h2>
           <p className="text-rose-100 text-base sm:text-lg max-w-xl">
-            Bas 2 minute lagte hain register karne mein. Koi hardware change nahi, normal printer par start karo!
+            Setup takes just 2 minutes. Start using your existing printers with zero hardware changes!
           </p>
           <Link to="/register">
             <motion.button

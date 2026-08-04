@@ -38,7 +38,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-stone-400 text-sm leading-relaxed">
-              Automated cyber cafe printing network — QR scan karo, print khud nikal jaye.
+              Automated cyber cafe printing network — Scan QR code and print automatically.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a

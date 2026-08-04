@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Printer,
   KeyRound,
   Info,
   CheckCircle2,
   Check,
-  Zap,
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  AlertCircle,
 } from 'lucide-react'
-import AnimatedDropdown, { PRINTER_BRANDS } from '../components/UI/AnimatedDropdown'
+import AnimatedDropdown from '../components/UI/AnimatedDropdown'
 
 export default function RegisterShop() {
   const [searchParams] = useSearchParams()
@@ -52,12 +47,12 @@ export default function RegisterShop() {
 
   const validate = () => {
     const errs = {}
-    if (!shopName.trim()) errs.shopName = 'Shop ka naam zaroori hai'
-    if (!email.trim()) errs.email = 'Email address zaroori hai'
-    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Sahi email address daalein'
-    if (!printerBrand) errs.printerBrand = 'Printer brand select karein'
-    if (!password) errs.password = 'Password zaroori hai'
-    else if (password.length < 4) errs.password = 'Password kam se kam 4 characters ka hona chahiye'
+    if (!shopName.trim()) errs.shopName = 'Shop Name is required'
+    if (!email.trim()) errs.email = 'Email address is required'
+    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Please enter a valid email address'
+    if (!printerBrand) errs.printerBrand = 'Please select a printer brand'
+    if (!password) errs.password = 'Password is required'
+    else if (password.length < 4) errs.password = 'Password must be at least 4 characters long'
     return errs
   }
 
@@ -126,10 +121,10 @@ export default function RegisterShop() {
       {/* Hero Title */}
       <div className="text-center max-w-2xl mx-auto mb-10">
         <h1 className="text-3xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          Apni Shop <span className="marker-highlight">Register</span> Karo
+          Register Your <span className="marker-highlight">Shop</span>
         </h1>
         <p className="text-stone-600 text-base sm:text-lg mt-3 font-medium">
-          2 minute ka form — phir setup fee, phir QR Code + Print Agent ready
+          2-minute registration — choose your plan — get your QR Code & Print Agent ready
         </p>
       </div>
 
@@ -149,15 +144,15 @@ export default function RegisterShop() {
             </div>
             <div>
               <h2 className="text-xl font-extrabold text-stone-900">Shop Details</h2>
-              <p className="text-xs text-stone-500">Apni cyber cafe ya print shop ki jankari bharein</p>
+              <p className="text-xs text-stone-500">Fill in your cyber café or print shop details</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {/* Shop ka Naam */}
+            {/* Shop Name */}
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                Shop ka Naam *
+                Shop Name *
               </label>
               <input
                 type="text"
@@ -180,7 +175,7 @@ export default function RegisterShop() {
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="Main Road, Khowai"
+                placeholder="Main Road, Market Complex"
                 className="h-12 px-4 rounded-xl border border-stone-300 focus:border-[#F0245C] focus:ring-2 focus:ring-[#F0245C]/20 text-sm font-medium outline-none transition-all"
               />
             </div>
@@ -202,13 +197,13 @@ export default function RegisterShop() {
             {/* Email */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                Email *
+                Email Address *
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="aapka@email.com"
+                placeholder="your@email.com"
                 className={`h-12 px-4 rounded-xl border text-sm font-medium outline-none transition-all ${
                   errors.email ? 'border-rose-500 ring-2 ring-rose-200' : 'border-stone-300 focus:border-[#F0245C] focus:ring-2 focus:ring-[#F0245C]/20'
                 }`}
@@ -218,7 +213,7 @@ export default function RegisterShop() {
               ) : (
                 <div className="flex items-center gap-1 text-[11px] text-blue-600 font-medium mt-0.5">
                   <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>Payment ki receipt aur Shop ID isi email par bheje jaayenge.</span>
+                  <span>Payment receipt and Shop ID credentials will be sent to this email.</span>
                 </div>
               )}
             </div>
@@ -230,7 +225,7 @@ export default function RegisterShop() {
                   label="Printer Brand *"
                   value={printerBrand}
                   onChange={setPrinterBrand}
-                  placeholder="-- Brand select karo --"
+                  placeholder="-- Select Printer Brand --"
                   error={errors.printerBrand}
                 />
               </div>
@@ -249,7 +244,7 @@ export default function RegisterShop() {
               </div>
             </div>
 
-            {/* Print Output Printer (Disabled style input with helper) */}
+            {/* Print Output Printer */}
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
                 Print Output Printer
@@ -259,7 +254,7 @@ export default function RegisterShop() {
               </div>
               <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium mt-0.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                <span>Print Agent aapke PC ke default printer par automatically print karega — koi manual setup nahi.</span>
+                <span>Print Agent automatically prints to your PC's default printer — no manual configuration needed.</span>
               </div>
             </div>
 
@@ -280,7 +275,7 @@ export default function RegisterShop() {
               {errors.password ? (
                 <span className="text-xs text-rose-600 font-medium">{errors.password}</span>
               ) : (
-                <span className="text-xs text-stone-400 font-medium">(kam se kam 4 characters)</span>
+                <span className="text-xs text-stone-400 font-medium">(minimum 4 characters)</span>
               )}
             </div>
 
@@ -295,8 +290,8 @@ export default function RegisterShop() {
                 2
               </div>
               <div>
-                <h2 className="text-xl font-extrabold text-stone-900">Print Rate</h2>
-                <p className="text-xs text-stone-500">customer se per page kitna loge</p>
+                <h2 className="text-xl font-extrabold text-stone-900">Print Rates</h2>
+                <p className="text-xs text-stone-500">Set your customer rate per page</p>
               </div>
             </div>
           </div>
@@ -338,8 +333,8 @@ export default function RegisterShop() {
                 3
               </div>
               <div>
-                <h2 className="text-xl font-extrabold text-stone-900">Customer Payment Kaise Lena Hai</h2>
-                <p className="text-xs font-bold text-[#F0245C] tracking-wide uppercase mt-0.5">PLAN CHUNO</p>
+                <h2 className="text-xl font-extrabold text-stone-900">Select Payment & Subscription Plan</h2>
+                <p className="text-xs font-bold text-[#F0245C] tracking-wide uppercase mt-0.5">CHOOSE PLAN</p>
               </div>
             </div>
           </div>
@@ -372,19 +367,19 @@ export default function RegisterShop() {
                 </div>
 
                 <p className="text-xs text-stone-500 mb-4">
-                  Har mahine time par pay karo — tabhi service active rahegi
+                  Pay monthly on time to keep your automated printing active
                 </p>
 
                 <div className="text-3xl font-extrabold text-stone-900 mb-4">
-                  ₹399 <span className="text-xs font-semibold text-stone-500">/mahina</span>
+                  ₹399 <span className="text-xs font-semibold text-stone-500">/month</span>
                 </div>
 
                 <div className="space-y-2 text-xs text-stone-700">
                   <div className="flex items-center gap-2">✓ Auto Print Software</div>
-                  <div className="flex items-center gap-2">✓ Personalize QR For Shop</div>
-                  <div className="flex items-center gap-2">✓ Unlimited Print</div>
-                  <div className="flex items-center gap-2">✓ Assistant in Setup</div>
-                  <div className="flex items-center gap-2">✓ WhatsApp Assistant</div>
+                  <div className="flex items-center gap-2">✓ Personalized Shop QR Code</div>
+                  <div className="flex items-center gap-2">✓ Unlimited Printouts</div>
+                  <div className="flex items-center gap-2">✓ Setup Assistance</div>
+                  <div className="flex items-center gap-2">✓ Dedicated WhatsApp Support</div>
                 </div>
               </div>
             </motion.div>
@@ -419,7 +414,7 @@ export default function RegisterShop() {
                 </div>
 
                 <p className="text-xs text-stone-500 mb-4">
-                  Ek baar pay — Lifetime Access & Update — No renewal kabhi nahi
+                  One-time payment — Lifetime Access & Updates — Zero renewal fees ever
                 </p>
 
                 <div className="flex items-baseline gap-2 mb-4">
@@ -432,15 +427,15 @@ export default function RegisterShop() {
 
                 <div className="space-y-2 text-xs text-stone-800 font-medium">
                   <div className="flex items-center gap-2">✓ Auto Print Software</div>
-                  <div className="flex items-center gap-2">✓ Personalize QR For Shop</div>
-                  <div className="flex items-center gap-2">✓ Unlimited Print</div>
+                  <div className="flex items-center gap-2">✓ Personalized Shop QR Code</div>
+                  <div className="flex items-center gap-2">✓ Unlimited Printouts</div>
                   <div className="flex items-center gap-2 text-amber-900 font-bold bg-amber-100/60 px-2 py-1 rounded">
                     ⚡ Payment Gateway Setup Assistant
                   </div>
                   <div className="flex items-center gap-2 text-amber-900 font-bold bg-amber-100/60 px-2 py-1 rounded">
-                    ⚡ Bug Fix Within 2Hr
+                    ⚡ Priority 2-Hour Bug Fix
                   </div>
-                  <div className="flex items-center gap-2">✓ AnyDesk Assistant</div>
+                  <div className="flex items-center gap-2">✓ AnyDesk Remote Support</div>
                 </div>
               </div>
             </motion.div>
@@ -451,9 +446,9 @@ export default function RegisterShop() {
           <div className="bg-amber-50 border border-amber-300/80 p-5 rounded-2xl flex items-start gap-3.5 text-stone-800 text-xs sm:text-sm leading-relaxed">
             <span className="text-xl flex-shrink-0">💡</span>
             <div>
-              <strong>Payment kaise receive karna hai (Counter/Online)</strong>, kaun sa printer B&W ke liye, kaun sa Color, kaun sa Duplex — ye saari settings register ke baad <strong>Shop Login → Settings</strong> mein milegi.
+              <strong>Payment collection options (Counter / Online UPI)</strong>, printer mapping for B&W vs Color, and duplex settings are easily configured under <strong>Shop Login → Settings</strong> after registration.
               <br className="my-1" />
-              Register karne ke baad: pehle Software Download karo, phir Settings mein jaake Printer aur Payment options update karo.
+              After completing registration: first download the Print Agent software, then configure your Printer & Payment preferences in Settings.
             </div>
           </div>
         </div>
@@ -469,7 +464,7 @@ export default function RegisterShop() {
           <span>
             {isSubmitting
               ? 'Processing Registration...'
-              : `Register Karo — Agla Step: ₹${currentPrice} ${selectedPlan === 'monthly' ? '(pehla mahina)' : '(lifetime)'} ›`}
+              : `Register Now — Next Step: ₹${currentPrice} ${selectedPlan === 'monthly' ? '(first month)' : '(lifetime)'} ›`}
           </span>
         </motion.button>
       </motion.form>

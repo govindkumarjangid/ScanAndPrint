@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Phone, MessageSquare, Send, CheckCircle2, Briefcase, Sparkles } from 'lucide-react'
+import { Mail, Phone, MessageSquare, Send, CheckCircle2, Briefcase } from 'lucide-react'
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' })
@@ -25,10 +25,10 @@ export default function Contact() {
           Contact Us
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          Humse Sampark Karein
+          Get in Touch with Us
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
-          Koi sawal ho, software setup mein help chahiye ya business inquiry, humse direct contact karein.
+          Have questions, need setup assistance, or want to discuss a business inquiry? Contact our team directly.
         </p>
       </div>
 
@@ -39,7 +39,7 @@ export default function Contact() {
           <div className="bg-white rounded-3xl p-8 border border-stone-200/80 shadow-sm flex flex-col gap-6">
             <h3 className="font-extrabold text-2xl text-stone-900">Direct Contact Information</h3>
             <p className="text-stone-600 text-sm leading-relaxed">
-              Humare team member aapki help ke liye available hain. Instant WhatsApp chat button dwara seedhe contact kar sakte hain.
+              Our support team is ready to assist you. Click below to chat directly with us on WhatsApp.
             </p>
 
             <div className="space-y-4 pt-2">
@@ -73,7 +73,7 @@ export default function Contact() {
             {/* Direct WhatsApp CTA Button */}
             <div className="pt-2">
               <a
-                href="https://wa.me/918404832414?text=Hello%20QR%20Se%20Print%20Team%2C%20mujhe%20jankari%20chahiye"
+                href="https://wa.me/918404832414?text=Hello%20QR%20Se%20Print%20Team%2C%20I%20need%20assistance"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full"
@@ -84,7 +84,7 @@ export default function Contact() {
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-full shadow-md flex items-center justify-center gap-2.5 cursor-pointer text-sm"
                 >
                   <MessageSquare className="w-5 h-5 fill-white" />
-                  <span>Direct WhatsApp Chat Karein</span>
+                  <span>Chat Directly on WhatsApp</span>
                 </motion.button>
               </a>
             </div>
@@ -94,9 +94,9 @@ export default function Contact() {
           <div className="bg-amber-50 rounded-3xl p-6 border border-amber-200 flex items-start gap-4">
             <Briefcase className="w-6 h-6 text-amber-700 flex-shrink-0 mt-1" />
             <div>
-              <h4 className="font-extrabold text-amber-900 text-base">Business & Franchise Inquiry</h4>
+              <h4 className="font-extrabold text-amber-900 text-base">Business & Partnership Inquiries</h4>
               <p className="text-amber-800 text-xs mt-1 leading-relaxed">
-                Agar aap distributor/agent banna chahte hain ya bulk shop onboarding deal propose karna chahte hain, toh kripya WhatsApp par "Business Inquiry" likhkar message bhejein.
+                Interested in becoming a regional distributor or partner? Message us on WhatsApp with "Business Inquiry".
               </p>
             </div>
           </div>
@@ -105,8 +105,8 @@ export default function Contact() {
         {/* Right Side: Animated Contact Form */}
         <div className="lg:col-span-7">
           <div className="bg-white rounded-3xl p-8 sm:p-10 border border-stone-200/80 shadow-lg relative">
-            <h3 className="font-extrabold text-2xl text-stone-900 mb-2">Message Bhejein</h3>
-            <p className="text-stone-500 text-sm mb-6">Form bhariye, hum 24 ghante ke andar reply karenge.</p>
+            <h3 className="font-extrabold text-2xl text-stone-900 mb-2">Send Us a Message</h3>
+            <p className="text-stone-500 text-sm mb-6">Fill out the form below and our team will respond within 24 hours.</p>
 
             {submitted ? (
               <motion.div
@@ -117,9 +117,9 @@ export default function Contact() {
                 <div className="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
-                <h4 className="font-extrabold text-emerald-900 text-2xl">Message Mil Gaya!</h4>
+                <h4 className="font-extrabold text-emerald-900 text-2xl">Message Received!</h4>
                 <p className="text-emerald-800 text-sm max-w-md">
-                  Shukriya! Aapka message hum tak pahunch chuka hai. Hum jaldi hi aap se contact karenge.
+                  Thank you! Your message has reached us. We will get back to you shortly.
                 </p>
                 <button
                   onClick={() => {
@@ -128,14 +128,14 @@ export default function Contact() {
                   }}
                   className="mt-2 text-xs font-bold text-emerald-700 underline"
                 >
-                  Dusra message bhejein
+                  Send another message
                 </button>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                    Aapka Naam *
+                    Your Full Name *
                   </label>
                   <input
                     type="text"
@@ -156,21 +156,21 @@ export default function Contact() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="aapka@email.com"
+                    placeholder="your@email.com"
                     className="h-12 px-4 rounded-xl border border-stone-300 focus:border-[#F0245C] focus:ring-2 focus:ring-[#F0245C]/20 outline-none text-sm font-medium transition-all"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                    Sawal / Message *
+                    Message / Query *
                   </label>
                   <textarea
                     required
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Apna sawal ya concern detail mein likhein..."
+                    placeholder="Write your query or message in detail..."
                     className="p-4 rounded-xl border border-stone-300 focus:border-[#F0245C] focus:ring-2 focus:ring-[#F0245C]/20 outline-none text-sm font-medium transition-all resize-none"
                   />
                 </div>
@@ -183,7 +183,7 @@ export default function Contact() {
                   className="bg-[#F0245C] hover:bg-[#D81B4E] text-white font-extrabold py-4 rounded-full shadow-lg shadow-[#F0245C]/30 flex items-center justify-center gap-2 cursor-pointer mt-2"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{loading ? 'Bhej rahe hain...' : 'Submit Message'}</span>
+                  <span>{loading ? 'Sending Message...' : 'Submit Message'}</span>
                 </motion.button>
               </form>
             )}

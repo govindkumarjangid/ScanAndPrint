@@ -6,53 +6,51 @@ import {
   Download,
   Printer,
   QrCode,
-  Sparkles,
   CheckCircle2,
   ArrowRight,
   Monitor,
-  Laptop,
 } from 'lucide-react'
 
 const setupSteps = [
   {
     step: 1,
     title: 'Register Your Shop',
-    desc: 'Apni shop ki basic details (Naam, Phone, Email, Password aur Printer Brand) ke sath form bharo.',
+    desc: 'Fill in your basic shop details (Name, Phone, Email, Password, and Printer Brand) in our 2-minute registration form.',
     icon: UserPlus,
     badgeColor: 'bg-amber-400 text-stone-900',
   },
   {
     step: 2,
-    title: 'Download the Print Agent Software',
-    desc: 'Shop login ke baad windows PC ke liye small lightweight Print Agent zip file download karo.',
+    title: 'Download Print Agent Software',
+    desc: 'Log in to your shop dashboard and download the lightweight Print Agent application for Windows.',
     icon: Download,
     badgeColor: 'bg-[#F0245C] text-white',
   },
   {
     step: 3,
     title: 'Map Your Printers (B&W / Color)',
-    desc: 'Print agent software mein apna Black & White aur Color printer auto-detect hokar map ho jata hai.',
+    desc: 'The Print Agent automatically detects your connected Black & White and Color printers.',
     icon: Printer,
     badgeColor: 'bg-amber-400 text-stone-900',
   },
   {
     step: 4,
     title: 'Get Your Unique Shop QR Code',
-    desc: 'Aapko shop Dashboard se high quality PDF printable QR code milega aapki shop ID ke sath.',
+    desc: 'Download and print your high-resolution customized QR code containing your unique Shop ID.',
     icon: QrCode,
     badgeColor: 'bg-[#F0245C] text-white',
   },
   {
     step: 5,
-    title: 'Stick the QR at Your Counter',
-    desc: 'QR code print karke shop counter, table ya xerox machine ke paas laga do.',
+    title: 'Display the QR at Your Counter',
+    desc: 'Place the printed QR code prominently at your counter, desk, or near your printing machines.',
     icon: Monitor,
     badgeColor: 'bg-amber-400 text-stone-900',
   },
   {
     step: 6,
     title: 'Start Receiving Auto-Print Orders!',
-    desc: 'Customer phone se QR scan karke pay karega aur paper automatically printer se print nikal aayega.',
+    desc: 'Customers scan the QR code from their mobile, make online payment, and pages automatically print out!',
     icon: CheckCircle2,
     badgeColor: 'bg-emerald-500 text-white',
   },
@@ -67,10 +65,10 @@ export default function HowToSetup() {
           Step-by-Step Guide
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          QR Se Print Setup Kaise Karein?
+          How to Set Up QR Se Print?
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
-          Kewal 6 aasan steps mein apni shop ko automated banayein. Kisi technical knowledge ki zaroorat nahi!
+          Automate your shop in just 6 simple steps. No technical expertise required!
         </p>
       </div>
 
@@ -118,8 +116,8 @@ export default function HowToSetup() {
       {/* CTA Box */}
       <div className="max-w-3xl mx-auto w-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-3xl p-8 sm:p-10 text-stone-900 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
-          <h3 className="text-2xl font-extrabold">Taiyar hain Step 1 shuru karne ke liye?</h3>
-          <p className="text-stone-800 text-sm mt-1">Abhi form bhariye aur 2 minute mein QR code paayein.</p>
+          <h3 className="text-2xl font-extrabold">Ready to Complete Step 1?</h3>
+          <p className="text-stone-800 text-sm mt-1">Fill out the registration form now and get your QR code in 2 minutes.</p>
         </div>
         <Link to="/register" className="flex-shrink-0">
           <motion.button
