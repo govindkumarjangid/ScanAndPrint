@@ -1,1 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --brand-primary: #F0245C;
+  --brand-primary-hover: #D81B4E;
+  --brand-accent: #FBBF24;
+  --bg-warm: #FFFBF7;
+  --text-main: #111111;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-warm);
+  color: var(--text-main);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Custom Marker Highlight Effect */
+.marker-highlight {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.marker-highlight::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: 15%;
+  top: 15%;
+  background-color: var(--brand-accent);
+  z-index: -1;
+  transform: rotate(-1.5deg) skewX(-6deg);
+  border-radius: 4px;
+  opacity: 0.9;
+}
+
+/* Glassmorphism & Subtle Borders */
+.glass-nav {
+  background: rgba(255, 251, 247, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FFFBF7;
+}
+::-webkit-scrollbar-thumb {
+  background: #E5E0D8;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1;
+}
+
+/* Selection highlight */
+::selection {
+  background-color: #F0245C;
+  color: #FFFFFF;
+}
