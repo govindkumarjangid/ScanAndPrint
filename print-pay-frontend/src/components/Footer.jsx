@@ -85,12 +85,7 @@ export default function Footer() {
                   Start Free <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </li>
-              <li>
-                <Link to="/contact" className="hover:text-brand transition-colors flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Become an Agent</span>
-                </Link>
-              </li>
+
             </ul>
           </div>
 
@@ -129,8 +124,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 text-stone-300">
                 <Phone className="w-4 h-4 text-emerald-400" />
-                <a href="tel:8404832414" className="hover:text-white transition-colors">
-                  84048 32414
+                <a href="tel:7073904473 " className="hover:text-white transition-colors">
+                  7073904473
                 </a>
               </li>
               <li>
@@ -153,7 +148,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 text-center text-xs text-stone-500">
           <p>
-            © 2026 · Powered By QR Se Print · All rights reserved. | Developed by Rupesh Kumar Mahato
+            © 2026 · Powered By QR Se Print · All rights reserved. | Developed by Govind kumar jangid.
           </p>
         </div>
       </div>

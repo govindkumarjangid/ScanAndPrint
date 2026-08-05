@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useRef, useState, useLayoutEffect, useCallback } from 'react'
 import { Link } from 'react-router'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useSpring } from 'framer-motion'
 import {
   UserPlus,
   Download,
@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Monitor,
+  Sparkles,
 } from 'lucide-react'
 
 const setupSteps = [
@@ -17,118 +18,298 @@ const setupSteps = [
     title: 'Register Your Shop',
     desc: 'Fill in your basic shop details (Name, Phone, Email, Password, and Printer Brand) in our 2-minute registration form.',
     icon: UserPlus,
-    badgeColor: 'bg-amber-400 text-stone-900',
+    badgeColor: 'bg-amber-400 text-stone-900 ring-4 ring-amber-100/90 shadow-lg',
+    isLeftCard: true,
   },
   {
     step: 2,
     title: 'Download Print Agent Software',
     desc: 'Log in to your shop dashboard and download the lightweight Print Agent application for Windows.',
     icon: Download,
-    badgeColor: 'bg-[#F0245C] text-white',
+    badgeColor: 'bg-brand text-white ring-4 ring-rose-100/90 shadow-lg',
+    isLeftCard: false,
   },
   {
     step: 3,
     title: 'Map Your Printers (B&W / Color)',
     desc: 'The Print Agent automatically detects your connected Black & White and Color printers.',
     icon: Printer,
-    badgeColor: 'bg-amber-400 text-stone-900',
+    badgeColor: 'bg-amber-400 text-stone-900 ring-4 ring-amber-100/90 shadow-lg',
+    isLeftCard: true,
   },
   {
     step: 4,
     title: 'Get Your Unique Shop QR Code',
     desc: 'Download and print your high-resolution customized QR code containing your unique Shop ID.',
     icon: QrCode,
-    badgeColor: 'bg-[#F0245C] text-white',
+    badgeColor: 'bg-brand text-white ring-4 ring-rose-100/90 shadow-lg',
+    isLeftCard: false,
   },
   {
     step: 5,
     title: 'Display the QR at Your Counter',
     desc: 'Place the printed QR code prominently at your counter, desk, or near your printing machines.',
     icon: Monitor,
-    badgeColor: 'bg-amber-400 text-stone-900',
+    badgeColor: 'bg-amber-400 text-stone-900 ring-4 ring-amber-100/90 shadow-lg',
+    isLeftCard: true,
   },
   {
     step: 6,
     title: 'Start Receiving Auto-Print Orders!',
     desc: 'Customers scan the QR code from their mobile, make online payment, and pages automatically print out!',
     icon: CheckCircle2,
-    badgeColor: 'bg-emerald-500 text-white',
+    badgeColor: 'bg-emerald-500 text-white ring-4 ring-emerald-100/90 shadow-lg',
+    isLeftCard: false,
   },
 ]
 
 export default function HowToSetup() {
+  // Wraps the whole desktop stage: SVG overlay + the grid of rows.
+  // Because the SVG path is measured from the *actual* rendered badge
+  // positions (not hardcoded coordinates), the number is always exactly
+  // on the wave's centerline, and the wave always follows each card's
+  // real height/position, however tall the text wraps to.
+  const stageRef = useRef(null)
+  const badgeRefs = useRef([])
+  const [dims, setDims] = useState({ width: 0, height: 0 })
+  const [points, setPoints] = useState([])
+  const [ready, setReady] = useState(false)
+
+  const measure = useCallback(() => {
+    const stage = stageRef.current
+    if (!stage) return
+    const stageRect = stage.getBoundingClientRect()
+    const pts = badgeRefs.current.map((el) => {
+      if (!el) return null
+      const r = el.getBoundingClientRect()
+      return {
+        x: r.left + r.width / 2 - stageRect.left,
+        y: r.top + r.height / 2 - stageRect.top,
+      }
+    })
+    if (pts.some((p) => !p)) return
+    setDims({ width: stageRect.width, height: stageRect.height })
+    setPoints(pts)
+    setReady(true)
+  }, [])
+
+  useLayoutEffect(() => {
+    measure()
+    const ro = new ResizeObserver(() => measure())
+    if (stageRef.current) ro.observe(stageRef.current)
+    window.addEventListener('resize', measure)
+    // Re-measure once more after fonts/layout settle on first paint.
+    const t = setTimeout(measure, 250)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+      clearTimeout(t)
+    }
+  }, [measure])
+
+  // Thread a smooth cubic-bezier curve through the vertical center line
+  // (top/bottom) and every badge's real, measured center point.
+  const buildPath = () => {
+    if (!ready || points.length === 0 || !dims.width) return ''
+    const cx = dims.width / 2
+    const all = [{ x: cx, y: 0 }, ...points, { x: cx, y: dims.height }]
+    let d = `M ${all[0].x},${all[0].y}`
+    for (let i = 0; i < all.length - 1; i++) {
+      const p0 = all[i]
+      const p1 = all[i + 1]
+      const midY = (p0.y + p1.y) / 2
+      d += ` C ${p0.x},${midY} ${p1.x},${midY} ${p1.x},${p1.y}`
+    }
+    return d
+  }
+
+  const pathD = buildPath()
+
+  const { scrollYProgress } = useScroll({
+    target: stageRef,
+    offset: ['start 60%', 'end 80%'],
+  })
+
+  const pathLength = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 25,
+    restDelta: 0.001,
+  })
+
   return (
-    <div className="flex flex-col gap-16 md:gap-20 py-10 px-4 sm:px-6 max-w-7xl mx-auto w-full">
+    <div className="flex flex-col gap-16 md:gap-24 py-10 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
-        <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
-          Step-by-Step Guide
+        <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-brand" /> Interactive Setup Tour
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
           How to Set Up QR Se Print?
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
-          Automate your shop in just 6 simple steps. No technical expertise required!
+          Automate your shop in just 6 simple steps. Follow the curved wave timeline below!
         </p>
       </div>
 
-      {/* Vertical Stepper Timeline */}
-      <div className="max-w-3xl mx-auto w-full relative pl-6 sm:pl-10">
-        {/* Timeline Line */}
-        <div className="absolute top-6 bottom-6 left-6 sm:left-10 w-1 bg-stone-200 -ml-0.5 rounded-full" />
+      {/* CENTERED VERTICAL WAVE STEPPER STAGE */}
+      <div className="w-full relative py-6">
 
-        <div className="flex flex-col gap-10">
-          {setupSteps.map((s, idx) => {
+        {/* DESKTOP: grid rows keep each badge perfectly vertically centered
+            against its own card (native CSS, no coordinate math needed).
+            The SVG wave is then drawn through the badges' real positions,
+            so it always matches whatever height each card actually is. */}
+        <div ref={stageRef} className="hidden md:block relative w-full">
+
+          <motion.svg
+            className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-0"
+            viewBox={`0 0 ${dims.width || 1} ${dims.height || 1}`}
+            preserveAspectRatio="none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: ready ? 1 : 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <defs>
+              <linearGradient id="archedSineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#F0245C" />
+                <stop offset="50%" stopColor="#FBBF24" />
+                <stop offset="100%" stopColor="#10B981" />
+              </linearGradient>
+            </defs>
+
+            {/* Base background wave */}
+            <path
+              d={pathD}
+              fill="none"
+              stroke="#E7E5E4"
+              strokeWidth="6"
+              strokeLinecap="round"
+            />
+
+            {/* Animated scroll-progress wave, on top of the base wave */}
+            <motion.path
+              d={pathD}
+              fill="none"
+              stroke="url(#archedSineGradient)"
+              strokeWidth="6"
+              strokeLinecap="round"
+              style={{ pathLength }}
+            />
+          </motion.svg>
+
+          <div className="flex flex-col gap-12 relative z-10 w-full">
+            {setupSteps.map((s, idx) => {
+              const Icon = s.icon
+              const isLeftCard = s.isLeftCard
+
+              const Card = (
+                <motion.div
+                  initial={{ opacity: 0, x: isLeftCard ? -30 : 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.1 }}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  className="bg-white p-6 sm:p-7 rounded-3xl border border-stone-200/80 shadow-xs hover:shadow-2xl transition-all flex flex-col gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-rose-50 text-brand flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-extrabold text-xl text-stone-900 font-heading">
+                      {s.title}
+                    </h3>
+                  </div>
+
+                  <p className="text-stone-600 text-sm leading-relaxed">{s.desc}</p>
+
+                  <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs font-bold text-stone-400">
+                    <span>Step 0{s.step}</span>
+                    <span className="text-brand">QR PrintPe</span>
+                  </div>
+                </motion.div>
+              )
+
+              return (
+                <div
+                  key={s.step}
+                  className="grid grid-cols-[1fr_112px_1fr] items-center gap-x-6"
+                >
+                  {/* left slot */}
+                  <div>{isLeftCard ? Card : null}</div>
+
+                  {/* center gutter: badge always vertically centered against
+                      this row's card via `items-center` above, and leans
+                      toward the empty side to create the wave's zig-zag */}
+                  <div
+                    className={`flex ${isLeftCard ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      ref={(el) => (badgeRefs.current[idx] = el)}
+                      className={`w-12 h-12 rounded-full ${s.badgeColor} flex items-center justify-center font-extrabold text-lg shrink-0 transition-transform hover:scale-110 cursor-default`}
+                    >
+                      {s.step}
+                    </div>
+                  </div>
+
+                  {/* right slot */}
+                  <div>{!isLeftCard ? Card : null}</div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* MOBILE RESPONSIVE STACKED CARDS (< md) */}
+        <div className="md:hidden flex flex-col gap-6">
+          {setupSteps.map((s) => {
             const Icon = s.icon
             return (
               <motion.div
                 key={s.step}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
-                className="relative flex items-start gap-6 group"
+                className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs flex flex-col gap-3"
               >
-                {/* Step circle */}
-                <div className={`w-12 h-12 rounded-full ${s.badgeColor} flex items-center justify-center font-extrabold text-lg shadow-md shrink-0 z-10 group-hover:scale-110 transition-transform`}
-                >
-                  {s.step}
-                </div>
-
-                {/* Content Card */}
-                <motion.div
-                  whileHover={{ y: -2 }}
-                  className="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all grow flex flex-col gap-2"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className="w-5 h-5 text-brand" />
-                    <h3 className="font-extrabold text-xl text-stone-900">{s.title}</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-rose-50 text-brand flex items-center justify-center">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-extrabold text-lg text-stone-900 font-heading">{s.title}</h3>
                   </div>
-                  <p className="text-stone-600 text-sm sm:text-base leading-relaxed">{s.desc}</p>
-                </motion.div>
+                  <span
+                    className={`w-8 h-8 rounded-full ${s.badgeColor} font-extrabold text-xs flex items-center justify-center shrink-0`}
+                  >
+                    {s.step}
+                  </span>
+                </div>
+                <p className="text-stone-600 text-sm leading-relaxed">{s.desc}</p>
               </motion.div>
             )
           })}
         </div>
+
       </div>
 
       {/* CTA Box */}
-      <div className="max-w-3xl mx-auto w-full bg-linear-to-r from-amber-400 to-amber-500 rounded-3xl p-8 sm:p-10 text-stone-900 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div className="max-w-3xl mx-auto w-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-3xl p-8 sm:p-10 text-stone-900 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
-          <h3 className="text-2xl font-extrabold">Ready to Complete Step 1?</h3>
+          <h3 className="text-2xl font-extrabold font-heading">Ready to Complete Step 1?</h3>
           <p className="text-stone-800 text-sm mt-1">Fill out the registration form now and get your QR code in 2 minutes.</p>
         </div>
         <Link to="/register" className="shrink-0">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-brand hover:bg-brand-hover text-white font-extrabold px-8 py-4 rounded-full text-base shadow-lg cursor-pointer flex items-center gap-2"
+            className="btn-primary px-8 py-4 text-base shadow-lg flex items-center gap-2"
           >
             <span>Start Step 1: Register</span>
             <ArrowRight className="w-5 h-5" />
           </motion.button>
         </Link>
       </div>
+
     </div>
   )
 }

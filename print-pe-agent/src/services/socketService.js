@@ -7,6 +7,7 @@ class SocketService {
     this.socket = null
     this.isConnected = false
     this.statusListeners = []
+    this.hasLoggedOffline = false
   }
 
   onStatusChange(callback) {
@@ -29,11 +30,13 @@ class SocketService {
     }
 
     const targetServerUrl = serverUrl || 'http://localhost:5000'
-    console.log(`[SocketService] Connecting to Cloud Server: ${targetServerUrl} (Shop: ${shopId})`)
+    console.log(`[SocketService] Target Cloud Server: ${targetServerUrl} (Shop: ${shopId})`)
 
     if (this.socket) {
       this.socket.disconnect()
     }
+
+    this.hasLoggedOffline = false
 
     this.socket = io(targetServerUrl, {
       auth: {
@@ -43,28 +46,32 @@ class SocketService {
       },
       reconnection: true,
       reconnectionAttempts: Infinity,
-      reconnectionDelay: 2000,
-      reconnectionDelayMax: 10000,
-      timeout: 20000,
+      reconnectionDelay: 5000,
+      reconnectionDelayMax: 15000,
+      timeout: 10000,
     })
 
     // Socket Event Handlers
     this.socket.on('connect', () => {
-      console.log(`[SocketService] Connected! Socket ID: ${this.socket.id}`)
+      console.log(`[SocketService] 🟢 Connected! Socket ID: ${this.socket.id}`)
       this.isConnected = true
+      this.hasLoggedOffline = false
       this.notifyStatusChange('CONNECTED', { socketId: this.socket.id, shopId })
     })
 
     this.socket.on('disconnect', (reason) => {
-      console.log(`[SocketService] Disconnected: ${reason}`)
+      console.log(`[SocketService] 🔴 Disconnected: ${reason}`)
       this.isConnected = false
       this.notifyStatusChange('DISCONNECTED', { reason })
     })
 
     this.socket.on('connect_error', (err) => {
-      console.error('[SocketService] Connection Error:', err.message)
       this.isConnected = false
-      this.notifyStatusChange('ERROR', { error: err.message })
+      if (!this.hasLoggedOffline) {
+        console.log(`[SocketService] 🟡 Server offline (${targetServerUrl}). Waiting for server...`)
+        this.hasLoggedOffline = true
+      }
+      this.notifyStatusChange('DISCONNECTED', { error: 'Server offline' })
     })
 
     // Real-time Print Job Event Handler

@@ -15,17 +15,16 @@ let agentStatus = { status: 'DISCONNECTED', details: {} }
 // Prevent multiple instances of the Print Agent from running simultaneously
 const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
-  console.log('Another instance of QR Se Print Agent is already running. Exiting...')
-  app.quit()
-} else {
-  app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.show()
-      mainWindow.focus()
-    }
-  })
+  console.log('Another instance of QR Se Print Agent is already running. Focusing existing instance...')
 }
+
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+  }
+})
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -33,6 +32,7 @@ function createMainWindow() {
     height: 680,
     resizable: false,
     autoHideMenuBar: true,
+    show: true,
     title: 'QR Se Print Agent Settings',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -42,6 +42,11 @@ function createMainWindow() {
   })
 
   mainWindow.loadFile(path.join(__dirname, 'src/ui/index.html'))
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show()
+    mainWindow.focus()
+  })
 
   mainWindow.on('close', (event) => {
     if (!app.isQuitting) {
@@ -62,7 +67,7 @@ function updateTrayMenu() {
   if (!tray) return
 
   const { status, details } = agentStatus
-  let statusText = 'Disconnected'
+  let statusText = 'Disconnected (Server Offline)'
   if (status === 'CONNECTED') statusText = `Connected (${details.shopId || 'Online'})`
   else if (status === 'UNCONFIGURED') statusText = 'Unconfigured'
 
@@ -133,10 +138,6 @@ function setupIpcHandlers() {
     return success
   })
 
-  ipcMain.handle('get-[#F0245C]-printers', async () => {
-    return await printerManager.getAvailablePrinters()
-  })
-
   ipcMain.handle('get-printers', async () => {
     return await printerManager.getAvailablePrinters()
   })
@@ -161,13 +162,6 @@ app.whenReady().then(() => {
   })
 
   socketService.connect()
-
-  const config = configStore.getAll()
-  if (!config.shopId || !config.secretKey) {
-    mainWindow.show()
-  } else {
-    mainWindow.hide()
-  }
 })
 
 app.on('window-all-closed', () => {

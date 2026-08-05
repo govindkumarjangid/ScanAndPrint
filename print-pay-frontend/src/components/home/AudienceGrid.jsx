@@ -48,22 +48,29 @@ export default function AudienceGrid() {
     return () => clearInterval(interval)
   }, [isPaused, activeIndex])
 
-  // Center active card perfectly in the middle of the viewport
+  // Center active card perfectly in the middle of the viewport (re-centers on resize / zoom out)
   useEffect(() => {
-    if (!carouselRef.current) return
-    const container = carouselRef.current
-    const activeCardElement = container.children[activeIndex]
-    if (activeCardElement) {
-      const containerWidth = container.clientWidth
-      const cardOffsetLeft = activeCardElement.offsetLeft
-      const cardWidth = activeCardElement.clientWidth
-      const targetScrollLeft = cardOffsetLeft - containerWidth / 2 + cardWidth / 2
+    const centerActiveCard = () => {
+      if (!carouselRef.current) return
+      const container = carouselRef.current
+      const activeCardElement = container.children[activeIndex]
+      if (activeCardElement) {
+        const containerWidth = container.clientWidth
+        const cardOffsetLeft = activeCardElement.offsetLeft
+        const cardWidth = activeCardElement.clientWidth
+        const targetScrollLeft = cardOffsetLeft - containerWidth / 2 + cardWidth / 2
 
-      container.scrollTo({
-        left: targetScrollLeft,
-        behavior: 'smooth',
-      })
+        container.scrollTo({
+          left: targetScrollLeft,
+          behavior: 'smooth',
+        })
+      }
     }
+
+    centerActiveCard()
+
+    window.addEventListener('resize', centerActiveCard)
+    return () => window.removeEventListener('resize', centerActiveCard)
   }, [activeIndex])
 
   return (
@@ -88,7 +95,7 @@ export default function AudienceGrid() {
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
         style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
-        className="flex items-center gap-1 sm:gap-3 overflow-x-auto no-scrollbar py-12 px-[35vw] sm:px-[40vw] scroll-smooth min-h-[380px]"
+        className="flex items-center gap-1 sm:gap-3 overflow-x-auto no-scrollbar py-12 px-[calc(50%-130px)] sm:px-[calc(50%-150px)] scroll-smooth min-h-[380px]"
       >
         {audienceList.map((aud, idx) => {
           const Icon = aud.icon

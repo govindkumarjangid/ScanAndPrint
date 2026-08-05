@@ -138,7 +138,7 @@ export default function Navbar() {
                   initial={{ x: '100%' }}
                   animate={{ x: 0 }}
                   exit={{ x: '100%' }}
-                  transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                  transition={{ type: 'spring', damping: 35, stiffness: 300 }}
                   style={{ backgroundColor: '#FFFBF7' }}
                   className="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm z-[9999] shadow-2xl p-5 flex flex-col justify-between md:hidden border-l border-stone-200 overflow-y-auto"
                 >

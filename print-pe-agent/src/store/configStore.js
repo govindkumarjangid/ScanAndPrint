@@ -14,17 +14,22 @@ class ConfigStore {
     try {
       if (fs.existsSync(this.configPath)) {
         const rawData = fs.readFileSync(this.configPath, 'utf8')
-        return JSON.parse(rawData)
+        const parsed = JSON.parse(rawData)
+        if (parsed.shopId && parsed.secretKey) {
+          return parsed
+        }
       }
     } catch (err) {
       console.error('Error reading config file:', err)
     }
+    
+    // Default testing credentials for development & verification
     return {
-      shopId: '',
-      secretKey: '',
+      shopId: 'SHOP_TEST_999',
+      secretKey: 'sec_test_secret_123456',
       serverUrl: 'http://localhost:5000',
-      defaultBwPrinter: '',
-      defaultColorPrinter: '',
+      defaultBwPrinter: 'Microsoft Print to PDF',
+      defaultColorPrinter: 'Microsoft Print to PDF',
       autoStartOnBoot: true,
     }
   }
