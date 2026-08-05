@@ -1,0 +1,47 @@
+{
+  "name": "print-pe-agent",
+  "version": "1.0.0",
+  "description": "Production Desktop Print Agent for QR Se Print (QR PrintPe) automated printing network",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win nsis",
+    "test:print": "node src/test-print.js"
+  },
+  "keywords": [
+    "print-agent",
+    "silent-print",
+    "qr-se-print",
+    "electron"
+  ],
+  "author": "QR Se Print Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "electron-store": "^8.2.0",
+    "pdf-to-printer": "^5.6.0",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "electron": "^34.1.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.qrseprint.agent",
+    "productName": "QR Se Print Agent",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "QR Se Print Agent"
+    }
+  }
+}

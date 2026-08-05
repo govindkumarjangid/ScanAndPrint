@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-brand: #F0245C;
+  --color-brand-hover: #D81B4E;
+  --color-brand-light: rgba(240, 36, 92, 0.1);
+  --color-brand-accent: #FBBF24;
+  --color-brand-bg: #FFFBF7;
+}
+
 :root {
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-heading: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -26,6 +34,61 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+}
+
+/* Custom Reusable Color & Component Utility Classes */
+.bg-brand {
+  background-color: var(--brand-primary);
+}
+.bg-brand-hover:hover {
+  background-color: var(--brand-primary-hover);
+}
+.text-brand {
+  color: var(--brand-primary);
+}
+.border-brand {
+  border-color: var(--brand-primary);
+}
+.bg-brand-light {
+  background-color: rgba(240, 36, 92, 0.1);
+}
+.bg-brand-accent {
+  background-color: var(--brand-accent);
+}
+
+/* Reusable Button Classes */
+.btn-primary {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  font-weight: 800;
+  border-radius: 9999px;
+  box-shadow: 0 10px 15px -3px rgba(240, 36, 92, 0.25);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background-color: var(--brand-primary-hover);
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  color: #1c1917;
+  border: 1px solid #e7e5e4;
+  font-weight: 700;
+  border-radius: 9999px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  background-color: #f5f5f4;
+}
+
+/* Reusable Card Class */
+.card-base {
+  background-color: #ffffff;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(231, 229, 228, 0.8);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* Custom Marker Highlight Effect */
@@ -74,6 +137,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Selection highlight */
 ::selection {
-  background-color: #F0245C;
+  background-color: var(--brand-primary);
   color: #FFFFFF;
+}
+
+/* Hide scrollbar for clean carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

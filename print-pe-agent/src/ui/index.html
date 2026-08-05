@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Se Print Agent Settings</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div className="container">
+    <!-- Header -->
+    <header className="header">
+      <div className="logo-group">
+        <div className="logo-icon">🖨️</div>
+        <div>
+          <h1>QR Se Print Agent</h1>
+          <p className="subtitle">Production Desktop Agent v1.0.0</p>
+        </div>
+      </div>
+      <div id="statusBadge" className="status-badge status-disconnected">
+        <span className="dot"></span>
+        <span id="statusText">Disconnected</span>
+      </div>
+    </header>
+
+    <!-- Form Section -->
+    <form id="settingsForm">
+      
+      <!-- Section 1: Shop Credentials -->
+      <div className="card">
+        <h3>🔑 Shop Credentials</h3>
+        <p className="card-sub">Get your Shop ID and Secret Key from your Shop Owner Dashboard</p>
+
+        <div className="form-group">
+          <label for="shopId">SHOP ID *</label>
+          <input type="text" id="shopId" placeholder="e.g. SHOP_12345" required />
+        </div>
+
+        <div className="form-group">
+          <label for="secretKey">SECRET KEY *</label>
+          <input type="password" id="secretKey" placeholder="••••••••••••••••" required />
+        </div>
+
+        <div className="form-group">
+          <label for="serverUrl">CLOUD SERVER URL</label>
+          <input type="url" id="serverUrl" placeholder="http://localhost:5000" />
+        </div>
+      </div>
+
+      <!-- Section 2: Printer Configuration -->
+      <div className="card">
+        <h3>🖨️ Printer Hardware Setup</h3>
+        <p className="card-sub">Select default printers for automatic print job routing</p>
+
+        <div className="form-group">
+          <label for="bwPrinter">BLACK & WHITE DEFAULT PRINTER</label>
+          <select id="bwPrinter">
+            <option value="">-- System Default Printer --</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label for="colorPrinter">COLOR DEFAULT PRINTER</label>
+          <select id="colorPrinter">
+            <option value="">-- System Default Printer --</option>
+          </select>
+        </div>
+
+        <div className="btn-row">
+          <button type="button" id="refreshPrintersBtn" className="btn btn-secondary">
+            🔄 Refresh Printers List
+          </button>
+          <button type="button" id="testPrintBtn" className="btn btn-secondary">
+            📄 Test Print Page
+          </button>
+        </div>
+      </div>
+
+      <!-- Submit / Save Actions -->
+      <div className="actions">
+        <button type="submit" id="saveBtn" className="btn btn-primary">
+          💾 Save & Connect Agent
+        </button>
+      </div>
+    </form>
+
+    <!-- Footer Alert / Info -->
+    <footer className="footer">
+      <p id="alertMessage" className="alert-message"></p>
+      <p className="footer-note">Agent runs silently in System Tray (near Windows clock).</p>
+    </footer>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

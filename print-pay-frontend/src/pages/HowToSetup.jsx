@@ -58,10 +58,10 @@ const setupSteps = [
 
 export default function HowToSetup() {
   return (
-    <div className="flex flex-col gap-16 md:gap-20 py-10 px-4 sm:px-6 max-w-[1200px] mx-auto w-full">
+    <div className="flex flex-col gap-16 md:gap-20 py-10 px-4 sm:px-6 max-w-7xl mx-auto w-full">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
-        <span className="text-[#F0245C] font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
+        <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
           Step-by-Step Guide
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
@@ -89,9 +89,8 @@ export default function HowToSetup() {
                 transition={{ duration: 0.4, delay: idx * 0.1 }}
                 className="relative flex items-start gap-6 group"
               >
-                {/* Step badge circle */}
-                <div
-                  className={`w-12 h-12 rounded-full ${s.badgeColor} flex items-center justify-center font-extrabold text-lg shadow-md flex-shrink-0 z-10 group-hover:scale-110 transition-transform`}
+                {/* Step circle */}
+                <div className={`w-12 h-12 rounded-full ${s.badgeColor} flex items-center justify-center font-extrabold text-lg shadow-md shrink-0 z-10 group-hover:scale-110 transition-transform`}
                 >
                   {s.step}
                 </div>
@@ -99,10 +98,10 @@ export default function HowToSetup() {
                 {/* Content Card */}
                 <motion.div
                   whileHover={{ y: -2 }}
-                  className="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all flex-grow flex flex-col gap-2"
+                  className="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all grow flex flex-col gap-2"
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon className="w-5 h-5 text-[#F0245C]" />
+                    <Icon className="w-5 h-5 text-brand" />
                     <h3 className="font-extrabold text-xl text-stone-900">{s.title}</h3>
                   </div>
                   <p className="text-stone-600 text-sm sm:text-base leading-relaxed">{s.desc}</p>
@@ -114,16 +113,16 @@ export default function HowToSetup() {
       </div>
 
       {/* CTA Box */}
-      <div className="max-w-3xl mx-auto w-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-3xl p-8 sm:p-10 text-stone-900 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div className="max-w-3xl mx-auto w-full bg-linear-to-r from-amber-400 to-amber-500 rounded-3xl p-8 sm:p-10 text-stone-900 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
           <h3 className="text-2xl font-extrabold">Ready to Complete Step 1?</h3>
           <p className="text-stone-800 text-sm mt-1">Fill out the registration form now and get your QR code in 2 minutes.</p>
         </div>
-        <Link to="/register" className="flex-shrink-0">
+        <Link to="/register" className="shrink-0">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-[#F0245C] hover:bg-[#D81B4E] text-white font-extrabold px-8 py-4 rounded-full text-base shadow-lg cursor-pointer flex items-center gap-2"
+            className="bg-brand hover:bg-brand-hover text-white font-extrabold px-8 py-4 rounded-full text-base shadow-lg cursor-pointer flex items-center gap-2"
           >
             <span>Start Step 1: Register</span>
             <ArrowRight className="w-5 h-5" />
