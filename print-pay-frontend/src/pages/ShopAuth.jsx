@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Eye, EyeOff, QrCode, CheckCircle2, ArrowRight, ArrowLeft, IndianRupee } from 'lucide-react'
+import {
+  Eye,
+  EyeOff,
+  QrCode,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+  IndianRupee,
+  printerBrandOptions,
+} from '../assets/assets'
 import { useAuthStore } from '../store/useAuthStore'
 
 export default function ShopAuth() {
@@ -484,12 +493,11 @@ export default function ShopAuth() {
                       onChange={(e) => updateRegisterData({ printerBrand: e.target.value })}
                       className="w-full h-11 px-4 rounded-2xl border border-stone-300/80 bg-stone-50/50 focus:bg-white focus:border-brand focus:ring-2 focus:ring-rose-500/20 outline-none text-sm font-medium cursor-pointer transition-all"
                     >
-                      <option value="Epson">Epson (e.g. L3210, L3150)</option>
-                      <option value="HP">HP (LaserJet, DeskJet)</option>
-                      <option value="Canon">Canon (PIXMA, imageCLASS)</option>
-                      <option value="Brother">Brother (DCP, HL Series)</option>
-                      <option value="Ricoh">Ricoh / Konica Minolta</option>
-                      <option value="Other">Other Brand</option>
+                      {printerBrandOptions.map((brand) => (
+                        <option key={brand} value={brand}>
+                          {brand}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

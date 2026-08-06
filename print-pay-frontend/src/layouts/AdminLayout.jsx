@@ -2,26 +2,13 @@ import React, { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import {
   ShieldCheck,
-  LayoutDashboard,
-  Store,
-  CreditCard,
-  Monitor,
-  Settings,
   LogOut,
   Menu,
   X,
   Activity,
-  Search,
-} from 'lucide-react'
+  adminNavItems,
+} from '../assets/assets'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const adminNavItems = [
-  { name: 'Platform Overview', path: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Shops Management', path: '/admin/shops', icon: Store },
-  { name: 'Transactions & Revenue', path: '/admin/transactions', icon: CreditCard },
-  { name: 'Live Print Agents', path: '/admin/agents', icon: Monitor },
-  { name: 'System Settings', path: '/admin/settings', icon: Settings },
-]
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)

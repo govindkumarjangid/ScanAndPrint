@@ -7,13 +7,13 @@ import AdminLayout from './layouts/AdminLayout'
 import PageLoader from './components/common/PageLoader'
 
 // Lazy Loaded Marketing Pages (Code Splitting)
-const Home = lazy(() => import('./pages/Home'))
-const Features = lazy(() => import('./pages/Features'))
-const Pricing = lazy(() => import('./pages/Pricing'))
-const HowToSetup = lazy(() => import('./pages/HowToSetup'))
-const About = lazy(() => import('./pages/About'))
-const Contact = lazy(() => import('./pages/Contact'))
-const Disclaimer = lazy(() => import('./pages/Disclaimer'))
+const Home = lazy(() => import('./pages/Home/Home'))
+const Features = lazy(() => import('./pages/Home/Features'))
+const Pricing = lazy(() => import('./pages/Home/Pricing'))
+const HowToSetup = lazy(() => import('./pages/Home/HowToSetup'))
+const About = lazy(() => import('./pages/Home/About'))
+const Contact = lazy(() => import('./pages/Home/Contact'))
+const Disclaimer = lazy(() => import('./pages/Home/Disclaimer'))
 const RegisterShop = lazy(() => import('./pages/RegisterShop'))
 const ShopLogin = lazy(() => import('./pages/ShopLogin'))
 

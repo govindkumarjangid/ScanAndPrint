@@ -1,23 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
-/**
- * Scroll-driven Lazy Loading Wrapper.
- * Only renders its children when the element enters the viewport via IntersectionObserver!
- */
 export default function IntersectionLazyView({ children, placeholderHeight = '300px' }) {
   const [isVisible, setIsVisible] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect() // Stop observing once loaded
-        }
-      },
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true)
+        observer.disconnect()
+      }
+    },
       {
-        rootMargin: '150px', // Load 150px before entering viewport for seamless scrolling
+        rootMargin: '100px',
         threshold: 0.01,
       }
     )

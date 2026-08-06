@@ -1,29 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Printer,
-  ShieldCheck,
-  Building2,
-  GraduationCap,
-  BookOpen,
-  Store,
-  Layers,
-  TrendingUp,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react'
-
-// "Who it's for" audience list
-const audienceList = [
-  { icon: Store, title: 'Cyber Cafes', desc: 'Eliminate long queues with instant automatic printing.' },
-  { icon: Printer, title: 'Print & Xerox Shops', desc: 'Customers print photos and PDFs directly from their phones.' },
-  { icon: ShieldCheck, title: 'CSC Centers', desc: 'Process government digital services fast and hassle-free.' },
-  { icon: Building2, title: 'Digital Service Centres', desc: 'Direct phone-to-printer workflow without sharing WhatsApp.' },
-  { icon: GraduationCap, title: 'Schools & Colleges', desc: 'Quick student notes and admit card printouts.' },
-  { icon: BookOpen, title: 'Coaching Institutes', desc: 'Instant assignment and test paper printing.' },
-  { icon: Layers, title: 'Libraries & Offices', desc: 'Convenient self-service document printing.' },
-  { icon: TrendingUp, title: 'Small & Medium Businesses', desc: 'Digital payments and auto-printing combined.' },
-]
+import { ChevronLeft, ChevronRight, audienceList } from '../../assets/assets'
 
 export default function AudienceGrid() {
   const carouselRef = useRef(null)

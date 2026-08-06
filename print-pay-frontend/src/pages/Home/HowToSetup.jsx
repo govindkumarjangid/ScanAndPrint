@@ -1,67 +1,7 @@
 import React, { useRef, useState, useLayoutEffect, useCallback } from 'react'
 import { Link } from 'react-router'
 import { motion, useScroll, useSpring } from 'framer-motion'
-import {
-  UserPlus,
-  Download,
-  Printer,
-  QrCode,
-  CheckCircle2,
-  ArrowRight,
-  Monitor,
-  Sparkles,
-} from 'lucide-react'
-
-const setupSteps = [
-  {
-    step: 1,
-    title: 'Register Your Shop',
-    desc: 'Fill in your basic shop details (Name, Phone, Email, Password, and Printer Brand) in our 2-minute registration form.',
-    icon: UserPlus,
-    badgeColor: 'bg-amber-400 text-stone-900 ring-4 ring-amber-100/90 shadow-lg',
-    isLeftCard: true,
-  },
-  {
-    step: 2,
-    title: 'Download Print Agent Software',
-    desc: 'Log in to your shop dashboard and download the lightweight Print Agent application for Windows.',
-    icon: Download,
-    badgeColor: 'bg-brand text-white ring-4 ring-rose-100/90 shadow-lg',
-    isLeftCard: false,
-  },
-  {
-    step: 3,
-    title: 'Map Your Printers (B&W / Color)',
-    desc: 'The Print Agent automatically detects your connected Black & White and Color printers.',
-    icon: Printer,
-    badgeColor: 'bg-amber-400 text-stone-900 ring-4 ring-amber-100/90 shadow-lg',
-    isLeftCard: true,
-  },
-  {
-    step: 4,
-    title: 'Get Your Unique Shop QR Code',
-    desc: 'Download and print your high-resolution customized QR code containing your unique Shop ID.',
-    icon: QrCode,
-    badgeColor: 'bg-brand text-white ring-4 ring-rose-100/90 shadow-lg',
-    isLeftCard: false,
-  },
-  {
-    step: 5,
-    title: 'Display the QR at Your Counter',
-    desc: 'Place the printed QR code prominently at your counter, desk, or near your printing machines.',
-    icon: Monitor,
-    badgeColor: 'bg-amber-400 text-stone-900 ring-4 ring-amber-100/90 shadow-lg',
-    isLeftCard: true,
-  },
-  {
-    step: 6,
-    title: 'Start Receiving Auto-Print Orders!',
-    desc: 'Customers scan the QR code from their mobile, make online payment, and pages automatically print out!',
-    icon: CheckCircle2,
-    badgeColor: 'bg-emerald-500 text-white ring-4 ring-emerald-100/90 shadow-lg',
-    isLeftCard: false,
-  },
-]
+import { Sparkles, ArrowRight, setupSteps } from '../../assets/assets'
 
 export default function HowToSetup() {
   // Wraps the whole desktop stage: SVG overlay + the grid of rows.

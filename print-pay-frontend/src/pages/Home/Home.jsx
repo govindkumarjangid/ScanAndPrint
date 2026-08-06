@@ -1,10 +1,10 @@
 import React from 'react'
-import Hero from '../components/Home/Hero'
-import OriginStoryTeaser from '../components/Home/OriginStoryTeaser'
-import AudienceGrid from '../components/Home/AudienceGrid'
-import FeatureHighlightsSnippet from '../components/Home/FeatureHighlightsSnippet'
-import CtaBanner from '../components/Home/CtaBanner'
-import IntersectionLazyView from '../components/common/IntersectionLazyView'
+import Hero from '../../components/home/Hero'
+import OriginStoryTeaser from "../../components/home/OriginStoryTeaser";
+import AudienceGrid from '../../components/home/AudienceGrid'
+import FeatureHighlightsSnippet from '../../components/home/FeatureHighlightsSnippet'
+import CtaBanner from '../../components/home/CtaBanner'
+import IntersectionLazyView from '../../components/common/IntersectionLazyView'
 
 export default function Home() {
   return (

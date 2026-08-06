@@ -2,31 +2,14 @@ import React, { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import {
   Printer,
-  LayoutDashboard,
-  FileText,
-  Sliders,
   QrCode,
-  Download,
-  Settings,
   LogOut,
   Menu,
   X,
-  Bell,
   CheckCircle2,
-  AlertCircle,
-  IndianRupee,
-} from 'lucide-react'
+  ownerNavItems,
+} from '../assets/assets'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const ownerNavItems = [
-  { name: 'Dashboard Overview', path: '/owner/dashboard', icon: LayoutDashboard },
-  { name: 'Print Orders Queue', path: '/owner/jobs', icon: FileText },
-  { name: 'Printer Setup', path: '/owner/printers', icon: Printer },
-  { name: 'Print Rates & Pricing', path: '/owner/pricing', icon: IndianRupee },
-  { name: 'Shop QR Code', path: '/owner/qr-code', icon: QrCode },
-  { name: 'Print Agent (.exe)', path: '/owner/agent', icon: Download },
-  { name: 'Shop Settings', path: '/owner/settings', icon: Settings },
-]
 
 export default function OwnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)

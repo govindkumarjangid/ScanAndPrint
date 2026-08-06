@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Phone, MessageSquare, Send, CheckCircle2, Briefcase } from 'lucide-react'
+import { Mail, Phone, MessageSquare, Send, CheckCircle2, Briefcase } from '../../assets/assets'
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' })

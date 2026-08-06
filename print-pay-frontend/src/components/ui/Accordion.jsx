@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, HelpCircle } from 'lucide-react'
+import { ChevronDown, HelpCircle } from '../../assets/assets'
 
 export default function Accordion({ items }) {
   const [openIndex, setOpenIndex] = useState(0)

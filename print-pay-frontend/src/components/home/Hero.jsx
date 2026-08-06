@@ -2,50 +2,18 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  QrCode,
-  Printer,
+  Sparkles,
   Zap,
   ArrowRight,
-  Sparkles,
   Check,
+  QrCode,
   UploadCloud,
-  CreditCard,
-  ScanLine,
-  CheckCircle2,
   FileText,
-} from 'lucide-react'
-
-// 4 Interactive Step Definitions
-const heroSteps = [
-  {
-    id: 0,
-    num: '01',
-    label: 'Scan QR Code',
-    subtitle: 'Phone Camera / UPI',
-    icon: ScanLine,
-  },
-  {
-    id: 1,
-    num: '02',
-    label: 'Upload File',
-    subtitle: 'PDF, Image, Docs',
-    icon: UploadCloud,
-  },
-  {
-    id: 2,
-    num: '03',
-    label: 'Instant UPI Pay',
-    subtitle: 'GPay / PhonePe / Paytm',
-    icon: CreditCard,
-  },
-  {
-    id: 3,
-    num: '04',
-    label: 'Auto Print!',
-    subtitle: 'Zero Manual Work',
-    icon: Printer,
-  },
-]
+  CheckCircle2,
+  CreditCard,
+  Printer,
+  heroSteps,
+} from '../../assets/assets'
 
 export default function Hero() {
   const [activeStep, setActiveStep] = useState(0)

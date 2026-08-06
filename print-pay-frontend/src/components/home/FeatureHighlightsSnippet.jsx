@@ -1,26 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { QrCode, Printer, ShieldCheck, ArrowRight } from 'lucide-react'
-
-// Feature highlight snippets
-const highlights = [
-  {
-    icon: QrCode,
-    title: 'Scan → Upload → Pay → Auto Print',
-    desc: 'Customers scan your counter QR code, upload files, and pay online — documents print automatically on your PC!',
-  },
-  {
-    icon: Printer,
-    title: 'No WiFi Printer Required',
-    desc: 'Works seamlessly with your existing standard USB or desktop printer. No expensive hardware needed.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Auto-Deleted Private Files',
-    desc: 'Customer files are automatically deleted immediately after printing. 100% data privacy and trust.',
-  },
-]
+import { ArrowRight, highlights } from '../../assets/assets'
 
 export default function FeatureHighlightsSnippet() {
   return (

@@ -1,36 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { Check, Sparkles, HelpCircle, ArrowRight, ShieldCheck, Zap } from 'lucide-react'
-import Accordion from '../components/UI/Accordion'
-
-const faqItems = [
-  {
-    question: 'Do I need to pay ₹399 every month on the Monthly plan?',
-    answer:
-      'Yes, the Monthly plan keeps your auto-print service active as long as the monthly subscription is renewed.',
-  },
-  {
-    question: 'Are there any hidden charges on the ₹599 One-Time plan?',
-    answer:
-      'Absolutely none! The One-Time plan grants lifetime access including all future software updates with zero renewal fees.',
-  },
-  {
-    question: 'Can I upgrade from Monthly to the One-Time Lifetime plan later?',
-    answer:
-      'Yes, you can upgrade your account to the One-Time lifetime plan anytime from your Shop Owner Login dashboard.',
-  },
-  {
-    question: 'How will I receive setup assistance?',
-    answer:
-      'Our dedicated team guides you 1-on-1 via WhatsApp and AnyDesk remote desktop support.',
-  },
-  {
-    question: 'Will I get help setting up online payment gateways?',
-    answer:
-      'Yes! On the One-Time ₹599 plan, we assist you in setting up direct UPI payments via PhonePe, Google Pay, or Paytm.',
-  },
-]
+import { Check, Sparkles, ArrowRight, Zap, faqItems } from '../../assets/assets'
+import Accordion from "../../components/ui/Accordion"
 
 export default function Pricing() {
   return (
@@ -50,7 +22,7 @@ export default function Pricing() {
 
       {/* Plan Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto w-full items-stretch">
-        
+
         {/* Monthly Plan Card */}
         <motion.div
           whileHover={{ y: -4 }}

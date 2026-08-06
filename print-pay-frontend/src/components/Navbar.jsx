@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { createPortal } from 'react-dom'
-import { Printer, Menu, X, KeyRound, ChevronRight } from 'lucide-react'
+import { Printer, Menu, X, KeyRound, ChevronRight, navLinks } from '../assets/assets'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const navLinks = [
-  { name: 'Home', path: '/' },
-  { name: 'Features', path: '/features' },
-  { name: 'Pricing', path: '/pricing' },
-  { name: 'How to Setup', path: '/how-to-setup' },
-  { name: 'About', path: '/about' },
-  { name: 'Contact', path: '/contact' },
-]
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)

@@ -2,60 +2,13 @@ import React from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
-  Store,
-  Printer,
-  ShieldCheck,
-  Building2,
-  GraduationCap,
-  BookOpen,
-  Layers,
-  TrendingUp,
-  MessageSquareCheck,
   Target,
+  MessageSquareCheck,
   Compass,
   ArrowRight,
-} from 'lucide-react'
-
-// 5-step origin story narrative in Pure English
-const originNarrative = [
-  {
-    step: '1',
-    title: 'Starting a Local Cyber Café',
-    desc: 'We started a small cyber café and xerox shop in a local town. Customers visited daily for online form submissions and document printouts.',
-  },
-  {
-    step: '2',
-    title: 'Daily Crowd & Frustration',
-    desc: '30-40 customers would crowd the counter shouting, "Brother, I sent the file on WhatsApp, please print it." Manually opening WhatsApp Web, downloading files, and issuing print commands consumed all our time.',
-  },
-  {
-    step: '3',
-    title: 'Developing an Automated System',
-    desc: 'To eliminate this bottleneck, we engineered a smart QR printing system that allowed customers to scan, pay online, and auto-print directly from their phones.',
-  },
-  {
-    step: '4',
-    title: 'Refinement from Real Feedback',
-    desc: 'Nearby shop owners requested the system for their own centers. Based on their input, we added Black & White vs Color printer mapping and instant custom QR branding.',
-  },
-  {
-    step: '5',
-    title: 'Nationwide Launch for All Shops',
-    desc: 'Today, QR Se Print is the most trusted smart printing platform powering CSC centers, xerox shops, and digital service centers across India!',
-  },
-]
-
-// "Who it's for" audience list
-const audienceList = [
-  { icon: Store, title: 'Cyber Cafes', desc: 'Eliminate long queues with instant automatic printing.' },
-  { icon: Printer, title: 'Print & Xerox Shops', desc: 'Customers print photos and PDFs directly from their phones.' },
-  { icon: ShieldCheck, title: 'CSC Centers', desc: 'Process government digital services fast and hassle-free.' },
-  { icon: Building2, title: 'Digital Service Centres', desc: 'Direct phone-to-printer workflow without sharing WhatsApp.' },
-  { icon: GraduationCap, title: 'Schools & Colleges', desc: 'Quick student notes and admit card printouts.' },
-  { icon: BookOpen, title: 'Coaching Institutes', desc: 'Instant assignment and test paper printing.' },
-  { icon: Layers, title: 'Libraries & Offices', desc: 'Convenient self-service document printing.' },
-  { icon: TrendingUp, title: 'Small & Medium Businesses', desc: 'Digital payments and auto-printing combined.' },
-]
+  originNarrative,
+  audienceList,
+} from '../../assets/assets'
 
 export default function About() {
   return (

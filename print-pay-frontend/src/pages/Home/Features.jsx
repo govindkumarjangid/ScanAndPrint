@@ -1,75 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import {
-  QrCode,
-  Printer,
-  Download,
-  ShieldCheck,
-  LayoutDashboard,
-  SlidersHorizontal,
-  TrendingUp,
-  Zap,
-  RefreshCw,
-  ArrowRight,
-} from 'lucide-react'
-
-const featuresList = [
-  {
-    icon: QrCode,
-    title: 'QR-Based Smart Printing',
-    desc: 'Customers scan your counter QR code, upload files, complete payment, and documents print automatically.',
-    highlight: 'Scan → Upload → Pay → Auto Print',
-  },
-  {
-    icon: Printer,
-    title: 'Any Printer Supported',
-    desc: 'Compatible with all standard USB desktop printers. No expensive WiFi or smart printers required.',
-    highlight: 'No WiFi Printer Needed',
-  },
-  {
-    icon: Download,
-    title: 'Easy Software Installation',
-    desc: 'Simple 2-step setup. Install the lightweight Windows application and log in with your Shop ID.',
-    highlight: '2-Minute Setup',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Secure Document Processing',
-    desc: 'Customer files are permanently auto-deleted from the system right after printing. 100% privacy guaranteed.',
-    highlight: 'Auto-Deleted After Printing',
-  },
-  {
-    icon: LayoutDashboard,
-    title: 'Shop Owner Dashboard',
-    desc: 'Track total print orders, daily revenue, and active printer status anytime from mobile or desktop.',
-    highlight: 'Real-Time Analytics',
-  },
-  {
-    icon: SlidersHorizontal,
-    title: 'Separate B&W & Color Printers',
-    desc: 'Configure separate default printers for Black & White and Color jobs with custom rates per page.',
-    highlight: 'Custom Per-Page Rates',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Order & Revenue Management',
-    desc: 'Comprehensive earnings breakdown, transaction history, and direct payment gateway settlements.',
-    highlight: 'Transparent Tracking',
-  },
-  {
-    icon: Zap,
-    title: 'Super Fast Performance',
-    desc: 'Lightweight background application ensures zero PC lag while processing background print jobs.',
-    highlight: 'Zero PC Lag',
-  },
-  {
-    icon: RefreshCw,
-    title: 'Regular Updates & Enhancements',
-    desc: 'Receive automated software updates with new features, speed optimizations, and security patches.',
-    highlight: 'Lifetime Updates',
-  },
-]
+import { ArrowRight, featuresList } from '../../assets/assets'
 
 const containerVariants = {
   hidden: { opacity: 0 },
