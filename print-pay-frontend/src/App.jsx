@@ -14,6 +14,9 @@ const HowToSetup = lazy(() => import('./pages/Home/HowToSetup'))
 const About = lazy(() => import('./pages/Home/About'))
 const Contact = lazy(() => import('./pages/Home/Contact'))
 const Disclaimer = lazy(() => import('./pages/Home/Disclaimer'))
+const PrivacyPolicy = lazy(() => import('./pages/Home/PrivacyPolicy'))
+const RefundPolicy = lazy(() => import('./pages/Home/RefundPolicy'))
+const TermsConditions = lazy(() => import('./pages/Home/TermsConditions'))
 const RegisterShop = lazy(() => import('./pages/RegisterShop'))
 const ShopLogin = lazy(() => import('./pages/ShopLogin'))
 
@@ -50,6 +53,9 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/disclaimer" element={<Disclaimer />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/refund-policy" element={<RefundPolicy />} />
+            <Route path="/terms-and-conditions" element={<TermsConditions />} />
           </Route>
 
           {/* Customer Mobile Kiosk Routes (Scanned via QR Code) */}

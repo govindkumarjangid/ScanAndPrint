@@ -86,13 +86,13 @@ export default function Footer() {
             </h4>
             <ul className="flex flex-col gap-2 text-sm">
               <li>
-                <Link to="/disclaimer" className="hover:text-brand transition-colors">Terms & Conditions</Link>
+                <Link to="/terms-and-conditions" className="hover:text-brand transition-colors">Terms & Conditions</Link>
               </li>
               <li>
-                <Link to="/disclaimer" className="hover:text-brand transition-colors">Privacy Policy</Link>
+                <Link to="/privacy-policy" className="hover:text-brand transition-colors">Privacy Policy</Link>
               </li>
               <li>
-                <Link to="/disclaimer" className="hover:text-brand transition-colors">Refund Policy</Link>
+                <Link to="/refund-policy" className="hover:text-brand transition-colors">Refund Policy</Link>
               </li>
               <li>
                 <Link to="/disclaimer" className="hover:text-brand transition-colors">Disclaimer</Link>

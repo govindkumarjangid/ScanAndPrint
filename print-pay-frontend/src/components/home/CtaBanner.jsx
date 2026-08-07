@@ -5,8 +5,8 @@ import { ArrowRight } from '../../assets/assets'
 
 export default function CtaBanner() {
   return (
-    <section className="px-4 sm:px-6 max-w-[1200px] mx-auto w-full">
-      <div className="bg-gradient-to-r from-[#F0245C] to-[#ff4d7e] rounded-3xl p-8 sm:p-12 text-white shadow-xl text-center flex flex-col items-center gap-6">
+    <section className="px-4 sm:px-6 max-w-300 mx-auto w-full">
+      <div className="bg-linear-to-r from-brand to-brand/70 rounded-3xl p-8 sm:p-12 text-white shadow-xl text-center flex flex-col items-center gap-6">
         <h2 className="text-3xl sm:text-4xl font-extrabold max-w-2xl leading-tight">
           Automate & Upgrade Your Shop Today!
         </h2>

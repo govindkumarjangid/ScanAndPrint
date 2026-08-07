@@ -62,7 +62,16 @@ import {
   Smartphone,
   Crop,
   Edit3,
+  RotateCw,
+  FlipHorizontal,
+  FlipVertical,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Move,
 } from 'lucide-react'
+
+export * from 'lucide-react'
 
 // Custom SVG Icons for Instagram & YouTube
 export function InstagramIcon({ className = 'w-5 h-5' }) {
@@ -147,6 +156,13 @@ export {
   Smartphone,
   Crop,
   Edit3,
+  RotateCw,
+  FlipHorizontal,
+  FlipVertical,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Move,
 }
 
 // Export unified icons dictionary object
@@ -213,13 +229,17 @@ export const icons = {
   Smartphone,
   Crop,
   Edit3,
+  RotateCw,
+  FlipHorizontal,
+  FlipVertical,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Move,
   InstagramIcon,
   YoutubeIcon,
 }
 
-// ----------------------------------------------------
-// STATIC DATASETS EXPORTS
-// ----------------------------------------------------
 
 // Admin Sidebar Navigation Items
 export const adminNavItems = [
@@ -498,6 +518,24 @@ export const printCapabilityOptions = [
   { value: 'Color', label: 'Color Printer Only' },
 ]
 
+// Image Editor Presets
+export const aspectPresets = [
+  { label: 'Free', value: null },
+  { label: 'Square (1:1)', value: 1 },
+  { label: '4:3', value: 4 / 3 },
+  { label: '16:9', value: 16 / 9 },
+  { label: 'A4 Paper', value: 0.707 },
+  { label: 'Passport', value: 0.77 },
+]
+
+export const filterPresets = [
+  { name: 'Normal', brightness: 100, contrast: 100, saturation: 100, isGrayscale: false, isSepia: false },
+  { name: 'B&W Mono', brightness: 105, contrast: 120, saturation: 0, isGrayscale: true, isSepia: false },
+  { name: 'Vintage Sepia', brightness: 100, contrast: 110, saturation: 90, isGrayscale: false, isSepia: true },
+  { name: 'Doc Scan', brightness: 115, contrast: 135, saturation: 80, isGrayscale: false, isSepia: false },
+  { name: 'Vivid Color', brightness: 105, contrast: 115, saturation: 140, isGrayscale: false, isSepia: false },
+]
+
 // Default export object containing static data and icons
 export default {
   icons,
@@ -513,4 +551,6 @@ export default {
   highlights,
   printerBrandOptions,
   printCapabilityOptions,
+  aspectPresets,
+  filterPresets,
 }

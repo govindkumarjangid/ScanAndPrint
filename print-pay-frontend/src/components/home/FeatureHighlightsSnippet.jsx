@@ -5,7 +5,7 @@ import { ArrowRight, highlights } from '../../assets/assets'
 
 export default function FeatureHighlightsSnippet() {
   return (
-    <section className="px-4 sm:px-6 max-w-[1200px] mx-auto w-full">
+    <section className="px-4 sm:px-6 max-w-300 mx-auto w-full">
       <div className="bg-stone-900 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12">
           <div>

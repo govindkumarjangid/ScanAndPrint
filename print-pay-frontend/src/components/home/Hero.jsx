@@ -18,7 +18,6 @@ import {
 export default function Hero() {
   const [activeStep, setActiveStep] = useState(0)
 
-  // Infinite cycle timer (changes step every 2.8s)
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveStep((prev) => (prev + 1) % 4)
@@ -27,10 +26,10 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative pt-6 md:pt-14 px-4 sm:px-6 max-w-[1200px] mx-auto w-full">
+    <section className="relative pt-6 md:pt-14 px-4 sm:px-6 max-w-300 mx-auto w-full">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-        
-        {/* Hero Left Copy */}
+
+        {/* Hero Left */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -59,7 +58,7 @@ export default function Hero() {
           <div className="w-full flex flex-col gap-3">
             <div className="flex items-center justify-between text-xs font-bold text-stone-500 px-1">
               <span className="uppercase tracking-wider text-brand flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 fill-[#F0245C]" /> 4-Step Automated Workflow
+                <Zap className="w-3.5 h-3.5 fill-brand" /> 4-Step Automated Workflow
               </span>
               <span className="flex items-center gap-1.5 text-stone-400">
                 <span className="relative flex h-2 w-2">
@@ -83,7 +82,7 @@ export default function Hero() {
                     whileTap={{ scale: 0.97 }}
                     className={`relative p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-300 flex flex-col gap-2 cursor-pointer overflow-hidden ${
                       isActive
-                        ? 'bg-stone-900 text-white border-stone-900 shadow-xl ring-4 ring-[#F0245C]/20'
+                        ? 'bg-stone-900 text-white border-stone-900 shadow-xl ring-4 ring-brand/20'
                         : 'bg-white text-stone-700 border-stone-200/80 hover:border-stone-300 hover:bg-stone-50 shadow-2xs'
                     }`}
                   >
@@ -91,7 +90,7 @@ export default function Hero() {
                       <span
                         className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black transition-all ${
                           isActive
-                            ? 'bg-gradient-to-tr from-[#F0245C] to-[#ff4d7e] text-white shadow-md'
+                            ? 'bg-linear-to-tr from-brand to-brand/70 text-white shadow-md'
                             : 'bg-stone-100 text-stone-700'
                         }`}
                       >
@@ -126,7 +125,7 @@ export default function Hero() {
                         initial={{ width: '0%' }}
                         animate={{ width: '100%' }}
                         transition={{ duration: 2.8, ease: 'linear' }}
-                        className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-[#F0245C]"
+                        className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-amber-400 to-brand"
                       />
                     )}
                   </motion.button>
@@ -162,13 +161,13 @@ export default function Hero() {
           {/* Quick Trust badges */}
           <div className="flex items-center gap-6 text-xs text-stone-500 font-semibold pt-2">
             <span className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-emerald-600 stroke-[3]" /> 2 Min Setup
+              <Check className="w-4 h-4 text-emerald-600 stroke-3" /> 2 Min Setup
             </span>
             <span className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-emerald-600 stroke-[3]" /> Unlimited Prints
+              <Check className="w-4 h-4 text-emerald-600 stroke-3" /> Unlimited Prints
             </span>
             <span className="flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-emerald-600 stroke-[3]" /> Standard Printer Supported
+              <Check className="w-4 h-4 text-emerald-600 stroke-3" /> Standard Printer Supported
             </span>
           </div>
         </motion.div>
@@ -181,7 +180,7 @@ export default function Hero() {
           className="lg:col-span-5 relative"
         >
           <div className="relative mx-auto max-w-md bg-stone-900 text-white rounded-3xl p-6 shadow-2xl border border-stone-800 overflow-hidden flex flex-col gap-6">
-            
+
             {/* Top Status LED Header */}
             <div className="flex items-center justify-between border-b border-stone-800 pb-3">
               <div className="flex items-center gap-2">
@@ -199,9 +198,9 @@ export default function Hero() {
             </div>
 
             {/* PURE ANIMATED GRAPHIC CANVAS (NO TEXT CLUTTER) */}
-            <div className="bg-stone-950 rounded-2xl p-6 border border-stone-800 min-h-[240px] flex items-center justify-center relative overflow-hidden">
+            <div className="bg-stone-950 rounded-2xl p-6 border border-stone-800 min-h-60 flex items-center justify-center relative overflow-hidden">
               <AnimatePresence mode="wait">
-                
+
                 {/* 1. SCANNING ANIMATION ONLY */}
                 {activeStep === 0 && (
                   <motion.div
@@ -217,7 +216,7 @@ export default function Hero() {
                     <motion.div
                       animate={{ y: [-50, 50, -50] }}
                       transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-                      className="absolute inset-x-0 h-1.5 bg-gradient-to-r from-transparent via-[#F0245C] to-transparent shadow-lg shadow-[#F0245C]"
+                      className="absolute inset-x-0 h-1.5 bg-linear-to-r from-transparent via-brandto-transparent shadow-lg shadow-brand"
                     />
                   </motion.div>
                 )}

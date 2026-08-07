@@ -609,12 +609,20 @@ export default function ShopAuth() {
 
       {/* Footer Links */}
       <div className="text-center text-xs font-semibold text-stone-500 flex items-center justify-center gap-4">
-        <Link to="/disclaimer" className="hover:text-stone-800 transition-colors">
+        <Link to="/terms-and-conditions" className="hover:text-stone-800 transition-colors">
           Terms
         </Link>
         <span>·</span>
-        <Link to="/contact" className="hover:text-stone-800 transition-colors">
-          FAQ
+        <Link to="/privacy-policy" className="hover:text-stone-800 transition-colors">
+          Privacy
+        </Link>
+        <span>·</span>
+        <Link to="/refund-policy" className="hover:text-stone-800 transition-colors">
+          Refund Policy
+        </Link>
+        <span>·</span>
+        <Link to="/disclaimer" className="hover:text-stone-800 transition-colors">
+          Disclaimer
         </Link>
       </div>
 
