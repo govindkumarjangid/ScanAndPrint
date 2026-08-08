@@ -1,18 +1,15 @@
-import React from 'react'
-import Hero from '../../components/home/Hero'
+import Hero from '../../components/home/Hero';
 import OriginStoryTeaser from "../../components/home/OriginStoryTeaser";
-import AudienceGrid from '../../components/home/AudienceGrid'
-import FeatureHighlightsSnippet from '../../components/home/FeatureHighlightsSnippet'
-import CtaBanner from '../../components/home/CtaBanner'
-import IntersectionLazyView from '../../components/common/IntersectionLazyView'
+import AudienceGrid from '../../components/home/AudienceGrid';
+import FeatureHighlightsSnippet from '../../components/home/FeatureHighlightsSnippet';
+import CtaBanner from '../../components/home/CtaBanner';
+import IntersectionLazyView from '../../components/common/IntersectionLazyView';
 
 export default function Home() {
   return (
     <div className="flex flex-col gap-16 md:gap-24 pb-16">
-      {/* Immediate Hero Section */}
       <Hero />
 
-      {/* Scroll-Driven Lazy Loaded Sections */}
       <IntersectionLazyView placeholderHeight="250px">
         <OriginStoryTeaser />
       </IntersectionLazyView>

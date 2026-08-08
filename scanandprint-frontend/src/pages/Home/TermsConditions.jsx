@@ -4,9 +4,9 @@ import { ShieldCheck, FileText, CheckCircle2, ArrowRight } from '../../assets/as
 
 export default function TermsConditions() {
   return (
-    <div className="py-12 px-4 sm:px-6 max-w-[960px] mx-auto w-full font-sans">
+    <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-sm flex flex-col gap-8">
-        
+
         {/* Header */}
         <div className="border-b border-stone-200 pb-6 flex flex-col gap-3">
           <div className="flex items-center gap-2 text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 px-3.5 py-1 rounded-full w-max border border-rose-200">
@@ -22,7 +22,7 @@ export default function TermsConditions() {
 
         {/* Content Sections */}
         <div className="space-y-8 text-stone-700 text-sm sm:text-base leading-relaxed">
-          
+
           {/* Section 1 */}
           <section className="flex flex-col gap-2">
             <h2 className="text-xl font-extrabold text-stone-900 flex items-center gap-2">
