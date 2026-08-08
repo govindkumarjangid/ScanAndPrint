@@ -1,16 +1,31 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Phone, MessageSquare, Send, CheckCircle2, Briefcase } from '../../assets/assets'
+import {
+  Mail,
+  Phone,
+  MessageSquare,
+  Send,
+  CheckCircle2,
+  Briefcase,
+  MapPin,
+  Clock,
+  ShieldCheck,
+} from '../../assets/assets'
 
 export default function Contact() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' })
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: 'General Inquiry',
+    message: '',
+  })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
     setLoading(true)
-    console.log('Contact form submitted:', formData)
     setTimeout(() => {
       setLoading(false)
       setSubmitted(true)
@@ -18,169 +33,143 @@ export default function Contact() {
   }
 
   return (
-    <div className="flex flex-col gap-16 md:gap-20 py-10 px-4 sm:px-6 max-w-[1200px] mx-auto w-full">
+    <div className="flex flex-col gap-12 md:gap-16 py-10 px-4 sm:px-6 max-w-300 mx-auto w-full">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
-        <span className="text-[#F0245C] font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
-          Contact Us
+        <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto flex items-center gap-1.5 shadow-2xs">
+          <span>24/7 Dedicated Support</span>
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          Get in Touch with Us
+          Get in Touch with <span className="marker-highlight text-stone-900">Scan&Print</span>
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
-          Have questions, need setup assistance, or want to discuss a business inquiry? Contact our team directly.
+          Have questions about hardware compatibility, need 1-on-1 setup assistance, or want to explore partnership
+          opportunities? Our team is always ready to assist you.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        
-        {/* Left Side: Contact Direct Info */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-white rounded-3xl p-8 border border-stone-200/80 shadow-sm flex flex-col gap-6">
-            <h3 className="font-extrabold text-2xl text-stone-900">Direct Contact Information</h3>
-            <p className="text-stone-600 text-sm leading-relaxed">
-              Our support team is ready to assist you. Click below to chat directly with us on WhatsApp.
-            </p>
-
-            <div className="space-y-4 pt-2">
-              <a
-                href="mailto:qrseprint@gmail.com"
-                className="flex items-center gap-4 p-4 rounded-2xl bg-stone-50 border border-stone-200/70 hover:border-[#F0245C] transition-all group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-rose-100 text-[#F0245C] flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
-                  <Mail className="w-6 h-6" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold uppercase text-stone-400">Email Us</span>
-                  <p className="font-bold text-stone-900 text-base">qrseprint@gmail.com</p>
-                </div>
-              </a>
-
-              <a
-                href="tel:8404832414"
-                className="flex items-center gap-4 p-4 rounded-2xl bg-stone-50 border border-stone-200/70 hover:border-emerald-500 transition-all group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
-                  <Phone className="w-6 h-6" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold uppercase text-stone-400">Call Support</span>
-                  <p className="font-bold text-stone-900 text-base">84048 32414</p>
-                </div>
-              </a>
-            </div>
-
-            {/* Direct WhatsApp CTA Button */}
-            <div className="pt-2">
-              <a
-                href="https://wa.me/918404832414?text=Hello%20QR%20Se%20Print%20Team%2C%20I%20need%20assistance"
-                target="_blank"
-                rel="noreferrer"
-                className="w-full"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-full shadow-md flex items-center justify-center gap-2.5 cursor-pointer text-sm"
-                >
-                  <MessageSquare className="w-5 h-5 fill-white" />
-                  <span>Chat Directly on WhatsApp</span>
-                </motion.button>
-              </a>
-            </div>
-          </div>
-
-          {/* Business Inquiry Note */}
-          <div className="bg-amber-50 rounded-3xl p-6 border border-amber-200 flex items-start gap-4">
-            <Briefcase className="w-6 h-6 text-amber-700 flex-shrink-0 mt-1" />
-            <div>
-              <h4 className="font-extrabold text-amber-900 text-base">Business & Partnership Inquiries</h4>
-              <p className="text-amber-800 text-xs mt-1 leading-relaxed">
-                Interested in becoming a regional distributor or partner? Message us on WhatsApp with "Business Inquiry".
+      {/* main div */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+        {/* left section  */}
+        <div className="lg:col-span-6 order-1">
+          <div className="bg-white rounded-3xl p-7 sm:p-9 border border-stone-200/90 shadow-md relative">
+            <div className="mb-6">
+              <span className="text-xs font-bold uppercase tracking-wider text-brand">Direct Contact Form</span>
+              <h2 className="font-extrabold text-2xl sm:text-3xl text-stone-900 mt-1">Send Us a Message</h2>
+              <p className="text-stone-500 text-xs sm:text-sm mt-1">
+                Fill out the details below and our technical support team will respond within 2 hours.
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* Right Side: Animated Contact Form */}
-        <div className="lg:col-span-7">
-          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-stone-200/80 shadow-lg relative">
-            <h3 className="font-extrabold text-2xl text-stone-900 mb-2">Send Us a Message</h3>
-            <p className="text-stone-500 text-sm mb-6">Fill out the form below and our team will respond within 24 hours.</p>
 
             {submitted ? (
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center flex flex-col items-center gap-4 my-6"
+                className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center flex flex-col items-center gap-4 my-4"
               >
-                <div className="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                  <CheckCircle2 className="w-10 h-10" />
+                <div className="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+                  <CheckCircle2 className="w-9 h-9" />
                 </div>
-                <h4 className="font-extrabold text-emerald-900 text-2xl">Message Received!</h4>
-                <p className="text-emerald-800 text-sm max-w-md">
-                  Thank you! Your message has reached us. We will get back to you shortly.
+                <h3 className="font-extrabold text-emerald-950 text-2xl">Message Received!</h3>
+                <p className="text-emerald-800 text-xs sm:text-sm max-w-sm leading-relaxed">
+                  Thank you! Your query has been delivered to our support team. We will get in touch with you shortly on
+                  WhatsApp and Email.
                 </p>
                 <button
                   onClick={() => {
                     setSubmitted(false)
-                    setFormData({ name: '', email: '', message: '' })
+                    setFormData({ name: '', email: '', phone: '', subject: 'General Inquiry', message: '' })
                   }}
-                  className="mt-2 text-xs font-bold text-emerald-700 underline"
+                  className="mt-2 text-xs font-bold text-emerald-800 underline hover:text-emerald-950 cursor-pointer"
                 >
                   Send another message
                 </button>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4.5">
+                {/* Full Name */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                    Your Full Name *
+                    Your Full Name <span className="text-brand">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. Ramesh Kumar"
-                    className="h-12 px-4 rounded-xl border border-stone-300 focus:border-[#F0245C] focus:ring-2 focus:ring-[#F0245C]/20 outline-none text-sm font-medium transition-all"
+                    placeholder="e.g. Govind Kumar"
+                    className="h-11 sm:h-12 px-4 rounded-xl border border-stone-300 focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none text-xs sm:text-sm font-medium transition-all"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="your@email.com"
-                    className="h-12 px-4 rounded-xl border border-stone-300 focus:border-[#F0245C] focus:ring-2 focus:ring-[#F0245C]/20 outline-none text-sm font-medium transition-all"
-                  />
+                {/* Email Address & Phone Number */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
+                      Email Address <span className="text-brand">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="your@email.com"
+                      className="h-11 sm:h-12 px-4 rounded-xl border border-stone-300 focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none text-xs sm:text-sm font-medium transition-all"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
+                      Phone / WhatsApp <span className="text-brand">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+91 98765 43210"
+                      className="h-11 sm:h-12 px-4 rounded-xl border border-stone-300 focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none text-xs sm:text-sm font-medium transition-all"
+                    />
+                  </div>
                 </div>
 
+                {/* Inquiry Category */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700">Inquiry Type</label>
+                  <select
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    className="h-11 sm:h-12 px-4 rounded-xl border border-stone-300 focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none text-xs sm:text-sm font-medium transition-all bg-white"
+                  >
+                    <option value="General Inquiry">General Inquiry / Demo</option>
+                    <option value="Shop Setup Assistance">Printer Setup Assistance</option>
+                    <option value="Billing & Pricing">Billing & Pricing Plan (₹599 / ₹399)</option>
+                    <option value="Business Partnership">Business & Regional Franchise</option>
+                  </select>
+                </div>
+
+                {/* Message Query */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                    Message / Query *
+                    Message / Query <span className="text-brand">*</span>
                   </label>
                   <textarea
                     required
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Write your query or message in detail..."
-                    className="p-4 rounded-xl border border-stone-300 focus:border-[#F0245C] focus:ring-2 focus:ring-[#F0245C]/20 outline-none text-sm font-medium transition-all resize-none"
+                    placeholder="Describe your question, printer model (e.g. Epson L3210, HP LaserJet), or requirement..."
+                    className="p-4 rounded-xl border border-stone-300 focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none text-xs sm:text-sm font-medium transition-all resize-none"
                   />
                 </div>
 
+                {/* Submit Button */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={loading}
-                  className="bg-[#F0245C] hover:bg-[#D81B4E] text-white font-extrabold py-4 rounded-full shadow-lg shadow-[#F0245C]/30 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  className="btn-primary py-3.5 sm:py-4 rounded-full shadow-lg shadow-brand/25 flex items-center justify-center gap-2 cursor-pointer mt-1 font-extrabold text-sm"
                 >
                   <Send className="w-4 h-4" />
                   <span>{loading ? 'Sending Message...' : 'Submit Message'}</span>
@@ -190,6 +179,56 @@ export default function Contact() {
           </div>
         </div>
 
+        {/* right section */}
+        <div className="lg:col-span-6 order-2 flex flex-col gap-6">
+          <div className="bg-white rounded-3xl p-6 border border-stone-200/90 shadow-md flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-extrabold">
+                  <MapPin className="w-5 h-5 text-brand" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-stone-900">Head Office & Support Hub</h3>
+                  <p className="text-stone-500 text-xs">Tonk Road, Near University Campus, Jaipur, Rajasthan 302015</p>
+                </div>
+              </div>
+
+              <span className="hidden sm:flex items-center gap-1 text-[9px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Open 9 AM - 9 PM
+              </span>
+            </div>
+
+            {/* Google Map Iframe Embed */}
+            <div className="w-full h-56 sm:h-105 rounded-2xl overflow-hidden border border-stone-200 shadow-inner relative group">
+              <iframe
+                title="Scan and Print Head Office Location"
+                src="https://maps.google.com/maps?q=Jaipur%20Rajasthan%20India&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full grayscale-20 contrast-105 group-hover:grayscale-0 transition-all duration-300"
+              />
+            </div>
+          </div>
+
+          {/* Business & Partnership Inquiries*/}
+          <div className="bg-amber-50 rounded-3xl p-5 border border-amber-200 flex items-start gap-3.5 shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-amber-200/80 text-amber-900 flex items-center justify-center font-bold shrink-0">
+              <Briefcase className="w-5 h-5 text-amber-800" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-amber-950 text-sm sm:text-base">Business & Regional Franchise</h4>
+              <p className="text-amber-900 text-xs mt-0.5 leading-relaxed">
+                Interested in onboarding multiple cyber cafes or becoming a regional partner? Contact our business team
+                with subject "Franchise Partnership".
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

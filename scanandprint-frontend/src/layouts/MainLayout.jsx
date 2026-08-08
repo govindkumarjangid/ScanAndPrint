@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import FloatingWhatsApp from '../components/common/FloatingWhatsApp'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function MainLayout() {
@@ -13,7 +14,7 @@ export default function MainLayout() {
   }, [location.pathname])
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#FFFBF7]">
+    <div className="min-h-screen flex flex-col justify-between bg-[#FFFBF7] relative">
       <Navbar />
       <AnimatePresence mode="wait">
         <motion.main
@@ -28,6 +29,9 @@ export default function MainLayout() {
         </motion.main>
       </AnimatePresence>
       <Footer />
+
+      {/* Floating WhatsApp with Active Ping - Only on Public Pages */}
+      <FloatingWhatsApp />
     </div>
   )
 }

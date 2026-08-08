@@ -24,11 +24,11 @@ export default function Footer() {
                 <Printer className="w-5 h-5" />
               </div>
               <span className="font-extrabold text-2xl tracking-tight text-white">
-                QR Se <span className="text-brand">Print</span>
+                Scan<span className="text-brand">&Print</span>
               </span>
             </Link>
             <p className="text-stone-400 text-sm leading-relaxed">
-              Automated cyber cafe printing network — Scan QR code and print automatically.
+              Automated smart print network — Scan QR code and print documents automatically.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
@@ -138,7 +138,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 text-center text-xs text-stone-500">
           <p>
-            © 2026 · Powered By QR Se Print · All rights reserved. | Developed by Govind kumar jangid.
+            © 2026 · Powered By Scan&Print · All rights reserved. | Developed by Govind kumar jangid.
           </p>
         </div>
       </div>

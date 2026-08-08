@@ -15,7 +15,7 @@ export default function PageLoader() {
         </motion.div>
         <div className="flex flex-col items-center gap-1">
           <span className="font-extrabold text-lg text-stone-900 font-heading">
-            QR <span className="text-brand">PrintPe</span>
+            Scan<span className="text-brand">&Print</span>
           </span>
           <span className="text-xs font-semibold text-stone-500 animate-pulse">
             Loading page resources...

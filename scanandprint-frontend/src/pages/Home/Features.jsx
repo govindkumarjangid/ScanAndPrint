@@ -18,21 +18,21 @@ const cardVariants = {
 
 export default function Features() {
   return (
-    <div className="flex flex-col gap-16 md:gap-20 py-10 px-4 sm:px-6 max-w-[1200px] mx-auto w-full">
+    <div className="flex flex-col gap-16 md:gap-20 py-10 px-4 sm:px-6 max-w-300 mx-auto w-full">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
-        <span className="text-[#F0245C] font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
+        <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
           Powerful Capabilities
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          Smart Features of QR Se Print
+          Smart Features of <span className="marker-highlight text-stone-900">Scan&Print</span>
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
           Every feature is tailored specifically to empower Indian print shop owners and cyber cafés.
         </p>
       </div>
 
-      {/* Grid of 9 Cards */}
+      {/* Grid Cards */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -49,7 +49,7 @@ export default function Features() {
               className="bg-white p-7 rounded-3xl border border-stone-200/80 shadow-xs hover:shadow-xl transition-all duration-200 flex flex-col justify-between"
             >
               <div className="flex flex-col gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#F0245C]/10 text-[#F0245C] flex items-center justify-center font-bold">
+                <div className="w-12 h-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center font-bold">
                   <Icon className="w-6 h-6" />
                 </div>
                 <h3 className="font-extrabold text-xl text-stone-900">{f.title}</h3>
@@ -57,7 +57,7 @@ export default function Features() {
               </div>
 
               <div className="mt-6 pt-4 border-t border-stone-100">
-                <span className="text-xs font-bold text-[#F0245C] bg-rose-50 px-3 py-1 rounded-md inline-block">
+                <span className="text-xs font-bold text-brand bg-rose-50 px-3 py-1 rounded-md inline-block">
                   ✓ {f.highlight}
                 </span>
               </div>
@@ -76,7 +76,7 @@ export default function Features() {
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            className="bg-[#F0245C] hover:bg-[#D81B4E] text-white px-8 py-3.5 rounded-full font-bold text-base shadow-lg flex items-center gap-2"
+            className="bg-brand hover:bg-brand-hover text-white px-8 py-3.5 rounded-full font-bold text-base shadow-lg flex items-center gap-2 cursor-pointer"
           >
             <span>Register Your Shop Now</span>
             <ArrowRight className="w-5 h-5" />

@@ -13,7 +13,7 @@ export default function TermsConditions() {
             <FileText className="w-3.5 h-3.5" /> Legal Terms of Service
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 leading-tight">
-            Terms & Conditions
+            Scan&Print <span className="marker-highlight text-stone-900">Terms & Conditions</span>
           </h1>
           <p className="text-stone-500 text-xs sm:text-sm">
             Effective Date: January 1, 2026 · Last Updated: August 2026
@@ -29,7 +29,7 @@ export default function TermsConditions() {
               <span className="text-brand font-mono">1.</span> Acceptance of Terms
             </h2>
             <p className="text-stone-600">
-              Welcome to <strong>QR PrintPe</strong> ("Platform", "We", "Us", or "Our"). By accessing our website, registering a cyber café or print shop account, downloading the Print Agent software, or scanning a counter QR code to send print orders, you agree to be bound by these Terms & Conditions.
+              Welcome to <strong>Scan&Print</strong> ("Platform", "We", "Us", or "Our"). By accessing our website, registering a cyber café or print shop account, downloading the Print Agent software, or scanning a counter QR code to send print orders, you agree to be bound by these Terms & Conditions.
             </p>
           </section>
 
@@ -39,7 +39,7 @@ export default function TermsConditions() {
               <span className="text-brand font-mono">2.</span> Service Description
             </h2>
             <p className="text-stone-600">
-              QR PrintPe provides a smart automated printing ecosystem enabling print shop owners, CSC centers, and digital service centers to accept online document uploads and digital payments (UPI/Cards) directly from customer mobile devices without requiring manual WhatsApp sharing.
+              Scan&Print provides a smart automated printing ecosystem enabling print shop owners, CSC centers, and digital service centers to accept online document uploads and digital payments (UPI/Cards) directly from customer mobile devices without requiring manual WhatsApp sharing.
             </p>
           </section>
 
@@ -92,7 +92,7 @@ export default function TermsConditions() {
               <span className="text-brand font-mono">6.</span> Limitation of Liability
             </h2>
             <p className="text-stone-600">
-              QR PrintPe shall not be liable for indirect, incidental, or consequential damages resulting from local printer hardware jams, physical machine failures, power outages, or temporary internet disruptions at retail shop locations.
+              Scan&Print shall not be liable for indirect, incidental, or consequential damages resulting from local printer hardware jams, physical machine failures, power outages, or temporary internet disruptions at retail shop locations.
             </p>
           </section>
 

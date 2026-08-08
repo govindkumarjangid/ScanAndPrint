@@ -22,7 +22,7 @@ export default function About() {
           Built by Shop Owners, for Shop Owners
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
-          QR Se Print was born on an active cyber café counter, not in a distant corporate boardroom.
+          Scan&Print was born on an active cyber café counter, not in a distant corporate boardroom.
         </p>
       </div>
 
@@ -30,7 +30,7 @@ export default function About() {
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-sm">
         <div className="max-w-2xl mb-10">
           <span className="text-[#F0245C] font-bold text-xs uppercase">5-Step Origin Story</span>
-          <h2 className="text-3xl font-extrabold text-stone-900 mt-1">How QR Se Print Started</h2>
+          <h2 className="text-3xl font-extrabold text-stone-900 mt-1">How Scan&Print Started</h2>
         </div>
 
         <div className="space-y-8">

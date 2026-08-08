@@ -53,7 +53,7 @@ export default function AudienceGrid() {
       <div className="text-center max-w-2xl mx-auto mb-10 flex flex-col gap-3">
         <span className="text-brand font-bold text-xs tracking-wider uppercase">Target Audience</span>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">
-          Who is QR Se Print For?
+          Who is <span className="marker-highlight text-stone-900">Scan&Print</span> Built For?
         </h2>
         <p className="text-stone-600 text-sm sm:text-base">
           If customers visit your shop for printouts, this will save 80% of your time and effort.

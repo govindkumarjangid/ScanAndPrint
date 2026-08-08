@@ -271,32 +271,89 @@ export const navLinks = [
   { name: 'Contact', path: '/contact' },
 ]
 
-// Frequently Asked Questions (FAQ)
+// Frequently Asked Questions (FAQ) - Platform Relevant
 export const faqItems = [
   {
-    question: 'Do I need to pay ₹399 every month on the Monthly plan?',
+    category: 'Hardware & Setup',
+    question: 'Do I need an expensive WiFi or smart printer to use Scan&Print?',
     answer:
-      'Yes, the Monthly plan keeps your auto-print service active as long as the monthly subscription is renewed.',
+      'No! Scan&Print works seamlessly with your existing standard USB desktop printer (Epson, HP, Canon, Brother, Ricoh, etc.). You do not need to buy any new hardware or expensive WiFi machines.',
   },
   {
-    question: 'Are there any hidden charges on the ₹599 One-Time plan?',
+    category: 'Workflow & WhatsApp',
+    question: 'How does this eliminate WhatsApp file sharing on my counter?',
     answer:
-      'Absolutely none! The One-Time plan grants lifetime access including all future software updates with zero renewal fees.',
+      'Customers simply scan your shop counter QR code with their smartphone camera. They select and upload their document (PDF, image, or document), choose page settings, complete online UPI payment, and the document prints automatically on your machine without you touching WhatsApp.',
   },
   {
-    question: 'Can I upgrade from Monthly to the One-Time Lifetime plan later?',
+    category: 'Privacy & Security',
+    question: 'Are customer documents stored or shared? How is privacy handled?',
     answer:
-      'Yes, you can upgrade your account to the One-Time lifetime plan anytime from your Shop Owner Login dashboard.',
+      'Customer privacy is 100% protected. Uploaded documents are encrypted during transfer and are permanently auto-deleted from the server immediately after printing is completed. No files remain on your PC desktop either.',
   },
   {
-    question: 'How will I receive setup assistance?',
+    category: 'Payment & Pricing',
+    question: 'How do customer payments work? Is there any risk of payment loss?',
     answer:
-      'Our dedicated team guides you 1-on-1 via WhatsApp and AnyDesk remote desktop support.',
+      'Zero payment loss! The system verifies UPI payment (PhonePe, Google Pay, Paytm, BHIM) before sending the print job to your printer queue. Only successfully paid orders get printed, guaranteeing 100% advance collection.',
   },
   {
-    question: 'Will I get help setting up online payment gateways?',
+    category: 'Printer Control',
+    question: 'Can I set different per-page rates for Black & White and Color prints?',
     answer:
-      'Yes! On the One-Time ₹599 plan, we assist you in setting up direct UPI payments via PhonePe, Google Pay, or Paytm.',
+      'Yes! From your Shop Owner Dashboard, you can map separate default printers for B&W and Color jobs and configure your exact rates per page. The platform automatically calculates the total price based on page count and color mode.',
+  },
+  {
+    category: 'Software & Performance',
+    question: 'Will the background Windows Print Agent slow down my PC?',
+    answer:
+      'Not at all. The Windows Print Agent is an ultra-lightweight (under 15MB) background utility designed to consume less than 1% CPU. Your computer will run fast and lag-free while running your regular daily applications.',
+  },
+  {
+    category: 'Support & Assistance',
+    question: 'What kind of support do you provide if I face any setup issue?',
+    answer:
+      'We provide direct 1-on-1 assistance via WhatsApp and AnyDesk remote desktop support. Our technical team helps you connect your printer, test your first print, and configure your counter QR code in under 2 minutes.',
+  },
+  {
+    category: 'Subscription & Plans',
+    question: 'Are there any hidden costs or renewal charges on the One-Time plan?',
+    answer:
+      'None at all! The ₹599 One-Time plan gives you lifetime access with zero monthly renewal fees, free lifetime software updates, and dedicated customer support.',
+  },
+]
+
+// Pricing & Billing Specific FAQs (Used on Pricing Page)
+export const pricingFaqItems = [
+  {
+    question: 'What is the exact difference between the Monthly ₹399 and One-Time ₹599 plans?',
+    answer:
+      'The Monthly plan requires a ₹399 renewal every month. The One-Time ₹599 plan gives you full lifetime access to Scan&Print with zero future renewal charges, free updates forever, and dedicated priority support.',
+  },
+  {
+    question: 'Are there any hidden transaction cuts, commissions, or extra renewal fees on the ₹599 plan?',
+    answer:
+      'Zero hidden charges and 0% platform commission! 100% of customer payments go directly to your personal UPI QR / bank account without any deductions.',
+  },
+  {
+    question: 'Can I start on the Monthly plan and upgrade to the One-Time Lifetime plan later?',
+    answer:
+      'Yes, you can upgrade your shop account to the One-Time lifetime plan anytime directly from your Shop Owner dashboard.',
+  },
+  {
+    question: 'How do customers pay, and how do I receive my printing earnings?',
+    answer:
+      'Customers pay in advance directly through your shop UPI QR code (PhonePe, GPay, Paytm) on their phones before the document prints. Funds credit instantly into your own bank account.',
+  },
+  {
+    question: 'Will I get an official GST invoice or payment receipt for my purchase?',
+    answer:
+      'Yes, an official GST tax invoice and digital payment receipt are automatically generated and sent to your registered shop email address immediately upon purchase.',
+  },
+  {
+    question: 'What happens if I change my computer or replace my printer in the future?',
+    answer:
+      'Your Scan&Print Shop ID and license remain fully active. You can simply download the Print Agent on your new PC and log in with your credentials at zero extra cost.',
   },
 ]
 
@@ -377,7 +434,7 @@ export const originNarrative = [
   {
     step: '5',
     title: 'Nationwide Launch for All Shops',
-    desc: 'Today, QR Se Print is the most trusted smart printing platform powering CSC centers, xerox shops, and digital service centers across India!',
+    desc: 'Today, Scan&Print is the most trusted smart printing platform powering CSC centers, xerox shops, and digital service centers across India!',
   },
 ]
 
@@ -536,6 +593,118 @@ export const filterPresets = [
   { name: 'Vivid Color', brightness: 105, contrast: 115, saturation: 140, isGrayscale: false, isSepia: false },
 ]
 
+// Customer & Shop Owner Testimonials Data
+export const testimonialData = [
+  {
+    id: 1,
+    name: 'Rajesh Sharma',
+    role: 'Shop Owner',
+    shopName: 'Shree Ganesh Xerox & Cyber Cafe',
+    location: 'Near Rajasthan University, Jaipur',
+    rating: 5,
+    highlight: 'Saved 3+ Hours Daily in College Rush',
+    avatar: 'RS',
+    avatarBg: 'from-amber-500 to-rose-500',
+    stats: '14,500+ Prints/mo',
+    growth: '+42% Revenue',
+    printerUsed: 'Epson L3210',
+    setupTime: '2 Mins Setup',
+    tag: 'University Zone',
+    feedback:
+      'College exams ke time shop pe bheed lag jati thi. Har student WhatsApp pe PDF bhejta tha aur PC hang hota tha. QR Se Print lagane ke baad ab students seedha QR scan karke khud print le lete hain. Payment bhi pehle UPI se instant aa jata hai!',
+  },
+  {
+    id: 2,
+    name: 'Vikram Patel',
+    role: 'Managing Partner',
+    shopName: 'Patel Digital Print & Stationery',
+    location: 'Navrangpura, Ahmedabad',
+    rating: 5,
+    highlight: 'Zero Payment Loss & Instant Auto Print',
+    avatar: 'VP',
+    avatarBg: 'from-emerald-500 to-teal-600',
+    stats: '18,200+ Prints/mo',
+    growth: '100% UPI Advance',
+    printerUsed: 'Canon G2020',
+    setupTime: 'Instant Sync',
+    tag: 'Commercial Hub',
+    feedback:
+      'Pehle kai bar customers print nikalwa kar bolte the baad me paise denge ya change nahi hai. Scan&Print me jab tak payment nahi hoti, print nikalta hi nahi. Daily cash tally karna bohot aasan ho gaya hai!',
+  },
+  {
+    id: 3,
+    name: 'Anil Kumar Gupta',
+    role: 'Owner',
+    shopName: 'Gupta Documentation & Xerox Hub',
+    location: 'Near High Court, Patna',
+    rating: 5,
+    highlight: 'No Expensive WiFi Printer Needed',
+    avatar: 'AG',
+    avatarBg: 'from-blue-600 to-indigo-600',
+    stats: '9,800+ Prints/mo',
+    growth: '₹0 Hardware Cost',
+    printerUsed: 'HP LaserJet 1020',
+    setupTime: '3 Mins Setup',
+    tag: 'Legal Docs Hub',
+    feedback:
+      'Mujhe laga tha iske liye koi mehnga smart printer lena padega. Lekin ye mere purane normal Epson USB printer ke sath 2 minute me connect ho gaya. Software itna lightweight hai ki PC slow bilkul nahi hota.',
+  },
+  {
+    id: 4,
+    name: 'Deepak Verma',
+    role: 'Founder',
+    shopName: 'Cyber World & Online Services',
+    location: 'Hazratganj, Lucknow',
+    rating: 5,
+    highlight: 'Full Customer Privacy & Auto-Delete',
+    avatar: 'DV',
+    avatarBg: 'from-purple-500 to-pink-600',
+    stats: '11,400+ Prints/mo',
+    growth: '100% Data Privacy',
+    printerUsed: 'Brother DCP-L2541',
+    setupTime: 'Plug & Play',
+    tag: 'Govt Form & Cyber',
+    feedback:
+      'Girls aur professionals ko documents WhatsApp pe share karne me hesitation hoti thi. Ab QR scan karke self-service upload karte hain aur print aate hi document server se auto-delete ho jata hai. Customers ka trust double ho gaya!',
+  },
+  {
+    id: 5,
+    name: 'Suresh Nair',
+    role: 'Proprietor',
+    shopName: 'City Print Studio & Photocopy',
+    location: 'Koramangala, Bengaluru',
+    rating: 5,
+    highlight: 'Separate Rates for B&W & Color',
+    avatar: 'SN',
+    avatarBg: 'from-amber-600 to-orange-600',
+    stats: '16,000+ Prints/mo',
+    growth: '+₹22,000/mo Profit',
+    printerUsed: 'Epson L8050 & L3110',
+    setupTime: '2 Mins Setup',
+    tag: 'IT Corridor',
+    feedback:
+      'B&W aur Color page ka rate dashboard se alag alag set kar diya hai. Customer jab file upload karta hai toh system khud pages count karke exact price calculate karta hai. Manual calculation ki tension hamesha ke liye khatam!',
+  },
+  {
+    id: 6,
+    name: 'Pooja Choudhary',
+    role: 'Co-Owner',
+    shopName: 'Mahaveer Stationery & Xerox',
+    location: 'Bhawarkua, Indore',
+    rating: 5,
+    highlight: 'Single-Handedly Managing Rush Hours',
+    avatar: 'PC',
+    avatarBg: 'from-rose-500 to-red-600',
+    stats: '13,200+ Prints/mo',
+    growth: '3x Faster Queue',
+    printerUsed: 'Canon Pixma G3010',
+    setupTime: 'Instant Setup',
+    tag: 'Coaching Hub',
+    feedback:
+      'Pehle do logo ki zaroorat padti thi—ek WhatsApp check karke print dene ke liye aur ek cash lene ke liye. Ab mai akele poori dukaan sambhal leti hu kyunki sab kuch 100% automatic chal raha hai.',
+  },
+]
+
 // Default export object containing static data and icons
 export default {
   icons,
@@ -543,12 +712,14 @@ export default {
   ownerNavItems,
   navLinks,
   faqItems,
+  pricingFaqItems,
   setupSteps,
   originNarrative,
   audienceList,
   featuresList,
   heroSteps,
   highlights,
+  testimonialData,
   printerBrandOptions,
   printCapabilityOptions,
   aspectPresets,

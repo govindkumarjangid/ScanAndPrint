@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
             <Lock className="w-3.5 h-3.5" /> Privacy & Security Standard
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 leading-tight">
-            Privacy Policy
+            Scan&Print <span className="marker-highlight text-stone-900">Privacy Policy</span>
           </h1>
           <p className="text-stone-500 text-xs sm:text-sm">
             Effective Date: January 1, 2026 · Last Updated: August 2026
@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
               <span className="text-brand font-mono">1.</span> Information We Collect
             </h2>
             <p className="text-stone-600">
-              To operate the QR PrintPe platform for shop owners and customers, we collect minimal operational information:
+              To operate the Scan&Print platform for shop owners and customers, we collect minimal operational information:
             </p>
             <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mt-1">
               <li>
@@ -97,7 +97,7 @@ export default function PrivacyPolicy() {
               <span className="text-brand font-mono">4.</span> Payment Gateway Security
             </h2>
             <p className="text-stone-600">
-              All digital UPI payments (Google Pay, PhonePe, Paytm, BHIM) are securely processed via RBI-authorized payment gateways using 256-bit SSL encryption. QR PrintPe does not store debit/credit card numbers, UPI PINs, or net banking credentials.
+              All digital UPI payments (Google Pay, PhonePe, Paytm, BHIM) are securely processed via RBI-authorized payment gateways using 256-bit SSL encryption. Scan&Print does not store debit/credit card numbers, UPI PINs, or net banking credentials.
             </p>
           </section>
 
@@ -120,7 +120,7 @@ export default function PrivacyPolicy() {
               If you have any privacy concerns or questions regarding data protection, please write to us at:
             </p>
             <div className="bg-rose-50/60 border border-rose-200 p-4 rounded-2xl text-xs sm:text-sm text-stone-800 flex flex-col gap-1">
-              <span className="font-bold text-stone-900">QR PrintPe Privacy Desk</span>
+              <span className="font-bold text-stone-900">Scan&Print Privacy Desk</span>
               <span>Email: <a href="mailto:qrseprint@gmail.com" className="text-brand font-bold underline">qrseprint@gmail.com</a></span>
               <span>Phone / WhatsApp Support: <strong>+91 84048 32414</strong></span>
               <span>Address: Main Market, Digital Hub, India</span>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Zap, ArrowRight, Check, QrCode, UploadCloud, FileText, CheckCircle2, CreditCard, Printer, heroSteps } from '../../assets/assets';
+import { Zap, ArrowRight, Check, QrCode, UploadCloud, FileText, CheckCircle2, CreditCard, Printer, heroSteps } from '../../assets/assets';
 
 function PrintCounter({ duration = 2600 }) {
   const [pct, setPct] = useState(0);
@@ -42,7 +42,6 @@ export default function Hero() {
         >
           {/* Tag */}
           <div className="inline-flex items-center gap-2 bg-brand/10 border border-brand/20 px-4 py-1.5 rounded-full text-brand text-xs sm:text-sm font-bold shadow-xs">
-            <Sparkles className="w-4 h-4 text-brand fill-brand" />
             <span>India's #1 Smart Printing Network for Shops</span>
           </div>
 

@@ -1,14 +1,9 @@
 import React, { useRef, useState, useLayoutEffect, useCallback } from 'react'
 import { Link } from 'react-router'
 import { motion, useScroll, useSpring } from 'framer-motion'
-import { Sparkles, ArrowRight, setupSteps } from '../../assets/assets'
+import { ArrowRight, setupSteps } from '../../assets/assets'
 
 export default function HowToSetup() {
-  // Wraps the whole desktop stage: SVG overlay + the grid of rows.
-  // Because the SVG path is measured from the *actual* rendered badge
-  // positions (not hardcoded coordinates), the number is always exactly
-  // on the wave's centerline, and the wave always follows each card's
-  // real height/position, however tall the text wraps to.
   const stageRef = useRef(null)
   const badgeRefs = useRef([])
   const [dims, setDims] = useState({ width: 0, height: 0 })
@@ -38,7 +33,6 @@ export default function HowToSetup() {
     const ro = new ResizeObserver(() => measure())
     if (stageRef.current) ro.observe(stageRef.current)
     window.addEventListener('resize', measure)
-    // Re-measure once more after fonts/layout settle on first paint.
     const t = setTimeout(measure, 250)
     return () => {
       ro.disconnect()
@@ -47,8 +41,6 @@ export default function HowToSetup() {
     }
   }, [measure])
 
-  // Thread a smooth cubic-bezier curve through the vertical center line
-  // (top/bottom) and every badge's real, measured center point.
   const buildPath = () => {
     if (!ready || points.length === 0 || !dims.width) return ''
     const cx = dims.width / 2
@@ -82,25 +74,19 @@ export default function HowToSetup() {
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
         <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-brand" /> Interactive Setup Tour
+          Interactive Setup Tour
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
-          How to Set Up QR Se Print?
+          How to Set Up <span className="marker-highlight text-stone-900">Scan&Print</span>?
         </h1>
         <p className="text-stone-600 text-base sm:text-lg">
           Automate your shop in just 6 simple steps. Follow the curved wave timeline below!
         </p>
       </div>
 
-      {/* CENTERED VERTICAL WAVE STEPPER STAGE */}
+      {/* wave*/}
       <div className="w-full relative py-6">
-
-        {/* DESKTOP: grid rows keep each badge perfectly vertically centered
-            against its own card (native CSS, no coordinate math needed).
-            The SVG wave is then drawn through the badges' real positions,
-            so it always matches whatever height each card actually is. */}
         <div ref={stageRef} className="hidden md:block relative w-full">
-
           <motion.svg
             className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-0"
             viewBox={`0 0 ${dims.width || 1} ${dims.height || 1}`}
@@ -164,7 +150,7 @@ export default function HowToSetup() {
 
                   <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs font-bold text-stone-400">
                     <span>Step 0{s.step}</span>
-                    <span className="text-brand">QR PrintPe</span>
+                    <span className="text-brand">Scan&Print</span>
                   </div>
                 </motion.div>
               )
@@ -199,7 +185,7 @@ export default function HowToSetup() {
           </div>
         </div>
 
-        {/* MOBILE RESPONSIVE STACKED CARDS (< md) */}
+        {/* cards */}
         <div className="md:hidden flex flex-col gap-6">
           {setupSteps.map((s) => {
             const Icon = s.icon
@@ -232,8 +218,8 @@ export default function HowToSetup() {
 
       </div>
 
-      {/* CTA Box */}
-      <div className="max-w-3xl mx-auto w-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-3xl p-8 sm:p-10 text-stone-900 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      {/* CTA buttons */}
+      <div className="max-w-3xl mx-auto w-full bg-linear-to-r from-amber-400 to-amber-500 rounded-3xl p-8 sm:p-10 text-stone-900 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
           <h3 className="text-2xl font-extrabold font-heading">Ready to Complete Step 1?</h3>
           <p className="text-stone-800 text-sm mt-1">Fill out the registration form now and get your QR code in 2 minutes.</p>

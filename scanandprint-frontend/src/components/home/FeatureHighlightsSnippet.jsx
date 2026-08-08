@@ -11,7 +11,7 @@ export default function FeatureHighlightsSnippet() {
           <div>
             <span className="text-amber-400 font-bold text-xs uppercase tracking-wider">Feature Highlights</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
-              Why Choose QR Se Print?
+              Why Choose <span className="marker-highlight text-stone-900">Scan&Print</span> Automation?
             </h2>
           </div>
           <Link to="/features">

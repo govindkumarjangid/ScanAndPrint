@@ -13,10 +13,10 @@ export default function Disclaimer() {
             <ShieldCheck className="w-3.5 h-3.5" /> Legal Disclaimer & Notice
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 leading-tight">
-            Platform Disclaimer
+            Scan&Print <span className="marker-highlight text-stone-900">Disclaimer</span>
           </h1>
           <p className="text-stone-500 text-xs sm:text-sm">
-            Last Updated: August 2026 · QR PrintPe Smart Network
+            Last Updated: August 2026 · Scan&Print Smart Network
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export default function Disclaimer() {
               <span className="text-brand font-mono">1.</span> Overview & Service Scope
             </h2>
             <p className="text-stone-600">
-              "QR PrintPe" operates an automated printing agent software network designed to facilitate mobile document printing at participating retail shop centers, cyber cafés, and digital services points across India.
+              "Scan&Print" operates an automated printing agent software network designed to facilitate mobile document printing at participating retail shop centers, cyber cafés, and digital services points across India.
             </p>
           </section>
 
@@ -48,7 +48,7 @@ export default function Disclaimer() {
               <span className="text-brand font-mono">2.</span> Independent Retail Operations
             </h2>
             <p className="text-stone-600">
-              Retail print shops using QR PrintPe operate independently. QR PrintPe provides software connectivity, payment processing API integration, and agent routing software. Physical print output quality, paper stock, and local counter availability are maintained by individual shop owners.
+              Retail print shops using Scan&Print operate independently. Scan&Print provides software connectivity, payment processing API integration, and agent routing software. Physical print output quality, paper stock, and local counter availability are maintained by individual shop owners.
             </p>
           </section>
 
@@ -57,7 +57,7 @@ export default function Disclaimer() {
               <span className="text-brand font-mono">3.</span> Limitation of Hardware & Outage Liability
             </h2>
             <p className="text-stone-600">
-              QR PrintPe shall not be held liable for local hardware defects, mechanical paper jams, ink exhaustion, or electrical power loss at retail shop premises. In the event of a failed print transaction due to hardware outage, automatic refund safeguards protect the customer.
+              Scan&Print shall not be held liable for local hardware defects, mechanical paper jams, ink exhaustion, or electrical power loss at retail shop premises. In the event of a failed print transaction due to hardware outage, automatic refund safeguards protect the customer.
             </p>
           </section>
 

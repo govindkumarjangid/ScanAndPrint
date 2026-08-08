@@ -13,7 +13,7 @@ export default function RefundPolicy() {
             <RefreshCw className="w-3.5 h-3.5" /> Fair Refund Guarantee
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 leading-tight">
-            Refund & Cancellation Policy
+            Scan&Print <span className="marker-highlight text-stone-900">Refund Policy</span>
           </h1>
           <p className="text-stone-500 text-xs sm:text-sm">
             Effective Date: January 1, 2026 · Last Updated: August 2026
@@ -31,12 +31,12 @@ export default function RefundPolicy() {
                 7-Day Money-Back Guarantee for Shop Owners
               </h3>
               <p className="text-stone-800 text-xs sm:text-sm font-medium">
-                Try QR PrintPe risk-free. If setup fails on your PC, get a 100% no-questions-asked refund!
+                Try Scan&Print risk-free. If setup fails on your PC, get a 100% no-questions-asked refund!
               </p>
             </div>
           </div>
           <a
-            href="https://wa.me/918404832414?text=Hello%20QR%20PrintPe%2C%20I%20want%20to%20request%20a%20refund"
+            href="https://wa.me/918404832414?text=Hello%20Scan%26Print%2C%20I%20want%20to%20request%20a%20refund"
             target="_blank"
             rel="noreferrer"
             className="shrink-0"
@@ -56,7 +56,7 @@ export default function RefundPolicy() {
               <span className="text-brand font-mono">1.</span> Shop Owner Subscription Refunds (Monthly & Lifetime)
             </h2>
             <p className="text-stone-600">
-              We stand behind the reliability of QR PrintPe software. If you register your shop under either the <strong>Monthly (₹399)</strong> or <strong>One-Time Lifetime (₹599)</strong> plan:
+              We stand behind the reliability of Scan&Print software. If you register your shop under either the <strong>Monthly (₹399)</strong> or <strong>One-Time Lifetime (₹599)</strong> plan:
             </p>
             <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mt-1">
               <li>
@@ -122,7 +122,7 @@ export default function RefundPolicy() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               <a
-                href="https://wa.me/918404832414?text=Refund%20Request%20for%20QR%20PrintPe"
+                href="https://wa.me/918404832414?text=Refund%20Request%20for%20Scan%26Print"
                 target="_blank"
                 rel="noreferrer"
                 className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center gap-3 hover:bg-emerald-100/60 transition-all group"
