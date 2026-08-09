@@ -15,7 +15,7 @@ export default function OwnerPrinters() {
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
-      
+
       {/* Title */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading">
@@ -37,9 +37,9 @@ export default function OwnerPrinters() {
         </motion.div>
       )}
 
-      {/* Main Mapping Card */}
+      {/* main card */}
       <form onSubmit={handleSavePrinters} className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-6">
-        
+
         {/* Auto Detected System Printers Info */}
         <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex items-center justify-between">
           <div className="flex items-center gap-3">

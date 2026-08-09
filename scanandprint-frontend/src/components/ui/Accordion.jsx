@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, HelpCircle } from '../../assets/assets'
 
@@ -16,26 +16,25 @@ export default function Accordion({ items }) {
         return (
           <div
             key={idx}
-            className={`border rounded-2xl transition-all overflow-hidden ${
-              isOpen
-                ? 'border-[#F0245C]/40 bg-white shadow-md'
-                : 'border-stone-200/80 bg-white/70 hover:border-stone-300 shadow-xs'
-            }`}
+            className={`border rounded-2xl transition-all duration-300 overflow-hidden ${isOpen
+              ? 'border-brand/50 bg-white shadow-md ring-3 ring-brand/20'
+              : 'border-stone-200/80 bg-white/70 hover:border-stone-300 shadow-xs'
+              }`}
           >
             <button
               onClick={() => toggleIndex(idx)}
-              className="w-full px-6 py-4 flex items-center justify-between text-left font-bold text-stone-900 text-base md:text-lg cursor-pointer"
+              className="w-full px-6 py-4 flex items-center justify-between text-left font-bold text-stone-900 text-sm md:text-md cursor-pointer"
             >
               <div className="flex items-center gap-3 pr-4">
-                <HelpCircle className={`w-5 h-5 flex-shrink-0 ${isOpen ? 'text-[#F0245C]' : 'text-stone-400'}`} />
-                <span>{item.question}</span>
+                <HelpCircle className={`w-5 h-5 shrink-0 ${isOpen ? 'text-brand' : 'text-stone-400'}`} />
+                <span className={` ${isOpen ? 'text-brand' : ''}`} >{item.question}</span>
               </div>
               <motion.div
                 animate={{ rotate: isOpen ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
-                className="flex-shrink-0"
+                className="shrink-0"
               >
-                <ChevronDown className={`w-5 h-5 ${isOpen ? 'text-[#F0245C]' : 'text-stone-400'}`} />
+                <ChevronDown className={`w-5 h-5 ${isOpen ? 'text-brand' : 'text-stone-400'}`} />
               </motion.div>
             </button>
 
@@ -47,7 +46,7 @@ export default function Accordion({ items }) {
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.25, ease: 'easeInOut' }}
                 >
-                  <div className="px-6 pb-5 pt-1 text-stone-600 text-sm md:text-base leading-relaxed border-t border-stone-100">
+                  <div className="px-6 pb-5 pt-1 text-stone-600 text-xs md:text-sm leading-relaxed border-t border-stone-100">
                     {item.answer}
                   </div>
                 </motion.div>

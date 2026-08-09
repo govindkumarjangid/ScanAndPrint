@@ -259,6 +259,7 @@ export const ownerNavItems = [
   { name: 'Shop QR Code', path: '/owner/qr-code', icon: QrCode },
   { name: 'Print Agent (.exe)', path: '/owner/agent', icon: Download },
   { name: 'Shop Settings', path: '/owner/settings', icon: Settings },
+  { name: 'Payment Setup', path: '/owner/payment-setup', icon: CreditCard },
 ]
 
 // Main Header Navigation Links

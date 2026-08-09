@@ -64,8 +64,8 @@ export default function OwnerJobs() {
 
   return (
     <div className="flex flex-col gap-6">
-      
-      {/* Title Header */}
+
+      {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading">
@@ -101,11 +101,10 @@ export default function OwnerJobs() {
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer transition-all ${
-                statusFilter === st
-                  ? 'bg-white text-brand shadow-2xs'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
+              className={`px-3 py-1.5 w-full rounded-lg text-xs font-extrabold cursor-pointer transition-all ${statusFilter === st
+                ? 'bg-brand text-white shadow-2xs'
+                : 'text-stone-600 hover:text-stone-900'
+                }`}
             >
               {st}
             </button>
@@ -113,11 +112,11 @@ export default function OwnerJobs() {
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
-            <thead>
+      {/* Orders table */}
+      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-stone-200/80 shadow-xs">
+        <div className="w-full overflow-hidden md:overflow-x-auto">
+          <table className="w-full text-left text-sm border-collapse block md:table">
+            <thead className="hidden md:table-header-group">
               <tr className="border-b border-stone-200/80 text-stone-500 font-bold text-xs uppercase tracking-wider">
                 <th className="py-3.5 px-4">Job ID</th>
                 <th className="py-3.5 px-4">Document File</th>
@@ -129,29 +128,64 @@ export default function OwnerJobs() {
                 <th className="py-3.5 px-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="block md:table-row-group space-y-4 md:space-y-0 md:divide-y md:divide-stone-100">
               {filteredJobs.map((j) => (
-                <tr key={j.id} className="hover:bg-stone-50/60 transition-colors">
-                  <td className="py-4 px-4 font-bold text-stone-900 font-mono text-xs">{j.id}</td>
-                  <td className="py-4 px-4 font-semibold text-stone-800">{j.file}</td>
-                  <td className="py-4 px-4 text-xs font-mono text-stone-600">{j.customerPhone}</td>
-                  <td className="py-4 px-4 text-xs font-medium text-stone-600">
-                    {j.pages} pages × {j.copies} copy
+                <tr
+                  key={j.id}
+                  className="block md:table-row bg-stone-50/40 md:bg-transparent border border-stone-200/80 md:border-0 rounded-2xl md:rounded-none p-4 md:p-0 hover:bg-stone-50/60 transition-colors"
+                >
+                  {/* Job ID */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-bold text-stone-900 font-mono text-xs">
+                    <span className="md:hidden text-stone-500 font-sans font-medium">Job ID</span>
+                    {j.id}
                   </td>
-                  <td className="py-4 px-4">
+
+                  {/* Document File */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-semibold text-stone-800">
+                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">File</span>
+                    <span className="truncate max-w-37.5 sm:max-w-50 text-right md:text-left md:max-w-none">{j.file}</span>
+                  </td>
+
+                  {/* Customer */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-mono text-stone-600">
+                    <span className="md:hidden text-stone-500 font-sans font-medium">Customer</span>
+                    {j.customerPhone}
+                  </td>
+
+                  {/* Pages / Copies */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-medium text-stone-600">
+                    <span className="md:hidden text-stone-500 font-sans font-medium">Details</span>
+                    <span>{j.pages} pages × {j.copies} copy</span>
+                  </td>
+
+                  {/* Type */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4">
+                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Type</span>
                     <span
-                      className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${
-                        j.type === 'Color'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-stone-200 text-stone-800'
-                      }`}
+                      className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${j.type === 'Color'
+                        ? 'bg-rose-100 text-rose-800'
+                        : 'bg-stone-200 text-stone-800'
+                        }`}
                     >
                       {j.type}
                     </span>
                   </td>
-                  <td className="py-4 px-4 font-extrabold text-stone-900">₹{j.amount}</td>
-                  <td className="py-4 px-4 text-xs font-medium text-stone-500">{j.time}</td>
-                  <td className="py-4 px-4">
+
+                  {/* Amount  */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-extrabold text-stone-900 border-t border-stone-100 md:border-0 mt-2 pt-3 md:mt-0 md:pt-4">
+                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Amount</span>
+                    ₹{j.amount}
+                  </td>
+
+                  {/* Time */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-medium text-stone-500">
+                    <span className="md:hidden text-stone-500 font-sans font-medium">Time</span>
+                    {j.time}
+                  </td>
+
+                  {/* Status */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 pb-1 md:pb-4">
+                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Status</span>
                     <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
                       <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {j.status}
                     </span>

@@ -1,32 +1,16 @@
-import React from 'react'
 import { Link } from 'react-router'
-import {
-  Printer,
-  Mail,
-  Phone,
-  Briefcase,
-  KeyRound,
-  ArrowRight,
-  InstagramIcon,
-  YoutubeIcon,
-} from '../assets/assets'
+import { Printer, Mail, Phone, Briefcase, KeyRound, ArrowRight, InstagramIcon, YoutubeIcon } from '../assets/assets';
+import { Logo } from "./ui/Logo";
 
 export default function Footer() {
   return (
     <footer className="bg-stone-900 text-stone-300 pt-16 pb-8 border-t border-stone-800">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-stone-800">
 
-          {/* Col 1: Brand & Tagline */}
+          {/* Brand & Tagline */}
           <div className="flex flex-col gap-4">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center shadow-lg shadow-[#F0245C]/30">
-                <Printer className="w-5 h-5" />
-              </div>
-              <span className="font-extrabold text-2xl tracking-tight text-white">
-                Scan<span className="text-brand">&Print</span>
-              </span>
-            </Link>
+            <Logo />
             <p className="text-stone-400 text-sm leading-relaxed">
               Automated smart print network — Scan QR code and print documents automatically.
             </p>
@@ -52,9 +36,9 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Col 2: Product */}
+          {/* Product */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-white font-bold tracking-wide uppercase text-xs text-stone-400 mb-1">
+            <h4 className="font-bold tracking-wide uppercase text-xs text-stone-400 mb-1">
               Product
             </h4>
             <ul className="flex flex-col gap-2 text-sm">
@@ -79,9 +63,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 3: Legal */}
+          {/* Legal */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-white font-bold tracking-wide uppercase text-xs text-stone-400 mb-1">
+            <h4 className="font-bold tracking-wide uppercase text-xs text-stone-400 mb-1">
               Legal
             </h4>
             <ul className="flex flex-col gap-2 text-sm">
@@ -100,7 +84,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 4: Contact */}
+          {/* Contact */}
           <div className="flex flex-col gap-3">
             <h4 className="text-white font-bold tracking-wide uppercase text-xs  mb-1">
               Contact
@@ -109,7 +93,7 @@ export default function Footer() {
               <li className="flex items-center gap-2 text-stone-300">
                 <Mail className="w-4 h-4 text-brand" />
                 <a href="mailto:qrseprint@gmail.com" className="hover:text-white transition-colors">
-                  qrseprint@gmail.com
+                  scanandprint@gmail.com
                 </a>
               </li>
               <li className="flex items-center gap-2 text-stone-300">

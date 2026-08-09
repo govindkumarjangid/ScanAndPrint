@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, ownerNavItems } from '../assets/assets'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -19,32 +19,15 @@ export default function OwnerLayout() {
   return (
     <div className="min-h-screen bg-stone-100/70 flex font-sans text-stone-800">
 
-      {/* DESKTOP SIDEBAR */}
+      {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-stone-200/80 sticky top-0 h-screen justify-between z-30 shadow-xs">
         <div>
-          {/* Logo & Shop Header */}
+          {/* Logo */}
           <div className="p-6 border-b border-stone-100 flex items-center justify-between">
             <OwnerLogo />
           </div>
 
-          {/* Shop Credentials Info Box */}
-          <div className="mx-4 my-4 p-3.5 rounded-2xl bg-rose-50/60 border border-rose-200/70 flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Shop ID</span>
-              <span className="text-sm font-extrabold text-stone-900 font-mono">{shopCode}</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-full border border-stone-200 shadow-2xs">
-              <span
-                className={`w-2 h-2 rounded-full ${isAgentConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
-                  }`}
-              />
-              <span className="text-[10px] font-extrabold text-stone-700">
-                {isAgentConnected ? 'AGENT LIVE' : 'OFFLINE'}
-              </span>
-            </div>
-          </div>
-
-          {/* Nav Items List */}
+          {/* Navigation tabs */}
           <nav className="px-4 space-y-1 mt-2">
             {ownerNavItems.map((item) => {
               const Icon = item.icon
@@ -79,16 +62,15 @@ export default function OwnerLayout() {
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
+      {/* Content container */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* TOP HEADER BAR */}
+        {/* header */}
         <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-stone-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-xl text-stone-700 hover:bg-stone-100 cursor-pointer"
+              className="lg:hidden p-2 rounded-full text-stone-700 hover:bg-stone-100 cursor-pointer"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -99,7 +81,7 @@ export default function OwnerLayout() {
             </div>
           </div>
 
-          {/* Right Header Status Actions */}
+          {/* Status Actions */}
           <div className="flex items-center gap-3">
             <Link to="/owner/qr-code">
               <button className="hidden sm:flex items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-800 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer">
@@ -109,7 +91,7 @@ export default function OwnerLayout() {
             </Link>
 
             <Link to="/owner/agent">
-              <button className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full text-xs font-extrabold shadow-2xs">
+              <button className="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full text-xs font-extrabold shadow-2xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Print Agent Online</span>
               </button>
@@ -117,13 +99,13 @@ export default function OwnerLayout() {
           </div>
         </header>
 
-        {/* PAGE CONTENT CONTAINER */}
+        {/* Content Container */}
         <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>
 
-      {/* MOBILE SIDEBAR DRAWER */}
+      {/* mobile sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
           <>
@@ -139,7 +121,7 @@ export default function OwnerLayout() {
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 35, stiffness: 300 }}
               className="fixed top-0 bottom-0 left-0 w-72 bg-white z-50 flex flex-col justify-between p-4 border-r border-stone-200 lg:hidden"
             >
               <div>
@@ -148,15 +130,16 @@ export default function OwnerLayout() {
                     <div className="w-9 h-9 rounded-xl bg-brand text-white flex items-center justify-center">
                       <Printer className="w-5 h-5" />
                     </div>
-                    <span className="font-extrabold text-base text-stone-900">
-                      QR PrintPe
-                    </span>
+                    <div className="font-extrabold text-base text-stone-900">
+                      Scan<span className="text-brand">&Print</span>
+                      <span className="text-xs text-stone-500 font-medium block">Owner Panel</span>
+                    </div>
                   </div>
                   <button
                     onClick={() => setSidebarOpen(false)}
-                    className="p-1.5 rounded-lg text-stone-500 hover:bg-stone-100"
+                    className="p-2 rounded-full text-stone-500 hover:bg-stone-100 cursor-pointer"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 

@@ -31,6 +31,7 @@ const OwnerPricing = lazy(() => import('./pages/owner/OwnerPricing'))
 const OwnerQrCode = lazy(() => import('./pages/owner/OwnerQrCode'))
 const OwnerAgentDownload = lazy(() => import('./pages/owner/OwnerAgentDownload'))
 const OwnerSettings = lazy(() => import('./pages/owner/OwnerSettings'))
+const OwnerPaymentSetup = lazy(() => import('./pages/owner/OwnerPaymentSetup'))
 
 // Lazy Loaded Super Admin Dashboard Pages
 const AdminOverview = lazy(() => import('./pages/admin/AdminOverview'))
@@ -77,6 +78,7 @@ export default function App() {
             <Route path="qr-code" element={<OwnerQrCode />} />
             <Route path="agent" element={<OwnerAgentDownload />} />
             <Route path="settings" element={<OwnerSettings />} />
+            <Route path="payment-setup" element={<OwnerPaymentSetup />} />
           </Route>
 
           {/* Super Admin Dashboard Routes */}
