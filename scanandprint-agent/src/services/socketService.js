@@ -51,12 +51,22 @@ class SocketService {
       timeout: 10000,
     })
 
-    // Socket Event Handlers
     this.socket.on('connect', () => {
       console.log(`[SocketService] 🟢 Connected! Socket ID: ${this.socket.id}`)
+      
+      // Emit handshake manually since backend expects AGENT_REGISTER event
+      this.socket.emit('AGENT_REGISTER', { 
+        shopId: shopId.trim(), 
+        secretApiKey: secretKey.trim(),
+        agentVersion: '1.0.0'
+      })
+      
       this.isConnected = true
       this.hasLoggedOffline = false
       this.notifyStatusChange('CONNECTED', { socketId: this.socket.id, shopId })
+
+      // Fetch queued jobs for offline sync recovery
+      this.fetchQueuedJobs(targetServerUrl, shopId.trim(), secretKey.trim())
     })
 
     this.socket.on('disconnect', (reason) => {
@@ -112,6 +122,42 @@ class SocketService {
   reconnect() {
     this.disconnect()
     this.connect()
+  }
+
+  async fetchQueuedJobs(serverUrl, shopCode, secretApiKey) {
+    try {
+      console.log(`[SocketService] Fetching queued jobs for recovery...`)
+      const axios = (await import('axios')).default
+      const response = await axios.get(`${serverUrl}/api/jobs/queued`, {
+        headers: {
+          'x-shop-code': shopCode,
+          'x-secret-api-key': secretApiKey
+        }
+      })
+      
+      if (response.data && response.data.data && response.data.data.jobs) {
+        const queuedJobs = response.data.data.jobs
+        if (queuedJobs.length > 0) {
+          console.log(`[SocketService] Recovered ${queuedJobs.length} queued jobs`)
+          for (const job of queuedJobs) {
+            // Re-emit internally
+            this.socket.emit('PRINT_JOB_DISPATCH', {
+              jobId: job.jobId,
+              shopCode: job.shopCode,
+              fileUrl: job.fileUrl,
+              originalFileName: job.originalFileName,
+              totalPages: job.totalPages,
+              colorType: job.colorType,
+              copies: job.copies,
+              isDuplex: job.isDuplex,
+              totalAmount: job.totalAmount,
+            })
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[SocketService] Failed to fetch queued jobs:', err.message)
+    }
   }
 }
 

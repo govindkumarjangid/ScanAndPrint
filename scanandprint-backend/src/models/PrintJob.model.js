@@ -120,6 +120,5 @@ const printJobSchema = new mongoose.Schema(
 // High-Performance Compound Indexes for ultra-fast query execution
 printJobSchema.index({ shopId: 1, status: 1, createdAt: -1 })
 printJobSchema.index({ shopCode: 1, status: 1, createdAt: -1 })
-printJobSchema.index({ paymentTxnId: 1 })
 
 export const PrintJob = mongoose.model('PrintJob', printJobSchema)

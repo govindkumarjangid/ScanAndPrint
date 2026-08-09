@@ -1,8 +1,5 @@
 import crypto from 'crypto'
 
-/**
- * Generates a unique Shop Code (e.g. SHOP_982345 or SHARMA_CYBER_101)
- */
 export const generateShopCode = (shopName) => {
   const cleanName = (shopName || 'SHOP')
     .toUpperCase()
@@ -12,9 +9,6 @@ export const generateShopCode = (shopName) => {
   return `${cleanName}_${randomDigits}`
 }
 
-/**
- * Generates a secure Secret API Key for Print Agent authentication
- */
 export const generateSecretApiKey = () => {
   return `sec_live_${crypto.randomBytes(16).toString('hex')}`
 }

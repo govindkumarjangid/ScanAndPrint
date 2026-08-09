@@ -1,8 +1,15 @@
 import { create } from 'zustand'
+import api from '../lib/axios'
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   // Tab state: 'login' | 'register'
   activeTab: 'login',
+
+  // Current authenticated shop
+  currentShop: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
 
   // Register multi-step state: 1 | 2 | 3
   registerStep: 1,
@@ -77,4 +84,62 @@ export const useAuthStore = create((set) => ({
         hardwareReady: true,
       },
     }),
+
+  // Async API Actions
+  login: async (email, password) => {
+    try {
+      set({ isLoading: true, error: null })
+      const res = await api.post('/auth/login', { email, password })
+      if (res.data.success) {
+        set({ currentShop: res.data.data.shop, isAuthenticated: true })
+        return true
+      }
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Login failed' })
+      throw error
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  register: async (registerPayload) => {
+    try {
+      set({ isLoading: true, error: null })
+      const res = await api.post('/auth/register', registerPayload)
+      if (res.data.success) {
+        set({ currentShop: res.data.data.shop, isAuthenticated: true })
+        return true
+      }
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Registration failed' })
+      throw error
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  logout: async () => {
+    try {
+      await api.post('/auth/logout')
+    } catch (e) {
+      console.warn('Logout error', e)
+    } finally {
+      set({ currentShop: null, isAuthenticated: false })
+      window.location.href = '/shop-login'
+    }
+  },
+
+  fetchProfile: async () => {
+    try {
+      set({ isLoading: true })
+      const res = await api.get('/auth/me')
+      if (res.data.success) {
+        set({ currentShop: res.data.data.shop, isAuthenticated: true })
+      }
+    } catch (error) {
+      set({ currentShop: null, isAuthenticated: false })
+    } finally {
+      set({ isLoading: false })
+    }
+  },
 }))

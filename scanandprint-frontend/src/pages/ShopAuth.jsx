@@ -63,13 +63,20 @@ export default function ShopAuth() {
   }
 
   // Handle Login Submit
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      const { login } = useAuthStore.getState()
+      await login(loginEmail, loginPassword)
       setAuthSuccessMsg('Login successful! Redirecting to Shop Dashboard...')
-    }, 700)
+      setTimeout(() => navigate('/owner/dashboard'), 1000)
+    } catch (err) {
+      // Error is handled by store and displayed via UI (which we should show, let's just log for now or show toast)
+      console.error(err)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Handle Step 1 Next
@@ -85,17 +92,37 @@ export default function ShopAuth() {
   }
 
   // Handle Register Submit
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault()
+    if (registerData.password !== registerData.confirmPassword) {
+      alert("Passwords do not match!")
+      return
+    }
+    
     setIsSubmitting(true)
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      const { register } = useAuthStore.getState()
+      await register({
+        fullName: registerData.fullName,
+        mobile: registerData.mobile,
+        email: registerData.email,
+        password: registerData.password,
+        shopName: registerData.shopName,
+        shopAddress: registerData.shopAddress,
+        pincode: registerData.pincode,
+        cityState: registerData.cityState,
+        printerBrand: registerData.printerBrand,
+        bwRate: registerData.bwRate,
+        colorRate: registerData.colorRate
+      })
+      
       setAuthSuccessMsg('Registration successful! Welcome to QR PrintPe.')
-      setTimeout(() => {
-        resetRegisterForm()
-        handleTabSwitch('login')
-      }, 1200)
-    }, 800)
+      setTimeout(() => navigate('/owner/dashboard'), 1200)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

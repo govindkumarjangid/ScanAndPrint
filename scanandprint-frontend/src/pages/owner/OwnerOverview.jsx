@@ -12,60 +12,29 @@ import {
   ArrowUpRight,
 } from 'lucide-react'
 
-const recentJobs = [
-  {
-    id: 'JOB_98234_108',
-    file: 'Aadhaar_Card_Copy.pdf',
-    pages: 2,
-    copies: 1,
-    type: 'B&W',
-    amount: 10,
-    time: '2 mins ago',
-    status: 'Printed',
-  },
-  {
-    id: 'JOB_98234_107',
-    file: 'College_Project_Report.pdf',
-    pages: 14,
-    copies: 1,
-    type: 'Color',
-    amount: 140,
-    time: '15 mins ago',
-    status: 'Printed',
-  },
-  {
-    id: 'JOB_98234_106',
-    file: 'PAN_Card_Verification.jpg',
-    pages: 1,
-    copies: 2,
-    type: 'Color',
-    amount: 20,
-    time: '32 mins ago',
-    status: 'Printed',
-  },
-  {
-    id: 'JOB_98234_105',
-    file: 'Resume_Rahul_Kumar.pdf',
-    pages: 3,
-    copies: 2,
-    type: 'B&W',
-    amount: 30,
-    time: '1 hour ago',
-    status: 'Printed',
-  },
-]
+import { useEffect } from 'react'
+import { useAuthStore } from '../../store/useAuthStore'
+import { useJobStore } from '../../store/useJobStore'
 
 export default function OwnerOverview() {
+  const { currentShop } = useAuthStore()
+  const { jobs, analytics, fetchJobs, fetchAnalytics, isLoading } = useJobStore()
+
+  useEffect(() => {
+    fetchJobs(1, 10) // fetch latest 10 jobs
+    fetchAnalytics()
+  }, [fetchJobs, fetchAnalytics])
+
   return (
     <div className="flex flex-col gap-8">
 
       {/* Title */}
       <div className="flex flex-col gap-0.5 px-2 sm:px-0">
         <h1 className="text-2xl sm:text-[28px] leading-tight font-extrabold text-stone-900 tracking-tight font-heading">
-          Sharma Cyber Cafe
+          {currentShop?.shopName || 'Cyber Cafe'}
         </h1>
         <p className="text-sm sm:text-[15px] text-stone-500 font-medium">
-          Cyber Café & Automated Printing
+          {currentShop?.address || 'Automated Printing Network'}
         </p>
       </div>
 
@@ -86,9 +55,9 @@ export default function OwnerOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">₹1,480</h3>
+            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">₹{analytics?.totalRevenue || 0}</h3>
             <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5" /> +24% from yesterday
+              <TrendingUp className="w-3.5 h-3.5" /> Lifetime Earnings
             </span>
           </div>
         </motion.div>
@@ -100,16 +69,16 @@ export default function OwnerOverview() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
-              Print Orders Today
+              Print Orders
             </span>
             <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-600">
               <FileText className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">42</h3>
+            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">{analytics?.totalJobsCompleted || 0}</h3>
             <span className="text-xs font-medium text-stone-500 mt-1 block">
-              100% Auto-printed
+              Successfully Printed
             </span>
           </div>
         </motion.div>
@@ -128,9 +97,9 @@ export default function OwnerOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">186</h3>
+            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">{analytics?.totalPagesPrinted || 0}</h3>
             <span className="text-xs font-medium text-stone-500 mt-1 block">
-              142 B&W · 44 Color
+              {analytics?.bwJobsCount || 0} B&W · {analytics?.colorJobsCount || 0} Color Jobs
             </span>
           </div>
         </motion.div>
@@ -150,11 +119,11 @@ export default function OwnerOverview() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-              <h3 className="text-lg font-extrabold text-stone-900">PC Agent Online</h3>
+              <span className={`w-3 h-3 rounded-full ${currentShop?.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+              <h3 className="text-lg font-extrabold text-stone-900">PC Agent {currentShop?.isOnline ? 'Online' : 'Offline'}</h3>
             </div>
-            <span className="text-xs font-medium text-emerald-700 mt-1 block">
-              Epson L3210 (Ready)
+            <span className={`text-xs font-medium mt-1 block ${currentShop?.isOnline ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {currentShop?.printerBrand} ({currentShop?.isOnline ? 'Ready' : 'Not Connected'})
             </span>
           </div>
         </motion.div>
@@ -229,53 +198,63 @@ export default function OwnerOverview() {
             </thead>
 
             <tbody className="block md:table-row-group space-y-4 md:space-y-0 md:divide-y md:divide-stone-100">
-              {recentJobs.map((j) => (
-                <tr key={j.id}
+              {isLoading ? (
+                <tr><td colSpan="6" className="py-4 text-center text-sm text-stone-500">Loading jobs...</td></tr>
+              ) : jobs.length === 0 ? (
+                <tr><td colSpan="6" className="py-4 text-center text-sm text-stone-500">No print jobs found.</td></tr>
+              ) : jobs.map((j) => (
+                <tr key={j._id}
                   className="block md:table-row bg-stone-50/40 md:bg-transparent border border-stone-200/80 md:border-0 rounded-2xl md:rounded-none p-4 md:p-0 hover:bg-stone-50/60 transition-colors"
                 >
                   {/* Job ID */}
                   <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-bold text-stone-900 font-mono text-xs">
                     <span className="md:hidden text-stone-500 font-sans font-medium">Job ID</span>
-                    {j.id}
+                    {j.jobId}
                   </td>
 
                   {/*  File Name */}
                   <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-semibold text-stone-800">
                     <span className="md:hidden text-stone-500 font-sans text-xs font-medium">File</span>
-                    <span className="truncate max-w-40 text-right md:text-left md:max-w-none">{j.file}</span>
+                    <span className="truncate max-w-40 text-right md:text-left md:max-w-none">{j.originalFileName}</span>
                   </td>
 
                   {/* Pages & Copies */}
                   <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 text-xs font-medium text-stone-600">
                     <span className="md:hidden text-stone-500 font-sans font-medium">Details</span>
-                    <span>{j.pages} pages × {j.copies} copy</span>
+                    <span>{j.totalPages} pages × {j.copies} copy</span>
                   </td>
 
                   {/* Type */}
                   <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4">
                     <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Type</span>
                     <span
-                      className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${j.type === 'Color'
+                      className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${j.colorType === 'COLOR'
                         ? 'bg-rose-100 text-rose-800'
                         : 'bg-stone-200 text-stone-800'
                         }`}
                     >
-                      {j.type}
+                      {j.colorType === 'COLOR' ? 'Color' : 'B&W'}
                     </span>
                   </td>
 
                   {/* Amount */}
                   <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-extrabold text-stone-900 border-t border-stone-100 md:border-0 mt-2 pt-3 md:mt-0 md:pt-3.5">
                     <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Amount</span>
-                    ₹{j.amount}
+                    ₹{j.totalAmount}
                   </td>
 
                   {/* Status */}
                   <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 pb-1 md:pb-3.5">
                     <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Status</span>
-                    <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Printed
-                    </span>
+                    {j.status === 'PRINTED_SUCCESSFULLY' ? (
+                      <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Printed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
+                        <Clock className="w-3 h-3 text-amber-600" /> {j.status.replace(/_/g, ' ')}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
