@@ -33,13 +33,51 @@ const io = new Server(server, {
 
 app.set('io', io)
 
-app.use(helmet())
-app.use(cors({ origin: envConfig.clientUrl, credentials: true }))
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'https://scan-and-print.vercel.app',
+  ...(envConfig.clientUrl
+    ? envConfig.clientUrl.split(',').map((u) => u.trim().replace(/\/+$/, ''))
+    : []),
+].filter(Boolean)
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true)
+    const cleanOrigin = origin.trim().replace(/\/+$/, '')
+    const isExplicitlyAllowed = allowedOrigins.some(
+      (allowed) => cleanOrigin.toLowerCase() === allowed.toLowerCase()
+    )
+    const isVercelDomain = /^https:\/\/[a-zA-Z0-9_.-]+\.vercel\.app$/.test(cleanOrigin)
+    const isRenderDomain = /^https:\/\/[a-zA-Z0-9_.-]+\.onrender\.com$/.test(cleanOrigin)
+    if (isExplicitlyAllowed || isVercelDomain || isRenderDomain)
+      return callback(null, true)
+    console.warn(`[CORS Blocked]: Origin "${origin}" is not allowed`)
+    return callback(new Error(`CORS blocked for origin: ${origin}`))
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'x-shop-code',
+    'x-secret-api-key',
+    'X-Requested-With',
+    'Accept',
+  ],
+}
+
+app.set('trust proxy', 1)
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
+app.use(cors(corsOptions))
 app.use(cookieParser())
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 if (envConfig.nodeEnv === 'development')
   app.use(morgan('dev'))
+
 
 
 app.get('/api/health', (req, res) => {

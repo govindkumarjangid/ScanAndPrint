@@ -13,5 +13,6 @@ export const envConfig = {
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET || '',
   razorpayKeyId: process.env.RAZORPAY_KEY_ID || '',
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || '',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrl: (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/+$/, ''),
 }
+
