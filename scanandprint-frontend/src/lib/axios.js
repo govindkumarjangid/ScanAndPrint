@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/useAuthStore'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-  withCredentials: true, // Send cookies with every request
+  withCredentials: true,
 })
 
 // Request Interceptor
@@ -33,17 +33,14 @@ api.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        // Attempt to refresh token
         await axios.post(
           `${api.defaults.baseURL}/auth/refresh-token`,
           {},
           { withCredentials: true }
         )
 
-        // Retry the original request
         return api(originalRequest)
       } catch (refreshError) {
-        // If refresh token is also invalid, log out user
         useAuthStore.getState().logout()
         return Promise.reject(refreshError)
       }
