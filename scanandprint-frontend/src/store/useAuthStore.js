@@ -95,8 +95,9 @@ export const useAuthStore = create((set, get) => ({
         return true
       }
     } catch (error) {
-      set({ error: error.response?.data?.message || 'Login failed' })
-      throw error
+      const errorMsg = error.response?.data?.message || 'Login failed'
+      set({ error: errorMsg })
+      throw new Error(errorMsg)
     } finally {
       set({ isLoading: false })
     }
@@ -111,8 +112,9 @@ export const useAuthStore = create((set, get) => ({
         return true
       }
     } catch (error) {
-      set({ error: error.response?.data?.message || 'Registration failed' })
-      throw error
+      const errorMsg = error.response?.data?.message || 'Registration failed'
+      set({ error: errorMsg })
+      throw new Error(errorMsg)
     } finally {
       set({ isLoading: false })
     }

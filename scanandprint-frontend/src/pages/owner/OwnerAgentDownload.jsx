@@ -44,7 +44,7 @@ export default function OwnerAgentDownload() {
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            className="bg-white text-brand font-extrabold px-8 py-4 rounded-2xl text-base shadow-lg flex items-center gap-2 cursor-pointer hover:bg-rose-50"
+            className="btn btn-secondary !bg-white !text-brand hover:!bg-rose-50 px-8 py-4 shadow-lg text-base"
           >
             <Download className="w-5 h-5" />
             <span>Download .exe (88MB)</span>
@@ -72,7 +72,7 @@ export default function OwnerAgentDownload() {
               <span className="text-xs font-bold text-brand uppercase tracking-wider">Secret API Key</span>
               <button
                 onClick={handleCopyKey}
-                className="text-xs font-bold text-brand hover:underline flex items-center gap-1 cursor-pointer"
+                className="btn btn-ghost btn-sm !text-brand !px-2 !py-1"
               >
                 <Copy className="w-3.5 h-3.5" />
                 <span>{copiedKey ? 'Copied!' : 'Copy'}</span>

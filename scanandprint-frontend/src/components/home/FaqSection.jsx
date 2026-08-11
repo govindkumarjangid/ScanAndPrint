@@ -45,7 +45,7 @@ export default function FaqSection() {
 
         <Link
           to="/contact"
-          className="bg-brand hover:bg-brand-hover text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-full shadow-md flex items-center gap-2 shrink-0 active:scale-98 transition-all cursor-pointer"
+          className="btn btn-primary px-6 py-3 shadow-md"
         >
           <span>Chat with Support</span>
           <ArrowRight className="w-4 h-4" />

@@ -1,16 +1,30 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Printer, CheckCircle2, RefreshCw, Sparkles } from 'lucide-react'
+import { Printer, RefreshCw, Sparkles, Loader2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function OwnerPrinters() {
   const [bwPrinter, setBwPrinter] = useState('Epson L3210 Series')
   const [colorPrinter, setColorPrinter] = useState('Epson L3210 Series')
-  const [savedSuccess, setSavedSuccess] = useState(false)
+
+  const [isSaving, setIsSaving] = useState(false)
+  const [isScanning, setIsScanning] = useState(false)
 
   const handleSavePrinters = (e) => {
     e.preventDefault()
-    setSavedSuccess(true)
-    setTimeout(() => setSavedSuccess(false), 2500)
+    setIsSaving(true)
+    setTimeout(() => {
+      setIsSaving(false)
+      toast.success('Printers mapped successfully! Print Agent will route jobs to these devices.')
+    }, 800)
+  }
+
+  const handleScanPrinters = () => {
+    setIsScanning(true)
+    setTimeout(() => {
+      setIsScanning(false)
+      toast.success('Rescanned connected printers successfully.')
+    }, 800)
   }
 
   return (
@@ -25,17 +39,6 @@ export default function OwnerPrinters() {
           Map your Black & White and Color printers to route customer jobs automatically
         </p>
       </div>
-
-      {savedSuccess && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-emerald-50 border border-emerald-300 p-4 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2"
-        >
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>Printers mapped successfully! Print Agent will route jobs to these devices.</span>
-        </motion.div>
-      )}
 
       {/* main card */}
       <form onSubmit={handleSavePrinters} className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-6">
@@ -53,10 +56,12 @@ export default function OwnerPrinters() {
           </div>
           <button
             type="button"
-            className="flex items-center gap-1.5 bg-white border border-stone-300 text-stone-700 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-stone-100 transition-all cursor-pointer"
+            onClick={handleScanPrinters}
+            disabled={isScanning}
+            className="btn btn-outline bg-white btn-sm !font-bold"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Scan Printers</span>
+            {isScanning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            <span>{isScanning ? 'Scanning...' : 'Scan Printers'}</span>
           </button>
         </div>
 
@@ -94,16 +99,16 @@ export default function OwnerPrinters() {
           </select>
         </div>
 
-        {/* Save Button */}
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          type="submit"
-          className="btn-primary py-4 text-sm shadow-md mt-2 flex items-center justify-center gap-2"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Save Printer Hardware Mapping</span>
-        </motion.button>
+        <div className="flex justify-start">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="btn btn-primary py-4 mt-2 px-8"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            <span>{isSaving ? 'Saving...' : 'Save Printer Hardware Mapping'}</span>
+          </button>
+        </div>
 
       </form>
 

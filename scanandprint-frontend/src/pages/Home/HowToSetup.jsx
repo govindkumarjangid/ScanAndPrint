@@ -111,8 +111,6 @@ export default function HowToSetup() {
               strokeWidth="6"
               strokeLinecap="round"
             />
-
-            {/* Animated scroll-progress wave, on top of the base wave */}
             <motion.path
               d={pathD}
               fill="none"
@@ -130,12 +128,15 @@ export default function HowToSetup() {
 
               const Card = (
                 <motion.div
-                  initial={{ opacity: 0, x: isLeftCard ? -30 : 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, scale: 0, filter: 'blur(6px)' }}
+                  whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: idx * 0.1 }}
+                  transition={{
+                    duration: 0.2, delay: idx * 0.1, stiffness: 30,
+                    damping: 300,
+                  }}
                   whileHover={{ y: -4, scale: 1.01 }}
-                  className="bg-white p-6 sm:p-7 rounded-3xl border border-stone-200/80 shadow-xs hover:shadow-2xl transition-all flex flex-col gap-3"
+                  className="bg-white p-6 sm:p-7 rounded-3xl border border-stone-200/80 shadow-xs hover:shadow-sm hover:border-brand transition-all flex flex-col gap-3"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-rose-50 text-brand flex items-center justify-center shrink-0">
@@ -162,10 +163,6 @@ export default function HowToSetup() {
                 >
                   {/* left slot */}
                   <div>{isLeftCard ? Card : null}</div>
-
-                  {/* center gutter: badge always vertically centered against
-                      this row's card via `items-center` above, and leans
-                      toward the empty side to create the wave's zig-zag */}
                   <div
                     className={`flex ${isLeftCard ? 'justify-end' : 'justify-start'}`}
                   >
@@ -192,8 +189,8 @@ export default function HowToSetup() {
             return (
               <motion.div
                 key={s.step}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs flex flex-col gap-3"
               >
@@ -225,14 +222,12 @@ export default function HowToSetup() {
           <p className="text-stone-800 text-sm mt-1">Fill out the registration form now and get your QR code in 2 minutes.</p>
         </div>
         <Link to="/register" className="shrink-0">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="btn-primary px-8 py-4 text-base shadow-lg flex items-center gap-2"
+          <button
+            className="btn btn-secondary btn-lg shadow-lg"
           >
             <span>Start Step 1: Register</span>
             <ArrowRight className="w-5 h-5" />
-          </motion.button>
+          </button>
         </Link>
       </div>
 

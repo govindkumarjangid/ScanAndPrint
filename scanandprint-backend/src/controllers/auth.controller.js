@@ -47,6 +47,26 @@ export const loginShop = async (req, res, next) => {
   }
 }
 
+export const loginAdmin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const { accessToken, admin } = await authService.adminLogin({ email, password });
+
+    res.cookie('adminToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 }); // 2 hours
+
+    return sendSuccess(res, 200, 'Admin login successful!', {
+      token: accessToken,
+      admin,
+    });
+  } catch (error) {
+    if (error.message.includes('Invalid admin')) {
+      return sendError(res, 401, error.message);
+    }
+    next(error);
+  }
+}
+
 export const getShopProfile = async (req, res, next) => {
   try {
     return sendSuccess(res, 200, 'Shop profile fetched successfully', { shop: req.shop })

@@ -1,20 +1,38 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { IndianRupee, CheckCircle2, Save } from 'lucide-react'
+import { IndianRupee, CheckCircle2, Save, Loader2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function OwnerPricing() {
   const [bwRate, setBwRate] = useState(5)
   const [colorRate, setColorRate] = useState(10)
-  const [savedSuccess, setSavedSuccess] = useState(false)
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+  const [isSavingRates, setIsSavingRates] = useState(false)
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+
   const handleSaveRates = (e) => {
     e.preventDefault()
-    setSavedSuccess(true)
-    setTimeout(() => setSavedSuccess(false), 2500)
+    setIsSavingRates(true)
+    setTimeout(() => {
+      setIsSavingRates(false)
+      toast.success('Print rates updated successfully!')
+    }, 800)
+  }
+
+  const handleUpdatePassword = (e) => {
+    e.preventDefault()
+    setIsUpdatingPassword(true)
+    setTimeout(() => {
+      setIsUpdatingPassword(false)
+      toast.success('Password updated successfully!')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    }, 800)
   }
 
   return (
@@ -29,17 +47,6 @@ export default function OwnerPricing() {
           Set your per-page customer printout charges for Black & White and Color pages
         </p>
       </div>
-
-      {savedSuccess && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-emerald-50 border border-emerald-300 p-4 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2"
-        >
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>Print rates updated! Customers scanning your QR code will see the new pricing.</span>
-        </motion.div>
-      )}
 
       {/* Rates Form */}
       <form onSubmit={handleSaveRates} className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-6">
@@ -84,20 +91,20 @@ export default function OwnerPricing() {
           </div>
         </div>
 
-        {/* Save Button */}
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          type="submit"
-          className="btn-primary py-4 text-sm shadow-md mt-2 flex items-center justify-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          <span>Save Customer Print Rates</span>
-        </motion.button>
+        <div className="flex justify-start">
+          <button
+            type="submit"
+            disabled={isSavingRates}
+            className="btn btn-primary py-4 mt-2 px-8"
+          >
+            {isSavingRates ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>{isSavingRates ? 'Saving...' : 'Save Customer Print Rates'}</span>
+          </button>
+        </div>
 
       </form>
       {/* Password Form */}
-      <form onSubmit="" className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-6">
+      <form onSubmit={handleUpdatePassword} className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-6">
 
         <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200 flex flex-col gap-2">
           <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
@@ -150,16 +157,16 @@ export default function OwnerPricing() {
         </div>
 
 
-        {/* Save Button */}
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          type="submit"
-          className="btn-primary py-4 text-sm shadow-md mt-2 flex items-center justify-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          <span>Update Password</span>
-        </motion.button>
+        <div className="flex justify-start">
+          <button
+            type="submit"
+            disabled={isUpdatingPassword}
+            className="btn btn-primary py-4 mt-2 px-8"
+          >
+            {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>{isUpdatingPassword ? 'Updating...' : 'Update Password'}</span>
+          </button>
+        </div>
 
       </form>
 

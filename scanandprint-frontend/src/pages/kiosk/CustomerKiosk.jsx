@@ -299,7 +299,7 @@ export default function CustomerKiosk() {
 
                   <button
                     onClick={() => setStep(2)}
-                    className="btn-primary px-5 py-3 text-xs font-extrabold flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer"
+                    className="btn btn-primary px-5 py-3 shadow-md shrink-0"
                   >
                     <span>Configure Print</span>
                     <ArrowRight className="w-4 h-4" />
@@ -310,7 +310,7 @@ export default function CustomerKiosk() {
                 {isImageFile && (
                   <button
                     onClick={() => setEditorOpen(true)}
-                    className="w-full bg-rose-50 hover:bg-rose-100 text-brand border border-rose-200/80 py-2.5 rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                    className="btn btn-outline w-full !text-brand !bg-rose-50 hover:!bg-rose-100 !border-rose-200/80 mt-2"
                   >
                     <Crop className="w-4 h-4" />
                     <span>Crop, Rotate & Enhance Image Edits</span>
@@ -335,7 +335,7 @@ export default function CustomerKiosk() {
               </h2>
               <button
                 onClick={() => setStep(1)}
-                className="text-xs font-bold text-stone-500 hover:text-stone-800"
+                className="btn btn-ghost btn-sm text-stone-500 hover:text-stone-800"
               >
                 Change File
               </button>
@@ -390,7 +390,7 @@ export default function CustomerKiosk() {
                   <button
                     type="button"
                     onClick={() => setCopies(Math.max(1, copies - 1))}
-                    className="w-8 h-8 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center justify-center cursor-pointer"
+                    className="btn btn-ghost p-1 w-8 h-8 !bg-stone-100 hover:!bg-stone-200 text-stone-800"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
@@ -398,7 +398,7 @@ export default function CustomerKiosk() {
                   <button
                     type="button"
                     onClick={() => setCopies(copies + 1)}
-                    className="w-8 h-8 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center justify-center cursor-pointer"
+                    className="btn btn-ghost p-1 w-8 h-8 !bg-stone-100 hover:!bg-stone-200 text-stone-800"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -447,7 +447,7 @@ export default function CustomerKiosk() {
               {/* Proceed to Pay Button */}
               <button
                 onClick={() => setStep(3)}
-                className="btn-primary py-4 text-base font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                className="btn btn-primary py-4 shadow-lg w-full text-base"
               >
                 <span>Proceed to Pay ₹{totalAmount}</span>
                 <ArrowRight className="w-5 h-5" />
@@ -499,7 +499,7 @@ export default function CustomerKiosk() {
                 <button
                   onClick={handleInitiatePayment}
                   disabled={isProcessingPayment}
-                  className="w-full bg-stone-900 hover:bg-black text-white py-4 rounded-2xl font-extrabold text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="btn btn-primary w-full py-4 !bg-stone-900 hover:!bg-black shadow-md"
                 >
                   {isProcessingPayment ? (
                     <span>Verifying Payment...</span>
@@ -584,7 +584,7 @@ export default function CustomerKiosk() {
               {printStatus === 'COMPLETED' && (
                 <button
                   onClick={handleNewOrder}
-                  className="btn-primary w-full py-4 text-sm font-extrabold shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                  className="btn btn-primary w-full py-4 shadow-md"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Print Another Document</span>

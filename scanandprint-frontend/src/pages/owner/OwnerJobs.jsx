@@ -76,7 +76,7 @@ export default function OwnerJobs() {
           </p>
         </div>
 
-        <button className="flex items-center gap-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer w-max">
+        <button className="btn btn-secondary !bg-stone-200 hover:!bg-stone-300 !text-stone-800 btn-sm">
           <RefreshCw className="w-4 h-4" />
           <span>Refresh Queue</span>
         </button>
@@ -96,14 +96,14 @@ export default function OwnerJobs() {
         </div>
 
         {/* Status Tabs */}
-        <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-xl w-full sm:w-auto">
+        <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-2xl w-full sm:w-auto">
           {['ALL', 'Printed', 'Pending'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 w-full rounded-lg text-xs font-extrabold cursor-pointer transition-all ${statusFilter === st
-                ? 'bg-brand text-white shadow-2xs'
-                : 'text-stone-600 hover:text-stone-900'
+              className={`btn btn-sm ${statusFilter === st
+                ? 'btn-primary shadow-2xs'
+                : 'btn-ghost text-stone-600'
                 }`}
             >
               {st}

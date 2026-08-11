@@ -153,7 +153,7 @@ export default function AudienceGrid() {
         <div className="flex items-center gap-4">
           <button
             onClick={handlePrev}
-            className="w-12 h-12 rounded-full bg-white border border-stone-200 hover:border-brand text-stone-700 hover:text-brand flex items-center justify-center shadow-md hover:scale-105 transition-all cursor-pointer"
+            className="btn btn-outline p-3! rounded-full!"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -161,7 +161,7 @@ export default function AudienceGrid() {
 
           <button
             onClick={handleNext}
-            className="w-12 h-12 rounded-full bg-white border border-stone-200 hover:border-brand text-stone-700 hover:text-brand flex items-center justify-center shadow-md hover:scale-105 transition-all cursor-pointer"
+            className="btn btn-outline p-3! rounded-full!"
             aria-label="Next slide"
           >
             <ChevronRight className="w-6 h-6" />

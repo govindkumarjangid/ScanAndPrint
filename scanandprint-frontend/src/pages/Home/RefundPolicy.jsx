@@ -41,7 +41,7 @@ export default function RefundPolicy() {
             rel="noreferrer"
             className="shrink-0"
           >
-            <button className="bg-stone-900 hover:bg-stone-800 text-white font-extrabold px-5 py-3 rounded-2xl text-xs shadow-md transition-all cursor-pointer">
+            <button className="btn btn-primary !bg-stone-900 hover:!bg-stone-800 px-5 shadow-md">
               Claim Refund
             </button>
           </a>

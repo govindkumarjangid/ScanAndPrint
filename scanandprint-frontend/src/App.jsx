@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
+import { Toaster } from 'react-hot-toast'
 
 import MainLayout from './layouts/MainLayout'
 import OwnerLayout from './layouts/OwnerLayout'
@@ -32,6 +33,7 @@ const OwnerQrCode = lazy(() => import('./pages/owner/OwnerQrCode'))
 const OwnerAgentDownload = lazy(() => import('./pages/owner/OwnerAgentDownload'))
 const OwnerSettings = lazy(() => import('./pages/owner/OwnerSettings'))
 const OwnerPaymentSetup = lazy(() => import('./pages/owner/OwnerPaymentSetup'))
+const OwnerReview = lazy(() => import('./pages/owner/OwnerReview'))
 
 // Lazy Loaded Super Admin Dashboard Pages
 const AdminOverview = lazy(() => import('./pages/admin/AdminOverview'))
@@ -39,10 +41,15 @@ const AdminShops = lazy(() => import('./pages/admin/AdminShops'))
 const AdminTransactions = lazy(() => import('./pages/admin/AdminTransactions'))
 const AdminAgents = lazy(() => import('./pages/admin/AdminAgents'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
+
+// Lazy Loaded 404
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Main Website Layout */}
@@ -79,7 +86,11 @@ export default function App() {
             <Route path="agent" element={<OwnerAgentDownload />} />
             <Route path="settings" element={<OwnerSettings />} />
             <Route path="payment-setup" element={<OwnerPaymentSetup />} />
+            <Route path="review" element={<OwnerReview />} />
           </Route>
+
+          {/* Admin Auth Route */}
+          <Route path="/admin-login" element={<AdminLogin />} />
 
           {/* Super Admin Dashboard Routes */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -90,6 +101,9 @@ export default function App() {
             <Route path="agents" element={<AdminAgents />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
+
+          {/* 404 Not Found Catch-All Route */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

@@ -14,9 +14,11 @@ import authRoutes from './routes/auth.routes.js'
 import kioskRoutes from './routes/kiosk.routes.js'
 import jobRoutes from './routes/job.routes.js'
 import agentRoutes from './routes/agent.routes.js'
+import adminRoutes from './routes/admin.route.js'
 
 import { notFoundHandler, globalErrorHandler } from './middlewares/error.middleware.js'
 import { setupSocket } from './socket.js'
+import { seedAdminAndSettings } from './utils/seedAdmin.js'
 
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
@@ -54,6 +56,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/kiosk', kioskRoutes)
 app.use('/api/jobs', jobRoutes)
 app.use('/api/print-agent', agentRoutes)
+app.use('/api/admin', adminRoutes)
 
 app.use(notFoundHandler)
 app.use(globalErrorHandler)
@@ -62,6 +65,7 @@ setupSocket(io)
 
 const startServer = async () => {
   await connectDB()
+  await seedAdminAndSettings()
   server.listen(envConfig.port, () => {
     console.log(`🚀 [ScanAndPrint Server Running]: http://localhost:${envConfig.port} (Env: ${envConfig.nodeEnv})`)
   })

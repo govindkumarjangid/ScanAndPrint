@@ -6,6 +6,7 @@ import {
   updateShopRates,
   updateShopPrinters,
   logoutShop,
+  loginAdmin,
 } from '../controllers/auth.controller.js'
 import { authenticateShop } from '../middlewares/auth.middleware.js'
 import { validateRequest } from '../middlewares/validate.middleware.js'
@@ -21,6 +22,9 @@ const router = express.Router()
 router.post('/register', validateRequest(registerSchema), registerShop)
 router.post('/login', validateRequest(loginSchema), loginShop)
 router.post('/logout', authenticateShop, logoutShop)
+
+// Admin Route
+router.post('/admin/login', loginAdmin)
 
 // Protected Routes
 router.use(authenticateShop)

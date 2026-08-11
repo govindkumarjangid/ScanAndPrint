@@ -142,8 +142,8 @@ export default function OwnerOverview() {
             <h3 className="text-lg sm:text-xl font-extrabold font-heading leading-tight">Print Your Shop QR Code</h3>
             <p className="text-xs sm:text-sm text-stone-800 font-medium opacity-90">Download high-res printable PDF poster for your shop counter.</p>
           </div>
-          <Link to="/owner/qr-code" className="w-full sm:w-auto shrink-0">
-            <button className="w-full sm:w-auto justify-center bg-stone-900 text-white font-extrabold px-5 py-3.5 sm:py-3 rounded-2xl text-xs sm:text-sm flex items-center gap-2 shadow-sm hover:bg-stone-800 transition-colors cursor-pointer">
+          <Link to="/owner/qr-code" className="w-max shrink-0">
+            <button className="btn btn-secondary w-auto sm:w-auto">
               <QrCode className="size-4 sm:size-5" />
               <span>Get Poster</span>
             </button>
@@ -159,8 +159,8 @@ export default function OwnerOverview() {
             <h3 className="text-lg sm:text-xl font-extrabold font-heading leading-tight">Print Agent (.exe)</h3>
             <p className="text-xs sm:text-sm text-rose-100 font-medium opacity-90">Download background software for 1-click silent hardware printing.</p>
           </div>
-          <Link to="/owner/agent" className="w-full sm:w-auto shrink-0">
-            <button className="w-full sm:w-auto justify-center bg-white text-brand font-extrabold px-5 py-3.5 sm:py-3 rounded-2xl text-xs sm:text-sm flex items-center gap-2 shadow-sm hover:bg-rose-50 transition-colors cursor-pointer">
+          <Link to="/owner/agent" className="w-max shrink-0">
+            <button className="btn btn-secondary !bg-white !text-brand hover:!bg-rose-50 w-auto sm:w-auto">
               <Download className="size-4 sm:size-5" />
               <span>Download .exe</span>
             </button>

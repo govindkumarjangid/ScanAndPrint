@@ -9,7 +9,10 @@ const api = axios.create({
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
-    // We can add logic here if needed (e.g. setting custom headers)
+    const adminToken = localStorage.getItem('adminToken')
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`
+    }
     return config
   },
   (error) => Promise.reject(error)

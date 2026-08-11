@@ -139,7 +139,7 @@ export default function Hero() {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="w-full sm:w-auto btn-primary px-8 py-4 text-base flex items-center justify-center gap-2 group"
+                className="w-full sm:w-auto btn btn-primary px-8 py-4 text-base group"
               >
                 <span>Register Shop</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-all duration-300" />
@@ -150,7 +150,7 @@ export default function Hero() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full sm:w-auto btn-secondary px-7 py-4 text-base flex items-center justify-center"
+                className="w-full sm:w-auto btn btn-secondary px-7 py-4 text-base"
               >
                 See Features
               </motion.button>

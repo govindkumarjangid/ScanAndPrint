@@ -290,14 +290,14 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
           <div className="flex items-center gap-2">
             <button
               onClick={handleReset}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 hover:bg-stone-200 flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="btn btn-ghost btn-sm"
             >
               <ResetIcon className="w-4 h-4" />
               <span>Reset</span>
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-stone-500 hover:bg-stone-200 cursor-pointer"
+              className="btn btn-ghost btn-sm p-2 text-stone-500 hover:!bg-stone-200"
             >
               <X className="w-5 h-5" />
             </button>
@@ -621,7 +621,7 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-2xl border border-stone-300 text-stone-700 text-xs font-extrabold hover:bg-stone-100 cursor-pointer"
+              className="btn btn-outline px-5 py-2.5"
             >
               Cancel
             </button>
@@ -629,7 +629,7 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
               type="button"
               onClick={handleApplyEdits}
               disabled={isProcessing}
-              className="btn-primary px-6 py-2.5 text-xs font-extrabold flex items-center gap-2 shadow-lg cursor-pointer disabled:opacity-50"
+              className="btn btn-primary px-6 py-2.5 shadow-lg disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
               <span>{isProcessing ? 'Processing Image...' : 'Crop & Save Edits'}</span>

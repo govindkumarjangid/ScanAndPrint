@@ -122,8 +122,8 @@ export default function Testimonials() {
             <button
               onClick={() => scroll('left')}
               disabled={!canScrollLeft}
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-all cursor-pointer shadow-xs ${canScrollLeft
-                ? 'bg-white border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900 active:scale-95'
+              className={`btn p-3! rounded-full! border transition-all ${canScrollLeft
+                ? 'bg-white border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900'
                 : 'bg-stone-100 border-stone-200 text-stone-300 cursor-not-allowed opacity-50'
                 }`}
               aria-label="Scroll left testimonials"
@@ -134,8 +134,8 @@ export default function Testimonials() {
             <button
               onClick={() => scroll('right')}
               disabled={!canScrollRight}
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-all cursor-pointer shadow-xs ${canScrollRight
-                ? 'bg-white border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900 active:scale-95'
+              className={`btn p-3! rounded-full! border transition-all ${canScrollRight
+                ? 'bg-white border-stone-300 text-stone-800 hover:bg-stone-900 hover:text-white hover:border-stone-900'
                 : 'bg-stone-100 border-stone-200 text-stone-300 cursor-not-allowed opacity-50'
                 }`}
               aria-label="Scroll right testimonials"
@@ -231,7 +231,7 @@ export default function Testimonials() {
                 {/* Close Button */}
                 <button
                   onClick={() => setSelectedReview(null)}
-                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-colors cursor-pointer"
+                  className="absolute top-4 right-4 btn btn-ghost p-2 bg-stone-100 hover:bg-stone-200 text-stone-600"
                   aria-label="Close modal"
                 >
                   <X className="w-4 h-4" />
@@ -324,14 +324,14 @@ export default function Testimonials() {
               <div className="flex items-center justify-end gap-2.5 pt-1">
                 <button
                   onClick={() => setSelectedReview(null)}
-                  className="px-3.5 py-1.5 text-xs font-bold text-stone-600 hover:text-stone-900 cursor-pointer"
+                  className="btn btn-ghost btn-sm text-stone-600 hover:text-stone-900"
                 >
                   Close
                 </button>
                 <Link
                   to="/register"
                   onClick={() => setSelectedReview(null)}
-                  className="btn-primary px-4 py-2 text-xs flex items-center gap-1.5"
+                  className="btn btn-primary px-4 py-2 text-xs"
                 >
                   <span>Register Shop</span>
                   <ArrowRight className="w-3.5 h-3.5" />

@@ -1,54 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Store, Search, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react'
-
-const allShopsList = [
-  {
-    code: 'SHOP_98234',
-    name: 'Sharma Cyber Cafe',
-    owner: 'Rahul Kumar',
-    phone: '9876543210',
-    city: 'New Delhi, Delhi',
-    plan: 'MONTHLY_399',
-    status: 'Active',
-    agentConnected: true,
-  },
-  {
-    code: 'SHOP_98233',
-    name: 'Gupta Xerox & CSC Center',
-    owner: 'Amit Gupta',
-    phone: '9812345678',
-    city: 'Patna, Bihar',
-    plan: 'LIFETIME_599',
-    status: 'Active',
-    agentConnected: true,
-  },
-  {
-    code: 'SHOP_98232',
-    name: 'Prakash Digital Prints',
-    owner: 'Prakash Verma',
-    phone: '9765432109',
-    city: 'Ranchi, Jharkhand',
-    plan: 'MONTHLY_399',
-    status: 'Active',
-    agentConnected: false,
-  },
-  {
-    code: 'SHOP_98231',
-    name: 'Apex Coaching Print Station',
-    owner: 'Sanjay Mehta',
-    phone: '9988776655',
-    city: 'Kota, Rajasthan',
-    plan: 'LIFETIME_599',
-    status: 'Active',
-    agentConnected: true,
-  },
-]
+import { Store, Search, CheckCircle2, XCircle, ShieldCheck, Loader2 } from 'lucide-react'
+import { useAdminStore } from '../../store/useAdminStore'
 
 export default function AdminShops() {
   const [searchTerm, setSearchTerm] = useState('')
+  const { shopsLoading, shopsData, fetchShops } = useAdminStore()
 
-  const filteredShops = allShopsList.filter((s) => {
+  useEffect(() => {
+    fetchShops()
+  }, [fetchShops])
+
+  const filteredShops = shopsData.filter((s) => {
     return (
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -100,36 +63,47 @@ export default function AdminShops() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
-              {filteredShops.map((s) => (
-                <tr key={s.code} className="hover:bg-stone-900/60 transition-colors">
-                  <td className="py-4 px-4 font-bold text-white font-mono text-xs">{s.code}</td>
-                  <td className="py-4 px-4 font-semibold text-stone-200">{s.name}</td>
-                  <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.owner}</td>
-                  <td className="py-4 px-4 text-xs font-mono text-stone-400">{s.phone}</td>
-                  <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.city}</td>
-                  <td className="py-4 px-4">
-                    <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-950 text-rose-300 border border-rose-900/60">
-                      {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : '₹599 Lifetime'}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    {s.agentConnected ? (
-                      <span className="inline-flex items-center gap-1.5 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Online
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 bg-rose-950 text-rose-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-rose-900">
-                        <span className="w-2 h-2 rounded-full bg-rose-500" /> Offline
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-4 px-4">
-                    <button className="text-xs font-extrabold text-brand hover:underline cursor-pointer">
-                      Manage
-                    </button>
+              {shopsLoading ? (
+                <tr>
+                  <td colSpan="8" className="py-8">
+                    <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                      <span className="font-medium">Loading data...</span>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredShops.map((s) => (
+                  <tr key={s.code} className="hover:bg-stone-900/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">{s.code}</td>
+                    <td className="py-4 px-4 font-semibold text-stone-200">{s.name}</td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.owner}</td>
+                    <td className="py-4 px-4 text-xs font-mono text-stone-400">{s.phone}</td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.city}</td>
+                    <td className="py-4 px-4">
+                      <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-950 text-rose-300 border border-rose-900/60">
+                        {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : '₹599 Lifetime'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      {s.agentConnected ? (
+                        <span className="inline-flex items-center gap-1.5 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Online
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 bg-rose-950 text-rose-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-rose-900">
+                          <span className="w-2 h-2 rounded-full bg-rose-500" /> Offline
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-4 px-4">
+                      <button className="btn btn-ghost btn-sm !text-brand hover:!bg-rose-950/40 w-max">
+                        Manage
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import {
   ShieldCheck,
@@ -15,8 +15,16 @@ export default function AdminLayout() {
   const navigate = useNavigate()
 
   const handleLogout = () => {
-    navigate('/shop-login')
+    localStorage.removeItem('adminToken')
+    navigate('/admin-login')
   }
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken')
+    if (!token) {
+      navigate('/admin-login')
+    }
+  }, [navigate])
 
   return (
     <div className="min-h-screen bg-stone-900 text-stone-100 flex font-sans">
@@ -80,7 +88,7 @@ export default function AdminLayout() {
         <div className="p-4 border-t border-stone-800">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold text-rose-400 bg-rose-950/40 hover:bg-rose-900/60 transition-all cursor-pointer border border-rose-900/40"
+            className="btn btn-outline w-auto !text-rose-400 !bg-rose-950/40 hover:!bg-rose-900/60 !border-rose-900/40"
           >
             <LogOut className="w-4 h-4" />
             <span>Admin Sign Out</span>
@@ -96,7 +104,7 @@ export default function AdminLayout() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-xl text-stone-300 hover:bg-stone-800 cursor-pointer"
+              className="btn btn-ghost btn-sm lg:hidden p-2 text-stone-300 hover:!bg-stone-800"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -144,7 +152,7 @@ export default function AdminLayout() {
                     </div>
                     <span className="font-extrabold text-base text-white">Admin Panel</span>
                   </div>
-                  <button onClick={() => setSidebarOpen(false)} className="p-1.5 text-stone-400">
+                  <button onClick={() => setSidebarOpen(false)} className="btn btn-ghost btn-sm p-1.5 text-stone-400 hover:!bg-stone-800">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -175,7 +183,7 @@ export default function AdminLayout() {
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold text-rose-400 bg-rose-950/40 cursor-pointer"
+                className="btn btn-outline w-auto !text-rose-400 !bg-rose-950/40 !border-rose-900/40 hover:!bg-rose-900/60"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Admin Sign Out</span>

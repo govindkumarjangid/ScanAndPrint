@@ -1,17 +1,26 @@
-import React, { useState } from 'react'
+import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Settings, ShieldCheck, CheckCircle2 } from 'lucide-react'
+import { Settings, ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react'
+import { useAdminStore } from '../../store/useAdminStore'
+import toast from 'react-hot-toast'
 
 export default function AdminSettings() {
-  const [maintenanceMode, setMaintenanceMode] = useState(false)
-  const [monthlyPrice, setMonthlyPrice] = useState(399)
-  const [lifetimePrice, setLifetimePrice] = useState(599)
-  const [savedSuccess, setSavedSuccess] = useState(false)
+  const { 
+    settingsLoading, 
+    settingsData, 
+    fetchSettings, 
+    updateSetting, 
+    saveSettings 
+  } = useAdminStore()
+
+  useEffect(() => {
+    fetchSettings()
+  }, [fetchSettings])
 
   const handleSaveSettings = (e) => {
     e.preventDefault()
-    setSavedSuccess(true)
-    setTimeout(() => setSavedSuccess(false), 2500)
+    saveSettings()
+    toast.success('System settings updated successfully!')
   }
 
   return (
@@ -27,18 +36,13 @@ export default function AdminSettings() {
         </p>
       </div>
 
-      {savedSuccess && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-emerald-950 border border-emerald-800 p-4 rounded-2xl text-emerald-300 text-xs font-bold flex items-center gap-2"
-        >
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>System settings updated successfully!</span>
-        </motion.div>
-      )}
-
       {/* Main Settings Form */}
+      {settingsLoading ? (
+        <div className="bg-stone-950 rounded-3xl p-8 border border-stone-800 flex flex-col items-center justify-center gap-2 text-stone-500 font-medium">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>Loading settings...</span>
+        </div>
+      ) : (
       <form onSubmit={handleSaveSettings} className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800 flex flex-col gap-6">
         
         {/* Subscription Plan Rates */}
@@ -47,8 +51,8 @@ export default function AdminSettings() {
             <label className="text-xs font-bold text-stone-300">Monthly Plan Price (₹ / mo)</label>
             <input
               type="number"
-              value={monthlyPrice}
-              onChange={(e) => setMonthlyPrice(Number(e.target.value))}
+              value={settingsData.monthlyPrice}
+              onChange={(e) => updateSetting('monthlyPrice', Number(e.target.value))}
               className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
             />
           </div>
@@ -57,8 +61,8 @@ export default function AdminSettings() {
             <label className="text-xs font-bold text-stone-300">Lifetime Plan Price (₹ one-time)</label>
             <input
               type="number"
-              value={lifetimePrice}
-              onChange={(e) => setLifetimePrice(Number(e.target.value))}
+              value={settingsData.lifetimePrice}
+              onChange={(e) => updateSetting('lifetimePrice', Number(e.target.value))}
               className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
             />
           </div>
@@ -72,8 +76,22 @@ export default function AdminSettings() {
           </div>
           <input
             type="checkbox"
-            checked={maintenanceMode}
-            onChange={(e) => setMaintenanceMode(e.target.checked)}
+            checked={settingsData.maintenanceMode}
+            onChange={(e) => updateSetting('maintenanceMode', e.target.checked)}
+            className="w-5 h-5 accent-brand rounded cursor-pointer"
+          />
+        </div>
+
+        {/* Demo Mode Toggle */}
+        <div className="p-4 rounded-2xl bg-stone-900 border border-stone-800 flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-extrabold text-white">Free Demo Mode</span>
+            <span className="text-xs text-stone-400">Allow users to take a free trial and demo the platform</span>
+          </div>
+          <input
+            type="checkbox"
+            checked={settingsData.demoMode}
+            onChange={(e) => updateSetting('demoMode', e.target.checked)}
             className="w-5 h-5 accent-brand rounded cursor-pointer"
           />
         </div>
@@ -81,13 +99,14 @@ export default function AdminSettings() {
         {/* Submit */}
         <button
           type="submit"
-          className="btn-primary py-3.5 text-sm shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer"
+          className="btn btn-primary py-3.5 mt-2 w-full"
         >
           <ShieldCheck className="w-4 h-4" />
           <span>Save System Settings</span>
         </button>
 
       </form>
+      )}
 
     </div>
   )

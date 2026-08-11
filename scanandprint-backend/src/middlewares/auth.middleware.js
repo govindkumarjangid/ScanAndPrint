@@ -59,3 +59,33 @@ export const authenticateAgent = async (req, res, next) => {
     return sendError(res, 500, 'Agent Authentication Error', error.message)
   }
 }
+
+export const authenticateAdmin = async (req, res, next) => {
+  try {
+    let token = null
+    
+    // Check cookies first
+    if (req.cookies && req.cookies.adminAccessToken) {
+      token = req.cookies.adminAccessToken
+    } 
+    // Fallback to Authorization header
+    else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1]
+    }
+
+    if (!token) {
+      return sendError(res, 401, 'Unauthorized: Admin access token is missing or invalid')
+    }
+
+    const decoded = verifyToken(token)
+
+    if (!decoded || !decoded.adminId) {
+      return sendError(res, 401, 'Unauthorized: Invalid admin token payload')
+    }
+
+    req.adminId = decoded.adminId
+    next()
+  } catch (error) {
+    return sendError(res, 401, 'Unauthorized: Admin token expired or invalid', error.message)
+  }
+}

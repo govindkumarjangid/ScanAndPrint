@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Settings, CheckCircle2, Save } from 'lucide-react'
+import { Settings, CheckCircle2, Save, Loader2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function OwnerSettings() {
   const [shopName, setShopName] = useState('Sharma Cyber Cafe')
@@ -8,12 +9,16 @@ export default function OwnerSettings() {
   const [email, setEmail] = useState('rahul@sharmacyber.com')
   const [phone, setPhone] = useState('9876543210')
   const [address, setAddress] = useState('Main Market, Opposite Railway Station')
-  const [savedSuccess, setSavedSuccess] = useState(false)
+
+  const [isSaving, setIsSaving] = useState(false)
 
   const handleSaveProfile = (e) => {
     e.preventDefault()
-    setSavedSuccess(true)
-    setTimeout(() => setSavedSuccess(false), 2500)
+    setIsSaving(true)
+    setTimeout(() => {
+      setIsSaving(false)
+      toast.success('Shop settings updated successfully!')
+    }, 800)
   }
 
   return (
@@ -28,17 +33,6 @@ export default function OwnerSettings() {
           Update your shop details, contact phone, and account credentials
         </p>
       </div>
-
-      {savedSuccess && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-emerald-50 border border-emerald-300 p-4 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2"
-        >
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>Shop settings updated successfully!</span>
-        </motion.div>
-      )}
 
       {/* Main Settings Form */}
       <form onSubmit={handleSaveProfile} className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-5">
@@ -104,16 +98,16 @@ export default function OwnerSettings() {
           />
         </div>
 
-        {/* Save Button */}
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          type="submit"
-          className="btn-primary py-4 text-sm shadow-md mt-2 flex items-center justify-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          <span>Save Profile Settings</span>
-        </motion.button>
+        <div className="flex justify-start">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="btn btn-primary py-4 mt-2 px-8"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>{isSaving ? 'Saving...' : 'Save Profile Settings'}</span>
+          </button>
+        </div>
 
       </form>
 

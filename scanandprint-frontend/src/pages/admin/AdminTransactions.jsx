@@ -1,35 +1,15 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { CreditCard, IndianRupee, CheckCircle2 } from 'lucide-react'
-
-const transactions = [
-  {
-    id: 'TXN_PH_98234108',
-    shop: 'Sharma Cyber Cafe (SHOP_98234)',
-    amount: 10,
-    gateway: 'PhonePe PG',
-    time: '10:42 AM',
-    status: 'Settled',
-  },
-  {
-    id: 'TXN_PH_98234107',
-    shop: 'Sharma Cyber Cafe (SHOP_98234)',
-    amount: 140,
-    gateway: 'Razorpay UPI',
-    time: '10:30 AM',
-    status: 'Settled',
-  },
-  {
-    id: 'TXN_PH_98233101',
-    shop: 'Gupta Xerox (SHOP_98233)',
-    amount: 50,
-    gateway: 'Paytm Business',
-    time: '10:18 AM',
-    status: 'Settled',
-  },
-]
+import { CreditCard, IndianRupee, CheckCircle2, Loader2 } from 'lucide-react'
+import { useAdminStore } from '../../store/useAdminStore'
 
 export default function AdminTransactions() {
+  const { transactionsLoading, transactionsData, fetchTransactions } = useAdminStore()
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [fetchTransactions])
+
   return (
     <div className="flex flex-col gap-6">
       
@@ -58,20 +38,31 @@ export default function AdminTransactions() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
-              {transactions.map((t) => (
-                <tr key={t.id} className="hover:bg-stone-900/60 transition-colors">
-                  <td className="py-4 px-4 font-bold text-white font-mono text-xs">{t.id}</td>
-                  <td className="py-4 px-4 font-semibold text-stone-200">{t.shop}</td>
-                  <td className="py-4 px-4 text-xs font-bold text-rose-400">{t.gateway}</td>
-                  <td className="py-4 px-4 font-extrabold text-white">₹{t.amount}</td>
-                  <td className="py-4 px-4 text-xs font-medium text-stone-400">{t.time}</td>
-                  <td className="py-4 px-4">
-                    <span className="inline-flex items-center gap-1 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {t.status}
-                    </span>
+              {transactionsLoading ? (
+                <tr>
+                  <td colSpan="6" className="py-8">
+                    <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                      <span className="font-medium">Loading data...</span>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                transactionsData.map((t) => (
+                  <tr key={t.id} className="hover:bg-stone-900/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">{t.id}</td>
+                    <td className="py-4 px-4 font-semibold text-stone-200">{t.shop}</td>
+                    <td className="py-4 px-4 text-xs font-bold text-rose-400">{t.gateway}</td>
+                    <td className="py-4 px-4 font-extrabold text-white">₹{t.amount}</td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{t.time}</td>
+                    <td className="py-4 px-4">
+                      <span className="inline-flex items-center gap-1 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {t.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

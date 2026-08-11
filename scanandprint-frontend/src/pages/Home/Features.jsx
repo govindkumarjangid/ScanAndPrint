@@ -73,14 +73,12 @@ export default function Features() {
           Place a QR code on your counter and launch automated printing today!
         </p>
         <Link to="/register">
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            className="bg-brand hover:bg-brand-hover text-white px-8 py-3.5 rounded-full font-bold text-base shadow-lg flex items-center gap-2 cursor-pointer"
+          <button
+            className="btn btn-primary btn-lg"
           >
             <span>Register Your Shop Now</span>
             <ArrowRight className="w-5 h-5" />
-          </motion.button>
+          </button>
         </Link>
       </div>
     </div>

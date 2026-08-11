@@ -164,16 +164,13 @@ export default function Contact() {
                 </div>
 
                 {/* Submit Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   type="submit"
-                  disabled={loading}
-                  className="btn-primary py-3.5 sm:py-4 rounded-full shadow-lg shadow-brand/25 flex items-center justify-center gap-2 cursor-pointer mt-1 font-extrabold text-sm"
+                  className="btn btn-primary py-3.5 mt-1 w-max px-8"
                 >
                   <Send className="w-4 h-4" />
                   <span>{loading ? 'Sending Message...' : 'Submit Message'}</span>
-                </motion.button>
+                </button>
               </form>
             )}
           </div>

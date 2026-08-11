@@ -2,6 +2,7 @@ import { shopRepository } from '../repositories/shop.repository.js'
 import { hashPassword, comparePassword } from '../utils/password.util.js'
 import { generateToken } from '../utils/jwt.util.js'
 import { generateShopCode, generateSecretApiKey } from '../utils/shopCode.util.js'
+import Admin from '../models/Admin.model.js'
 
 export const authService = {
   async register(data) {
@@ -40,6 +41,29 @@ export const authService = {
     if (!isPasswordValid) throw new Error('Invalid email or password credentials')
 
     return this._generateAuthTokens(shop)
+  },
+
+  async adminLogin({ email, password }) {
+    if (email !== 'scanqrandprint@gmail.com') {
+      throw new Error('Invalid admin email');
+    }
+
+    let admin = await Admin.findOne({ email });
+    if (!admin) {
+      // Auto-seed the admin if it doesn't exist
+      admin = new Admin({ email, password: 'adminofscanandprint@2026' });
+      await admin.save();
+    }
+
+    const isMatch = await admin.comparePassword(password);
+    if (!isMatch) {
+      throw new Error('Invalid admin credentials');
+    }
+
+    const payload = { adminId: admin._id, role: 'superadmin' };
+    const accessToken = generateToken(payload, process.env.JWT_EXPIRES_IN || '2h');
+    
+    return { accessToken, admin: { email: admin.email, role: 'superadmin' } };
   },
 
   _generateAuthTokens(shop) {

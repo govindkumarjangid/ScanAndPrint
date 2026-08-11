@@ -94,14 +94,12 @@ export default function Pricing() {
             </div>
           </div>
 
-          <Link to="/register?plan=monthly">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full bg-stone-900 hover:bg-stone-800 text-white font-bold py-3.5 rounded-full text-center transition-colors cursor-pointer"
+          <Link to="/register?plan=monthly" className="flex justify-center mt-2">
+            <button
+              className="btn btn-secondary btn-lg w-auto px-8"
             >
               Choose Monthly (₹399)
-            </motion.button>
+            </button>
           </Link>
         </motion.div>
 
@@ -187,15 +185,13 @@ export default function Pricing() {
             </div>
           </div>
 
-          <Link to="/register?plan=onetime">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full bg-brand hover:bg-brand text-white font-extrabold py-4 rounded-full text-center shadow-lg shadow-brand/30 flex items-center justify-center gap-2 cursor-pointer"
+          <Link to="/register?plan=onetime" className="flex justify-center mt-2">
+            <button
+              className="btn btn-primary btn-lg w-auto px-8"
             >
               <span>Get Lifetime Plan (₹599)</span>
               <ArrowRight className="w-5 h-5" />
-            </motion.button>
+            </button>
           </Link>
         </motion.div>
 
@@ -216,14 +212,12 @@ export default function Pricing() {
           <h3 className="font-extrabold text-stone-900 text-xl">Ready to Increase Your Shop's Revenue?</h3>
           <p className="text-stone-600 text-sm mt-1 mb-6">Registration takes less than 2 minutes!</p>
           <Link to="/register">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="bg-brand text-white px-8 py-3.5 rounded-full font-extrabold shadow-md inline-flex items-center gap-2 cursor-pointer"
+            <button
+              className="btn btn-primary btn-lg"
             >
               <span>Register Now</span>
               <ArrowRight className="w-4 h-4" />
-            </motion.button>
+            </button>
           </Link>
         </div>
       </div>

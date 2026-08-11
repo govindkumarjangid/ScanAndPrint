@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   IndianRupee,
@@ -9,48 +9,17 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowUpRight,
+  Loader2,
 } from 'lucide-react'
-
-const recentOnboardedShops = [
-  {
-    code: 'SHOP_98234',
-    name: 'Sharma Cyber Cafe',
-    owner: 'Rahul Kumar',
-    city: 'New Delhi, Delhi',
-    plan: 'MONTHLY_399',
-    status: 'Active',
-    joined: '2 hours ago',
-  },
-  {
-    code: 'SHOP_98233',
-    name: 'Gupta Xerox & CSC Center',
-    owner: 'Amit Gupta',
-    city: 'Patna, Bihar',
-    plan: 'LIFETIME_599',
-    status: 'Active',
-    joined: '5 hours ago',
-  },
-  {
-    code: 'SHOP_98232',
-    name: 'Prakash Digital Prints',
-    owner: 'Prakash Verma',
-    city: 'Ranchi, Jharkhand',
-    plan: 'MONTHLY_399',
-    status: 'Active',
-    joined: '1 day ago',
-  },
-  {
-    code: 'SHOP_98231',
-    name: 'Apex Coaching Print Station',
-    owner: 'Sanjay Mehta',
-    city: 'Kota, Rajasthan',
-    plan: 'LIFETIME_599',
-    status: 'Active',
-    joined: '2 days ago',
-  },
-]
+import { useAdminStore } from '../../store/useAdminStore'
 
 export default function AdminOverview() {
+  const { overviewLoading, overviewData, fetchOverview } = useAdminStore()
+
+  useEffect(() => {
+    fetchOverview()
+  }, [fetchOverview])
+
   return (
     <div className="flex flex-col gap-8">
       
@@ -168,24 +137,35 @@ export default function AdminOverview() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
-              {recentOnboardedShops.map((s) => (
-                <tr key={s.code} className="hover:bg-stone-900/60 transition-colors">
-                  <td className="py-4 px-4 font-bold text-white font-mono text-xs">{s.code}</td>
-                  <td className="py-4 px-4 font-semibold text-stone-200">{s.name}</td>
-                  <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.owner}</td>
-                  <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.city}</td>
-                  <td className="py-4 px-4">
-                    <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-950 text-rose-300 border border-rose-900/60">
-                      {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : '₹599 Lifetime'}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="inline-flex items-center gap-1 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {s.status}
-                    </span>
+              {overviewLoading ? (
+                <tr>
+                  <td colSpan="6" className="py-8">
+                    <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                      <span className="font-medium">Loading data...</span>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                overviewData.map((s) => (
+                  <tr key={s.code} className="hover:bg-stone-900/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">{s.code}</td>
+                    <td className="py-4 px-4 font-semibold text-stone-200">{s.name}</td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.owner}</td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.city}</td>
+                    <td className="py-4 px-4">
+                      <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-950 text-rose-300 border border-rose-900/60">
+                        {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : '₹599 Lifetime'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="inline-flex items-center gap-1 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {s.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

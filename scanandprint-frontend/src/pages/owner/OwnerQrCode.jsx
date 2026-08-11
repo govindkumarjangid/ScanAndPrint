@@ -1,8 +1,9 @@
 import React, { useRef } from 'react'
 import { QRCode } from 'react-qrcode-logo'
-import { Printer, ArrowRight, ArrowDown, Download, ScanLine, CloudUpload, MapPin } from 'lucide-react'
+import { Printer, ArrowRight, Download, Smartphone, CloudUpload, MapPin, Wallet } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import { useAuthStore } from '../../store/useAuthStore'
+import toast from 'react-hot-toast'
 
 export default function OwnerQrCode() {
   const { currentShop } = useAuthStore()
@@ -10,7 +11,6 @@ export default function OwnerQrCode() {
   const shopName = currentShop?.shopName || 'Demo Cyber Cafe'
   const kioskUrl = `${window.location.origin}/p/${shopCode}`
 
-  // Ref for the poster container to capture it
   const posterRef = useRef(null)
 
   const handleDownloadImage = async () => {
@@ -22,7 +22,6 @@ export default function OwnerQrCode() {
       btn.innerHTML = 'Generating High-Res Poster...'
       btn.style.opacity = '0.5'
 
-      // pixelRatio: 4 ensures 4K ultra-high quality print resolution
       const dataUrl = await toPng(posterRef.current, {
         pixelRatio: 4,
         backgroundColor: '#ffffff',
@@ -41,13 +40,12 @@ export default function OwnerQrCode() {
 
     } catch (error) {
       console.error('Error generating poster image:', error)
-      alert("Download error: " + error.message)
+      toast.error("Download error: " + error.message)
     }
   }
 
   return (
     <div className="flex flex-col gap-8 max-w-5xl w-full mx-auto">
-
       {/* Top Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -62,7 +60,7 @@ export default function OwnerQrCode() {
         <button
           id="download-btn"
           onClick={handleDownloadImage}
-          className="bg-brand hover:bg-blue-800 text-white px-6 py-3 rounded-xl text-sm font-extrabold flex items-center gap-2 shadow-md shrink-0 transition-colors cursor-pointer"
+          className="btn btn-primary"
         >
           <Download className="w-4 h-4" />
           <span>Download Poster (PNG)</span>
@@ -71,128 +69,191 @@ export default function OwnerQrCode() {
 
       {/* --- PORTRAIT POSTER LAYOUT (A4 Aspect Ratio: ~1:1.414) --- */}
       <div className="flex justify-center w-full pb-10 overflow-x-auto">
-        
-        {/*
-          A4 Portrait container: Fixed width, height calculated by aspect ratio
-        */}
         <div
           ref={posterRef}
-          className="w-[794px] h-[1123px] bg-white shadow-2xl relative border-4 border-slate-100 flex flex-col justify-between overflow-hidden shrink-0"
+          className="w-200 h-281 bg-[#FEFDF9] shadow-2xl relative flex flex-col justify-between overflow-hidden shrink-0 border border-slate-100 font-sans"
         >
           {/* Main Content Wrapper */}
-          <div className="flex flex-col items-center h-full pt-10 pb-0 px-8 relative z-10 bg-slate-50/50">
+          <div className="flex flex-col items-center h-full pt-12 pb-0 px-10 relative z-10">
 
-            {/* 1. Logo Area */}
-            <div className="flex flex-col items-center relative mb-8">
-              <div className="absolute -top-12 bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
-                <Printer className="text-indigo-600 w-12 h-12 stroke-[2.5]" />
+            {/* 1. Header Area: Logo & Icons */}
+            <div className="flex items-center justify-center w-full relative mb-6 px-12 gap-4">
+              {/* Left red lines */}
+              <div className="flex flex-col gap-2 rotate-[-20deg] mb-8">
+                <div className="w-5 h-1.5 bg-[#E6005C] rounded-full transform -rotate-12"></div>
+                <div className="w-6 h-1.5 bg-[#E6005C] rounded-full"></div>
               </div>
-              <div className="flex items-end gap-2 text-[90px] leading-none font-black font-heading tracking-tighter mt-4">
-                <span className="text-slate-900 tracking-tighter drop-shadow-sm">Scan</span>
-                <span className="text-4xl pb-4 font-bold text-slate-400">&</span>
-                <span className="text-indigo-600 drop-shadow-sm">Print</span>
+
+              <h1 className="text-[75px] font-black tracking-tight leading-none text-black font-heading flex items-baseline">
+                Scan<span className="text-[#E6005C] mx-1">&</span>Print
+              </h1>
+
+              {/* Right printer icon in pink box */}
+              <div className="bg-[#E6005C] p-3 rounded-2xl ml-2">
+                <Printer className="w-12 h-12 text-white stroke-[2.5]" />
+              </div>
+
+              {/* Right red lines */}
+              <div className="flex flex-col gap-2 rotate-20 mb-8 ml-2">
+                <div className="w-6 h-1.5 bg-[#E6005C] rounded-full transform rotate-12"></div>
+                <div className="w-5 h-1.5 bg-[#E6005C] rounded-full"></div>
               </div>
             </div>
 
-            {/* 2. Gradient Ribbon Banner */}
-            <div className="w-[110%] bg-gradient-to-r from-indigo-700 via-blue-600 to-indigo-700 py-4 shadow-lg flex justify-center mb-14 relative overflow-hidden">
-              {/* Shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-100%] animate-[shimmer_2s_infinite]"></div>
-              
-              <h2 className="text-white text-[26px] font-black uppercase tracking-[0.25em] whitespace-nowrap px-10 drop-shadow-md">
-                SCAN <span className="text-amber-300 mx-3 opacity-80">•</span> UPLOAD <span className="text-amber-300 mx-3 opacity-80">•</span> PAY <span className="text-amber-300 mx-3 opacity-80">•</span> PRINT
+            {/* 2. Ribbon Banner (Pill shaped) */}
+            <div className="w-full max-w-[95%] bg-[#E6005C] py-4 rounded-full shadow-sm flex justify-center mb-10">
+              <h2 className="text-white text-3xl font-black uppercase tracking-wider px-4 flex items-center gap-3">
+                SCAN <span className="text-white text-lg opacity-80">●</span> UPLOAD <span className="text-white text-lg opacity-80">●</span> PAY <span className="text-white text-lg opacity-80">●</span> PRINT
               </h2>
             </div>
 
-            {/* 3. Steps and QR Layout */}
-            <div className="relative w-full flex justify-center items-start mt-2 px-4">
-              
-              {/* Left Step 1 */}
-              <div className="absolute left-0 top-1/2 -translate-y-[80%] flex flex-col items-center">
-                <div className="bg-white border border-slate-200 rounded-3xl flex flex-col items-center justify-center w-36 py-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] relative z-10 hover:-translate-y-1 transition-transform">
-                  <div className="bg-indigo-50 text-indigo-600 p-3.5 rounded-2xl mb-3">
-                    <ScanLine className="w-8 h-8 stroke-[2.5]" />
-                  </div>
-                  <h3 className="text-slate-800 font-black text-xl leading-tight mb-1">1. SCAN</h3>
-                  <p className="text-sm font-semibold text-slate-500">QR Code</p>
-                  <p className="text-sm font-semibold text-slate-500">Scan करें</p>
-                </div>
-                <ArrowRight className="text-indigo-300 w-10 h-10 absolute -right-12 top-1/2 -translate-y-1/2 stroke-[3]" />
-              </div>
+            {/* 3. Main Steps + QR Layout */}
+            <div className="relative w-full flex justify-between items-start mt-2 px-2">
 
-              {/* Center QR Code Container */}
-              <div className="bg-white p-6 rounded-[2.5rem] border-8 border-indigo-50 shadow-[0_20px_50px_rgb(55,48,163,0.15)] relative z-20 flex flex-col items-center">
-                <QRCode
-                  value={kioskUrl}
-                  size={260}
-                  qrStyle="dots"
-                  eyeRadius={[10, 10, 10]}
-                  fgColor="#1e1b4b" // very dark indigo
-                  bgColor="#ffffff"
-                  logoWidth={50}
-                  logoHeight={50}
-                  quietZone={10}
-                />
-                {/* Modern Tag */}
-                <div className="absolute -bottom-5 bg-indigo-600 text-white text-xs font-black tracking-widest px-6 py-2 rounded-full shadow-md border-2 border-white">
-                  AUTO-PRINT
+              {/* LEFT STEP 1 */}
+              <div className="flex flex-col items-center mt-12 z-10 w-44">
+                <div className="bg-[#FFF5F8] border-2 border-[#ffb3cc] rounded-3xl flex flex-col items-center justify-center w-full py-6 shadow-sm">
+                  {/* Smartphone Icon Illustration */}
+                  <div className="mb-4 relative">
+                    <Smartphone className="w-14 h-14 text-black stroke-[1.5]" />
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-[#E6005C] flex flex-wrap p-0.5 gap-0.5">
+                      <div className="w-2 h-2 bg-white rounded-sm"></div>
+                      <div className="w-2 h-2 bg-white rounded-sm"></div>
+                      <div className="w-2 h-2 bg-white rounded-sm"></div>
+                      <div className="w-2 h-2 bg-transparent"></div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="bg-[#E6005C] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg">1</div>
+                    <h3 className="text-black font-black text-2xl leading-none">SCAN</h3>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-700 mt-2">QR Code</p>
+                  <p className="text-sm font-semibold text-slate-700">Scan करें</p>
                 </div>
               </div>
 
-              {/* Right Step 3 */}
-              <div className="absolute right-0 top-1/2 -translate-y-[80%] flex flex-col items-center">
-                <ArrowRight className="text-indigo-300 w-10 h-10 absolute -left-12 top-1/2 -translate-y-1/2 stroke-[3]" />
-                <div className="bg-white border border-slate-200 rounded-3xl flex flex-col items-center justify-center w-36 py-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] relative z-10 hover:-translate-y-1 transition-transform">
-                  <div className="bg-indigo-50 text-indigo-600 p-3.5 rounded-2xl mb-3">
-                    <Printer className="w-8 h-8 stroke-[2.5]" />
+              {/* ARROW LEFT -> CENTER */}
+              <div className="flex flex-col items-center mt-32 gap-1 px-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <ArrowRight className="text-[#E6005C] w-8 h-8 mt-2 stroke-4" />
+              </div>
+
+              {/* CENTER QR CODE */}
+              <div className="relative flex flex-col items-center z-20">
+                <div className="bg-white p-4 rounded-3xl border-[3px] border-[#E6005C] shadow-sm relative w-75 h-75 flex items-center justify-center">
+                  <QRCode
+                    value={kioskUrl}
+                    size={260}
+                    qrStyle="squares"
+                    eyeRadius={0}
+                    fgColor="#000000"
+                    bgColor="#ffffff"
+                    logoWidth={50}
+                    logoHeight={50}
+                    quietZone={10}
+                  />
+                  {/* Downward triangle pointer */}
+                  <div className="absolute -bottom-3.75 left-1/2 -translate-x-1/2 w-0 h-0 border-l-15 border-l-transparent border-t-15 border-t-[#E6005C] border-r-15 border-r-transparent"></div>
+                </div>
+              </div>
+
+              {/* ARROW CENTER -> RIGHT */}
+              <div className="flex flex-col items-center mt-32 gap-1 px-2">
+                <ArrowRight className="text-[#E6005C] w-8 h-8 mb-2 stroke-4" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#E6005C]"></div>
+              </div>
+
+              {/* RIGHT STEP 3 */}
+              <div className="flex flex-col items-center mt-12 z-10 w-44">
+                <div className="bg-[#FFF5F8] border-2 border-[#ffb3cc] rounded-3xl flex flex-col items-center justify-center w-full py-6 shadow-sm">
+                  <Printer className="w-14 h-14 text-black stroke-[1.5] mb-4" />
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="bg-[#E6005C] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg">3</div>
+                    <h3 className="text-black font-black text-2xl leading-none">PRINT</h3>
                   </div>
-                  <h3 className="text-slate-800 font-black text-xl leading-tight mb-1">3. PRINT</h3>
-                  <p className="text-sm font-semibold text-slate-500">Automatic</p>
-                  <p className="text-sm font-semibold text-slate-500">Print होगा</p>
+                  <p className="text-sm font-semibold text-slate-700 mt-2">Automatic</p>
+                  <p className="text-sm font-semibold text-slate-700">Print होगा</p>
                 </div>
               </div>
             </div>
 
             {/* Bottom Step 2 (Upload & Pay) */}
-            <div className="mt-14 flex justify-center w-full z-10">
-              <div className="bg-white border border-slate-200 rounded-2xl flex items-center justify-start w-4/5 py-4 px-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] gap-6 relative overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-2 bg-indigo-600"></div>
-                <div className="bg-indigo-50 text-indigo-600 p-3.5 rounded-xl shrink-0">
-                  <CloudUpload className="w-8 h-8 stroke-[2.5]" />
+            <div className="mt-8 flex justify-center w-full z-10">
+              <div className="bg-white border-2 border-[#E6005C] rounded-2xl flex items-center justify-center w-[80%] max-w-lg py-5 px-6 shadow-sm gap-6">
+                <div className="bg-[#E6005C] text-white p-4 rounded-full shrink-0 shadow-sm">
+                  <CloudUpload className="w-10 h-10 stroke-[2.5]" />
                 </div>
                 <div className="flex flex-col">
-                  <h3 className="text-slate-800 font-black text-2xl leading-tight">2. UPLOAD & PAY</h3>
-                  <p className="text-[15px] font-semibold text-slate-500 mt-1">अपनी File Upload करें और Payment करें</p>
+                  <div className="flex items-center gap-3">
+                    <div className="bg-[#E6005C] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg">2</div>
+                    <h3 className="text-black font-black text-[28px] leading-tight font-heading uppercase tracking-tight">UPLOAD & PAY</h3>
+                  </div>
+                  <p className="text-[16px] font-semibold text-slate-700 mt-1 pl-11">अपनी File Upload करें और Payment करें</p>
                 </div>
               </div>
             </div>
 
-            {/* Modern Action Banner */}
-            <div className="w-full mt-12 flex flex-col items-center">
-              <div className="bg-amber-400 px-10 py-4 rounded-[2rem] shadow-md flex justify-center items-center gap-4 transform -rotate-1 border-4 border-white">
-                <Printer className="text-amber-950 w-8 h-8 stroke-[3]" />
-                <h2 className="text-amber-950 text-4xl font-black uppercase tracking-wider font-heading">
-                  INSTANT PRINTING
-                </h2>
+            {/* Yellow / Peach Brush Banner */}
+            <div className="w-full mt-12 flex flex-col items-center relative">
+              {/* Brush stroke background effect (simulated with light orange div with rounded chaotic edges) */}
+              <div className="w-[105%] bg-[#FFEBE6] py-8 rounded-3xl relative flex justify-center items-center gap-6 shadow-sm">
+
+                <div className="bg-[#E6005C] p-3 rounded-xl ml-4">
+                  <Printer className="text-white w-12 h-12 stroke-[2.5]" />
+                </div>
+
+                <div className="flex flex-col justify-center relative">
+                  <h2 className="text-black text-5xl font-black uppercase tracking-wide font-heading mb-1">
+                    AUTOMATIC PRINT
+                  </h2>
+                  <div className="flex items-center justify-center gap-3 text-slate-700 font-bold text-lg">
+                    <span>Fast</span> <span className="text-[#E6005C]">●</span> <span>Easy</span> <span className="text-[#E6005C]">●</span> <span>Secure</span>
+                  </div>
+                </div>
+
+                {/* Right red lines */}
+                <div className="flex flex-col gap-2 rotate-20 absolute right-8 top-1/2 -translate-y-1/2">
+                  <div className="w-8 h-1.5 bg-[#E6005C] rounded-full transform rotate-12"></div>
+                  <div className="w-6 h-1.5 bg-[#E6005C] rounded-full"></div>
+                </div>
               </div>
-              <div className="bg-slate-800 text-white px-8 py-2.5 rounded-full mt-5 font-bold tracking-wide shadow-sm text-sm">
-                UPI • Online Payment • Cash Option Available
+
+              {/* Pay Online Pill */}
+              <div className="bg-white border border-slate-100 rounded-full px-8 py-4 shadow-md flex items-center gap-4 mt-6 z-20">
+                <div className="bg-[#E6005C] p-1.5 rounded-lg">
+                  <Wallet className="text-white w-6 h-6 stroke-2" />
+                </div>
+                <span className="text-xl font-bold text-black tracking-tight">
+                  Pay Online Or Pay Cash Option Available
+                </span>
               </div>
             </div>
-            
-            <div className="flex-grow"></div>
+
+            <div className="grow" />
           </div>
 
-          {/* Premium Footer Area */}
-          <div className="bg-indigo-950 w-full py-10 px-12 flex items-center justify-between relative z-20 overflow-hidden">
-            <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-blue-900/20 transform skew-x-12 translate-x-20"></div>
-            
-            <div className="bg-white p-4 rounded-2xl rotate-3 shadow-xl relative z-10">
-              <MapPin className="text-indigo-600 w-10 h-10 stroke-[2.5]" />
+          {/* Black Footer Area */}
+          <div className="bg-black w-full py-6 px-12 flex flex-col items-center justify-center relative z-20 overflow-visible mt-6">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-24 h-0.5 bg-[#E6005C]"></div>
+              <h3 className="text-white text-[15px] font-extrabold tracking-[0.15em] uppercase">AVAILABLE ONLY AT</h3>
+              <div className="w-24 h-0.5 bg-[#E6005C]"></div>
             </div>
-            <div className="w-full text-right relative z-10">
-              <h3 className="text-indigo-300 text-sm font-black tracking-[0.3em] uppercase mb-1">AVAILABLE ONLY AT</h3>
-              <h2 className="text-white text-4xl font-black uppercase font-heading tracking-tight drop-shadow-md">{shopName}</h2>
+
+            <div className="flex items-center justify-center w-full relative">
+              <div className="absolute left-10 -top-8">
+                <MapPin className="text-[#E6005C] w-12 h-12 stroke-[2.5] fill-transparent" />
+              </div>
+              <h2 className="text-white text-3xl font-black uppercase tracking-tight">{shopName}</h2>
             </div>
           </div>
 

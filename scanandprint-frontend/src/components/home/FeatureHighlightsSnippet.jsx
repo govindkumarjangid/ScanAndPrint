@@ -15,14 +15,10 @@ export default function FeatureHighlightsSnippet() {
             </h2>
           </div>
           <Link to="/features">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="btn-primary px-6 py-3 text-sm flex items-center gap-2"
-            >
+            <button className="btn btn-primary flex items-center gap-2 px-5 py-2 ">
               <span>Explore All Features</span>
               <ArrowRight className="w-4 h-4" />
-            </motion.button>
+            </button>
           </Link>
         </div>
 

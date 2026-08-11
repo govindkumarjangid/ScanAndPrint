@@ -69,6 +69,7 @@ import {
   ZoomOut,
   Maximize2,
   Move,
+  Star,
 } from 'lucide-react'
 
 export * from 'lucide-react'
@@ -163,6 +164,7 @@ export {
   ZoomOut,
   Maximize2,
   Move,
+  Star,
 }
 
 // Export unified icons dictionary object
@@ -236,6 +238,7 @@ export const icons = {
   ZoomOut,
   Maximize2,
   Move,
+  Star,
   InstagramIcon,
   YoutubeIcon,
 }
@@ -260,6 +263,7 @@ export const ownerNavItems = [
   { name: 'Print Agent (.exe)', path: '/owner/agent', icon: Download },
   { name: 'Shop Settings', path: '/owner/settings', icon: Settings },
   { name: 'Payment Setup', path: '/owner/payment-setup', icon: CreditCard },
+  { name: 'Give a Review', path: '/owner/review', icon: Star },
 ]
 
 // Main Header Navigation Links
@@ -443,7 +447,7 @@ export const originNarrative = [
 export const audienceList = [
   { icon: Store, title: 'Cyber Cafes', desc: 'Eliminate long queues with instant automatic printing.' },
   { icon: Printer, title: 'Print & Xerox Shops', desc: 'Customers print photos and PDFs directly from their phones.' },
-  { icon: ShieldCheck, title: 'CSC Centers', desc: 'Process government digital services fast and hassle-free.' },
+  { icon: ShieldCheck, title: 'CSC & e-Mitra Centers', desc: 'Process government digital services fast and hassle-free.' },
   { icon: Building2, title: 'Digital Service Centres', desc: 'Direct phone-to-printer workflow without sharing WhatsApp.' },
   { icon: GraduationCap, title: 'Schools & Colleges', desc: 'Quick student notes and admit card printouts.' },
   { icon: BookOpen, title: 'Coaching Institutes', desc: 'Instant assignment and test paper printing.' },

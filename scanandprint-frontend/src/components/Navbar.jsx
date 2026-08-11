@@ -64,25 +64,25 @@ export default function Navbar() {
         {/* CTA */}
         <div className="hidden md:flex items-center gap-3">
           <Link to="/shop-login">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 btn-primary px-5 py-2.5 text-sm"
+            <button
+              className="btn btn-primary btn-sm px-5"
             >
               <KeyRound className="w-4 h-4" />
               <span>Shop Login</span>
-            </motion.button>
+            </button>
           </Link>
         </div>
 
         {/* menu Button */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 rounded-full text-stone-700 hover:bg-stone-200/60 transition-colors cursor-pointer"
-          aria-label="Toggle menu"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
+        <div className="md:hidden">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="btn btn-ghost btn-sm p-2 text-stone-700 hover:!bg-stone-200/60"
+            aria-label="Toggle menu"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Drawer Menu */}
@@ -111,7 +111,7 @@ export default function Navbar() {
                       <Logo />
                       <button
                         onClick={() => setMobileMenuOpen(false)}
-                        className="p-2 rounded-full hover:bg-stone-200/60 text-stone-600 cursor-pointer"
+                        className="btn btn-ghost btn-sm p-2 text-stone-600 hover:!bg-stone-200/60"
                       >
                         <X className="w-6 h-6" />
                       </button>
@@ -139,22 +139,18 @@ export default function Navbar() {
 
                   <div className="pt-6 border-t border-stone-200 flex flex-col gap-3">
                     <Link to="/shop-login" onClick={() => setMobileMenuOpen(false)} className="w-full">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full flex items-center justify-center gap-2 btn-primary py-3"
+                      <button
+                        className="btn btn-primary w-full py-3"
                       >
                         <KeyRound className="w-4 h-4" />
                         <span>Shop Login</span>
-                      </motion.button>
+                      </button>
                     </Link>
                     <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="w-full">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full py-3 rounded-full font-semibold border border-stone-300 text-stone-800 hover:bg-stone-100 text-center cursor-pointer">
+                      <button
+                        className="btn btn-outline w-full py-3">
                         Register Shop
-                      </motion.button>
+                      </button>
                     </Link>
                   </div>
                 </motion.div>

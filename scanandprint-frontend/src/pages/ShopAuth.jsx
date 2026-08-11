@@ -10,8 +10,10 @@ import {
   ArrowLeft,
   IndianRupee,
   printerBrandOptions,
+  Loader2,
 } from '../assets/assets'
 import { useAuthStore } from '../store/useAuthStore'
+import toast from 'react-hot-toast'
 
 export default function ShopAuth() {
   const location = useLocation()
@@ -40,7 +42,6 @@ export default function ShopAuth() {
   const [showRegPassword, setShowRegPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [authSuccessMsg, setAuthSuccessMsg] = useState('')
 
   // Sync route path with Zustand activeTab on load / URL change
   useEffect(() => {
@@ -54,7 +55,6 @@ export default function ShopAuth() {
   // Handle Tab Switch & Sync Browser URL smoothly
   const handleTabSwitch = (tab) => {
     setActiveTab(tab)
-    setAuthSuccessMsg('')
     if (tab === 'login') {
       navigate('/shop-login', { replace: true })
     } else {
@@ -66,17 +66,19 @@ export default function ShopAuth() {
   const handleLoginSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    try {
+    const loginPromise = async () => {
       const { login } = useAuthStore.getState()
       await login(loginEmail, loginPassword)
-      setAuthSuccessMsg('Login successful! Redirecting to Shop Dashboard...')
       setTimeout(() => navigate('/owner/dashboard'), 1000)
-    } catch (err) {
-      // Error is handled by store and displayed via UI (which we should show, let's just log for now or show toast)
-      console.error(err)
-    } finally {
-      setIsSubmitting(false)
     }
+
+    toast.promise(loginPromise(), {
+      loading: 'Signing in...',
+      success: 'Login successful! Redirecting to Shop Dashboard...',
+      error: (err) => err.message || 'Login failed'
+    }).finally(() => {
+      setIsSubmitting(false)
+    })
   }
 
   // Handle Step 1 Next
@@ -95,12 +97,12 @@ export default function ShopAuth() {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault()
     if (registerData.password !== registerData.confirmPassword) {
-      alert("Passwords do not match!")
+      toast.error("Passwords do not match!")
       return
     }
     
     setIsSubmitting(true)
-    try {
+    const registerPromise = async () => {
       const { register } = useAuthStore.getState()
       await register({
         fullName: registerData.fullName,
@@ -115,14 +117,16 @@ export default function ShopAuth() {
         bwRate: registerData.bwRate,
         colorRate: registerData.colorRate
       })
-      
-      setAuthSuccessMsg('Registration successful! Welcome to QR PrintPe.')
       setTimeout(() => navigate('/owner/dashboard'), 1200)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setIsSubmitting(false)
     }
+
+    toast.promise(registerPromise(), {
+      loading: 'Registering your shop...',
+      success: 'Registration successful! Welcome to QR PrintPe.',
+      error: (err) => err.message || 'Registration failed'
+    }).finally(() => {
+      setIsSubmitting(false)
+    })
   }
 
   return (
@@ -152,18 +156,18 @@ export default function ShopAuth() {
         className="w-full max-w-[460px] mx-auto bg-white/85 backdrop-blur-xl border border-rose-200/70 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-rose-900/10 flex flex-col gap-6 my-6 overflow-hidden"
       >
         {/* Top Pill Tab Switcher with Sliding Active Highlight */}
-        <div className="bg-stone-200/60 p-1.5 rounded-full grid grid-cols-2 gap-1 font-bold text-sm relative">
+        <div className="bg-stone-200/60 p-1.5 rounded-2xl grid grid-cols-2 gap-1 font-bold text-sm relative">
           <button
             type="button"
             onClick={() => handleTabSwitch('login')}
-            className={`relative py-2.5 px-4 rounded-full text-center transition-colors duration-200 cursor-pointer z-10 ${
+            className={`relative py-2.5 px-4 rounded-2xl text-center transition-colors duration-200 cursor-pointer z-10 ${
               activeTab === 'login' ? 'text-white font-extrabold' : 'text-stone-600 hover:text-stone-900 font-semibold'
             }`}
           >
             {activeTab === 'login' && (
               <motion.div
                 layoutId="activeAuthPill"
-                className="absolute inset-0 bg-brand rounded-full shadow-md shadow-rose-500/20 z-[-1]"
+                className="absolute inset-0 bg-brand rounded-2xl shadow-md shadow-rose-500/20 z-[-1]"
                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
               />
             )}
@@ -173,35 +177,20 @@ export default function ShopAuth() {
           <button
             type="button"
             onClick={() => handleTabSwitch('register')}
-            className={`relative py-2.5 px-4 rounded-full text-center transition-colors duration-200 cursor-pointer z-10 ${
+            className={`relative py-2.5 px-4 rounded-2xl text-center transition-colors duration-200 cursor-pointer z-10 ${
               activeTab === 'register' ? 'text-white font-extrabold' : 'text-stone-600 hover:text-stone-900 font-semibold'
             }`}
           >
             {activeTab === 'register' && (
               <motion.div
                 layoutId="activeAuthPill"
-                className="absolute inset-0 bg-brand rounded-full shadow-md shadow-rose-500/20 z-[-1]"
+                className="absolute inset-0 bg-brand rounded-2xl shadow-md shadow-rose-500/20 z-[-1]"
                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
               />
             )}
             <span>Register Shop</span>
           </button>
         </div>
-
-        {/* Auth Success Banner */}
-        <AnimatePresence>
-          {authSuccessMsg && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, y: -8 }}
-              animate={{ opacity: 1, height: 'auto', y: 0 }}
-              exit={{ opacity: 0, height: 0, y: -8 }}
-              className="bg-emerald-50 border border-emerald-300 p-4 rounded-2xl text-emerald-800 text-xs font-semibold text-center flex items-center justify-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{authSuccessMsg}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* TAB CONTENT WITH ANIMATE PRESENCE MODE WAIT */}
         <AnimatePresence mode="wait">
@@ -268,15 +257,21 @@ export default function ShopAuth() {
                 </Link>
               </div>
 
-              {/* Submit Button */}
               <motion.button
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-brand hover:bg-brand-hover text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 cursor-pointer mt-2 text-base transition-all"
+                className="btn btn-primary w-full mt-2"
               >
-                <span>{isSubmitting ? 'Signing in...' : 'Sign In'}</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Signing in...</span>
+                  </>
+                ) : (
+                  <span>Sign In</span>
+                )}
               </motion.button>
 
               {/* Divider */}
@@ -419,12 +414,11 @@ export default function ShopAuth() {
                     </div>
                   </div>
 
-                  {/* Next Button */}
                   <motion.button
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                     type="submit"
-                    className="w-full bg-brand hover:bg-brand-hover text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 cursor-pointer mt-2 text-base transition-all"
+                    className="btn btn-primary w-full mt-2"
                   >
                     <span>Next Step</span>
                     <ArrowRight className="w-4 h-4" />
@@ -487,12 +481,11 @@ export default function ShopAuth() {
                     />
                   </div>
 
-                  {/* Action Buttons: Back & Next */}
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <button
                       type="button"
                       onClick={prevRegisterStep}
-                      className="py-3 px-4 rounded-2xl border border-stone-300 text-stone-700 font-bold hover:bg-stone-100 transition-all cursor-pointer flex items-center justify-center gap-1.5 text-sm"
+                      className="btn btn-outline"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       <span>Back</span>
@@ -500,7 +493,7 @@ export default function ShopAuth() {
 
                     <button
                       type="submit"
-                      className="bg-brand hover:bg-brand-hover text-white font-extrabold py-3 px-4 rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-1.5 cursor-pointer text-sm transition-all"
+                      className="btn btn-primary"
                     >
                       <span>Next Step</span>
                       <ArrowRight className="w-4 h-4" />
@@ -596,12 +589,11 @@ export default function ShopAuth() {
                     </label>
                   </div>
 
-                  {/* Action Buttons: Back & Complete */}
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <button
                       type="button"
                       onClick={prevRegisterStep}
-                      className="py-3 px-4 rounded-2xl border border-stone-300 text-stone-700 font-bold hover:bg-stone-100 transition-all cursor-pointer flex items-center justify-center gap-1.5 text-sm"
+                      className="btn btn-outline"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       <span>Back</span>
@@ -610,9 +602,16 @@ export default function ShopAuth() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-brand hover:bg-brand-hover text-white font-extrabold py-3 px-4 rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-1.5 cursor-pointer text-sm transition-all"
+                      className="btn btn-primary"
                     >
-                      <span>{isSubmitting ? 'Registering...' : 'Complete Registration ✨'}</span>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Registering...</span>
+                        </>
+                      ) : (
+                        <span>Complete Registration ✨</span>
+                      )}
                     </button>
                   </div>
                 </form>

@@ -6,9 +6,9 @@ import {
   MessageSquareCheck,
   Compass,
   ArrowRight,
-  originNarrative,
   audienceList,
 } from '../../assets/assets'
+import { Zap, ShieldCheck, Printer } from 'lucide-react'
 
 export default function About() {
   return (
@@ -26,31 +26,59 @@ export default function About() {
         </p>
       </div>
 
-      {/* 5-Step Origin Narrative */}
-      <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-sm">
-        <div className="max-w-2xl mb-10">
-          <span className="text-[#F0245C] font-bold text-xs uppercase">5-Step Origin Story</span>
-          <h2 className="text-3xl font-extrabold text-stone-900 mt-1">How Scan&Print Started</h2>
+      {/* Platform Overview */}
+      <div className="relative bg-stone-900 rounded-3xl p-8 sm:p-12 overflow-hidden shadow-xl border border-stone-800">
+        {/* Background Decorative Elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4"></div>
+
+        <div className="relative z-10 max-w-2xl mb-12">
+          <span className="text-amber-400 font-bold text-xs uppercase tracking-wider">The Platform</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Revolutionizing Cyber Café Printing</h2>
+          <p className="text-stone-400 mt-4 text-sm sm:text-base leading-relaxed">
+            Scan&Print is a cutting-edge SaaS platform designed exclusively for print shops. We bridge the gap between your existing offline hardware and seamless online automation, eliminating counter queues and manual file transfers.
+          </p>
         </div>
 
-        <div className="space-y-8">
-          {originNarrative.map((item) => (
-            <motion.div
-              key={item.step}
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="flex items-start gap-4 sm:gap-6 border-b border-stone-100 pb-8 last:border-0 last:pb-0"
-            >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-400 text-stone-900 font-extrabold text-lg sm:text-xl flex items-center justify-center flex-shrink-0 shadow-xs">
-                {item.step}
-              </div>
-              <div className="flex flex-col gap-1">
-                <h3 className="font-extrabold text-xl text-stone-900">{item.title}</h3>
-                <p className="text-stone-600 text-sm sm:text-base leading-relaxed">{item.desc}</p>
-              </div>
-            </motion.div>
-          ))}
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1 */}
+          <div className="bg-stone-800/50 backdrop-blur-md p-6 rounded-2xl border border-stone-700 flex flex-col gap-4 hover:bg-stone-800/80 transition-colors">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-stone-900 flex items-center justify-center font-bold shadow-lg">
+              <Zap className="w-6 h-6 fill-stone-900" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-lg text-white mb-2">Instant Sync Queue</h3>
+              <p className="text-stone-400 text-sm leading-relaxed">
+                Files uploaded by customers via QR code instantly sync to your desktop client for automated queueing and printing.
+              </p>
+            </div>
+          </div>
+          
+          {/* Card 2 */}
+          <div className="bg-stone-800/50 backdrop-blur-md p-6 rounded-2xl border border-stone-700 flex flex-col gap-4 hover:bg-stone-800/80 transition-colors">
+            <div className="w-12 h-12 rounded-xl bg-[#F0245C] text-white flex items-center justify-center font-bold shadow-lg">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-lg text-white mb-2">100% Data Privacy</h3>
+              <p className="text-stone-400 text-sm leading-relaxed">
+                Customer documents are encrypted and automatically deleted from our servers immediately after they are successfully printed.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="bg-stone-800/50 backdrop-blur-md p-6 rounded-2xl border border-stone-700 flex flex-col gap-4 hover:bg-stone-800/80 transition-colors">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-lg">
+              <Printer className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-lg text-white mb-2">Zero New Hardware</h3>
+              <p className="text-stone-400 text-sm leading-relaxed">
+                Works flawlessly with your existing Windows PC setup. Connects with any standard USB or Network printer you already own.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -116,14 +144,12 @@ export default function About() {
           Empowering every print shop in India to offer seamless, self-service digital document printing without manual intervention.
         </p>
         <Link to="/register" className="mt-4">
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            className="bg-[#F0245C] hover:bg-[#D81B4E] text-white px-8 py-3.5 rounded-full font-bold text-sm shadow-md flex items-center gap-2"
+          <button
+            className="btn btn-primary btn-lg"
           >
             <span>Register Shop Today</span>
             <ArrowRight className="w-4 h-4" />
-          </motion.button>
+          </button>
         </Link>
       </div>
     </div>

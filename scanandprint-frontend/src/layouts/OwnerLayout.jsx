@@ -54,7 +54,7 @@ export default function OwnerLayout() {
         <div className="p-4 border-t border-stone-100">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-bold text-rose-600 bg-rose-50 hover:bg-rose-100/80 transition-all cursor-pointer"
+            className="btn btn-outline w-auto !text-rose-600 !border-rose-200 hover:!bg-rose-50"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
@@ -81,17 +81,16 @@ export default function OwnerLayout() {
             </div>
           </div>
 
-          {/* Status Actions */}
           <div className="flex items-center gap-3">
             <Link to="/owner/qr-code">
-              <button className="hidden sm:flex items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-800 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer">
+              <button className="hidden sm:flex btn btn-secondary btn-sm bg-stone-100 hover:bg-stone-200 border-transparent text-stone-800">
                 <QrCode className="w-4 h-4 text-brand" />
                 <span>Show Shop QR</span>
               </button>
             </Link>
 
             <Link to="/owner/agent">
-              <button className="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full text-xs font-extrabold shadow-2xs">
+              <button className="hidden sm:flex btn btn-sm bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Print Agent Online</span>
               </button>
@@ -168,7 +167,7 @@ export default function OwnerLayout() {
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold text-rose-600 bg-rose-50 cursor-pointer"
+                className="btn btn-outline w-auto !text-rose-600 !border-rose-200 hover:!bg-rose-50"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>

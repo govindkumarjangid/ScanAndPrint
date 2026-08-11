@@ -1,7 +1,7 @@
 {
   "name": "print-pe-agent",
   "version": "1.0.0",
-  "description": "Production Desktop Print Agent for QR Se Print (QR PrintPe) automated printing network",
+  "description": "Production Desktop Print Agent for Scan&Print (SP ScanAndPrint) automated printing network",
   "main": "main.js",
   "type": "module",
   "scripts": {
@@ -12,10 +12,10 @@
   "keywords": [
     "print-agent",
     "silent-print",
-    "qr-se-print",
+    "scanandprint",
     "electron"
   ],
-  "author": "QR Se Print Team",
+  "author": "Scan&Print Team",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.7.9",
@@ -29,8 +29,8 @@
     "electron-builder": "^26.15.3"
   },
   "build": {
-    "appId": "com.qrseprint.agent",
-    "productName": "QR Se Print Agent",
+    "appId": "com.scanandprint.agent",
+    "productName": "Scan&Print Agent",
     "win": {
       "target": "nsis",
       "icon": "assets/icon.png"
@@ -41,7 +41,7 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "QR Se Print Agent"
+      "shortcutName": "Scan&Print Agent"
     }
   }
 }
