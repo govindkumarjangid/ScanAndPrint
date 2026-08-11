@@ -1,6 +1,6 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { QRCode } from 'react-qrcode-logo'
-import { Printer, ArrowRight, Download, Smartphone, CloudUpload, MapPin, Wallet } from 'lucide-react'
+import { Printer, ArrowRight, Download, Smartphone, CloudUpload, MapPin, Wallet, Loader2 } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
@@ -12,18 +12,15 @@ export default function OwnerQrCode() {
   const kioskUrl = `${window.location.origin}/p/${shopCode}`
 
   const posterRef = useRef(null)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const handleDownloadImage = async () => {
     if (!posterRef.current) return
+    setIsDownloading(true)
 
     try {
-      const btn = document.getElementById('download-btn')
-      const originalText = btn.innerHTML
-      btn.innerHTML = 'Generating High-Res Poster...'
-      btn.style.opacity = '0.5'
-
       const dataUrl = await toPng(posterRef.current, {
-        pixelRatio: 4,
+        pixelRatio: 3,
         backgroundColor: '#ffffff',
         style: { margin: '0' },
       })
@@ -34,13 +31,12 @@ export default function OwnerQrCode() {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-
-      btn.innerHTML = originalText
-      btn.style.opacity = '1'
-
+      toast.success('Poster downloaded successfully!')
     } catch (error) {
       console.error('Error generating poster image:', error)
-      toast.error("Download error: " + error.message)
+      toast.error('Download error: ' + error.message)
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -60,10 +56,11 @@ export default function OwnerQrCode() {
         <button
           id="download-btn"
           onClick={handleDownloadImage}
-          className="btn btn-primary"
+          disabled={isDownloading}
+          className="btn btn-primary flex items-center gap-2"
         >
-          <Download className="w-4 h-4" />
-          <span>Download Poster (PNG)</span>
+          {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+          <span>{isDownloading ? 'Generating High-Res Poster...' : 'Download Poster (PNG)'}</span>
         </button>
       </div>
 

@@ -38,7 +38,7 @@ const shopSchema = new mongoose.Schema(
     passwordHash: {
       type: String,
       required: [true, 'Password is required'],
-      select: false, // Exclude password from query results by default
+      select: false, 
     },
     secretApiKey: {
       type: String,
@@ -91,6 +91,21 @@ const shopSchema = new mongoose.Schema(
       enum: ['FREE_TRIAL', 'MONTHLY_399', 'LIFETIME_599'],
       default: 'MONTHLY_399',
     },
+    paymentSettings: {
+      paymentMode: { type: String, default: 'online_counter' },
+      paymentGateway: { type: String, default: 'razorpay' },
+      razorpayKeyId: { type: String, default: '' },
+      cashfreeAppId: { type: String, default: '' },
+    },
+    reviews: [
+      {
+        username: String,
+        state: String,
+        stars: Number,
+        review: String,
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     isOnline: {
       type: Boolean,
       default: false,
@@ -106,7 +121,6 @@ const shopSchema = new mongoose.Schema(
   }
 )
 
-// High-Performance Compound Indexes for ultra-fast query execution
 shopSchema.index({ shopCode: 1, secretApiKey: 1 })
 shopSchema.index({ isOnline: 1, updatedAt: -1 })
 

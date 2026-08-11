@@ -45,7 +45,6 @@ const printAgentSchema = new mongoose.Schema(
   }
 )
 
-// High-Performance Compound Indexing
 printAgentSchema.index({ shopId: 1, isConnected: 1 })
 
 export const PrintAgent = mongoose.model('PrintAgent', printAgentSchema)

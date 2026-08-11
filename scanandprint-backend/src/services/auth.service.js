@@ -88,5 +88,58 @@ export const authService = {
 
   async updatePrinters(shopId, printerData) {
     return await shopRepository.updateById(shopId, printerData)
+  },
+
+  async updateProfile(shopId, profileData) {
+    const updatePayload = {}
+    if (profileData.shopName) updatePayload.shopName = profileData.shopName
+    if (profileData.ownerName) updatePayload.ownerName = profileData.ownerName
+    if (profileData.phone || profileData.mobile) updatePayload.phone = profileData.phone || profileData.mobile
+    if (profileData.email) updatePayload.email = profileData.email.toLowerCase()
+    if (profileData.address || profileData.shopAddress) updatePayload.address = profileData.address || profileData.shopAddress
+    if (profileData.cityState) updatePayload.cityState = profileData.cityState
+    if (profileData.pincode) updatePayload.pincode = profileData.pincode
+    
+    return await shopRepository.updateById(shopId, updatePayload)
+  },
+
+  async changePassword(shopId, { currentPassword, newPassword }) {
+    const shop = await shopRepository.findById(shopId, { includePassword: true })
+    if (!shop) throw new Error('Shop not found')
+
+    const shopWithPassword = await shopRepository.findByEmail(shop.email, { includePassword: true })
+    const isMatch = await comparePassword(currentPassword, shopWithPassword.passwordHash)
+    if (!isMatch) throw new Error('Current password is incorrect')
+
+    const passwordHash = await hashPassword(newPassword)
+    await shopRepository.updateById(shopId, { passwordHash })
+    return { success: true }
+  },
+
+  async updatePaymentSettings(shopId, paymentData) {
+    return await shopRepository.updateById(shopId, { paymentSettings: paymentData })
+  },
+
+  async submitReview(shopId, reviewData) {
+    const shop = await shopRepository.findById(shopId)
+    if (!shop) throw new Error('Shop not found')
+
+    const updatedShop = await shopRepository.updateById(
+      shopId,
+      {
+        $push: {
+          reviews: {
+            username: reviewData.username || shop.ownerName,
+            state: reviewData.state || '',
+            stars: reviewData.stars || 5,
+            review: reviewData.review || '',
+            createdAt: new Date(),
+          },
+        },
+      },
+      { new: true }
+    )
+    return updatedShop
   }
 }
+

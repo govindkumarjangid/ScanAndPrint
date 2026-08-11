@@ -5,6 +5,10 @@ import {
   getShopProfile,
   updateShopRates,
   updateShopPrinters,
+  updateShopProfile,
+  changeShopPassword,
+  updateShopPaymentSettings,
+  submitShopReview,
   logoutShop,
   loginAdmin,
 } from '../controllers/auth.controller.js'
@@ -30,15 +34,17 @@ router.post('/admin/login', loginAdmin)
 router.use(authenticateShop)
 
 router.get('/me', getShopProfile)
+router.put('/profile', updateShopProfile)
 router.put('/rates', validateRequest(updateRatesSchema), updateShopRates)
 router.put('/printers', validateRequest(updatePrintersSchema), updateShopPrinters)
+router.put('/change-password', changeShopPassword)
+router.put('/payment-settings', updateShopPaymentSettings)
+router.post('/review', submitShopReview)
 
-// Auto-refresh token endpoint doesn't need much logic here since cookie parser and jwt middleware will handle it
-router.post('/refresh-token', authenticateShop, (req, res) => {
-  // If authenticateShop passes, the shop is valid. The token rotation can be handled in a dedicated controller if needed.
-  // For now, authenticateShop updates req.shop, and since we just need it to succeed, we can send a success response.
-  // Or better, let's add a refreshToken function in auth.controller.js
+// Auto-refresh token endpoint
+router.post('/refresh-token', (req, res) => {
   res.status(200).json({ success: true, message: 'Token valid' })
 })
 
 export default router
+

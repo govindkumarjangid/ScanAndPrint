@@ -1,47 +1,27 @@
 import { kioskService } from '../services/kiosk.service.js'
 import { sendSuccess, sendError } from '../utils/apiResponse.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
 
-export const getPublicShopInfo = async (req, res, next) => {
-  try {
-    const { shopCode } = req.params
-    if (!shopCode) {
-      return sendError(res, 400, 'Shop Code is required')
-    }
+// get public shop info for kiosk
+export const getPublicShopInfo = asyncHandler(async (req, res, next) => {
+  const { shopCode } = req.params
+  if (!shopCode)
+    return sendError(res, 400, 'Shop Code is required')
 
-    const shop = await kioskService.getShopInfo(shopCode)
-    return sendSuccess(res, 200, 'Shop details loaded successfully', { shop })
-  } catch (error) {
-    if (error.message === 'Shop not found') {
-      return sendError(res, 404, 'Shop not found. Please verify the QR Code.')
-    }
-    next(error)
-  }
-}
+  const shop = await kioskService.getShopInfo(shopCode)
+  return sendSuccess(res, 200, 'Shop details loaded successfully', { shop })
+})
 
-export const createPrintJob = async (req, res, next) => {
-  try {
-    const result = await kioskService.createJob(req.body)
-    return sendSuccess(res, 201, 'Print job created successfully', result)
-  } catch (error) {
-    if (error.message === 'Invalid Shop Code') {
-      return sendError(res, 404, error.message)
-    }
-    next(error)
-  }
-}
+// create a print job from kiosk
+export const createPrintJob = asyncHandler(async (req, res, next) => {
+  const result = await kioskService.createJob(req.body)
+  return sendSuccess(res, 201, 'Print job created successfully', result)
+})
 
-export const verifyPayment = async (req, res, next) => {
-  try {
-    const { jobId, paymentTxnId } = req.body
-    const io = req.app.get('io')
-
-    const job = await kioskService.verifyPayment(jobId, paymentTxnId, io)
-    
-    return sendSuccess(res, 200, 'Payment verified & print job dispatched!', { job })
-  } catch (error) {
-    if (error.message === 'Print job not found') {
-      return sendError(res, 404, error.message)
-    }
-    next(error)
-  }
-}
+// verify payment for a print job from kiosk
+export const verifyPayment = asyncHandler(async (req, res, next) => {
+  const { jobId, paymentTxnId } = req.body
+  const io = req.app.get('io')
+  const job = await kioskService.verifyPayment(jobId, paymentTxnId, io)
+  return sendSuccess(res, 200, 'Payment verified & print job dispatched!', { job })
+})

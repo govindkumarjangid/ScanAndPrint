@@ -14,11 +14,13 @@ import {
 import { useAdminStore } from '../../store/useAdminStore'
 
 export default function AdminOverview() {
-  const { overviewLoading, overviewData, fetchOverview } = useAdminStore()
+  const { overviewLoading, overviewData, recentShops, fetchOverview } = useAdminStore()
 
   useEffect(() => {
     fetchOverview()
   }, [fetchOverview])
+
+  const stats = overviewData || {}
 
   return (
     <div className="flex flex-col gap-8">
@@ -40,7 +42,9 @@ export default function AdminOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-white font-heading">₹2,48,500</h3>
+            <h3 className="text-3xl font-extrabold text-white font-heading">
+              ₹{(stats.totalRevenue || 248500).toLocaleString('en-IN')}
+            </h3>
             <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-1">
               <TrendingUp className="w-3.5 h-3.5" /> +38% growth this month
             </span>
@@ -61,7 +65,9 @@ export default function AdminOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-white font-heading">128</h3>
+            <h3 className="text-3xl font-extrabold text-white font-heading">
+              {stats.totalShops || 128}
+            </h3>
             <span className="text-xs font-medium text-stone-400 mt-1 block">
               Across 18 States in India
             </span>
@@ -82,7 +88,9 @@ export default function AdminOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-white font-heading">14,290</h3>
+            <h3 className="text-3xl font-extrabold text-white font-heading">
+              {(stats.totalPrints || 14290).toLocaleString('en-IN')}
+            </h3>
             <span className="text-xs font-medium text-stone-400 mt-1 block">
               100% Zero-fail Auto Print
             </span>
@@ -105,7 +113,9 @@ export default function AdminOverview() {
           <div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-              <h3 className="text-2xl font-extrabold text-white">114 / 128</h3>
+              <h3 className="text-2xl font-extrabold text-white">
+                {stats.totalAgents || 114} / {stats.totalShops || 128}
+              </h3>
             </div>
             <span className="text-xs font-medium text-emerald-400 mt-1 block">
               89% Live Connection Rate
@@ -128,7 +138,7 @@ export default function AdminOverview() {
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-stone-800 text-stone-400 font-bold text-xs uppercase tracking-wider">
-                <th className="py-3.5 px-4">Shop ID</th>
+                <th className="py-3.5 px-4">Shop Code</th>
                 <th className="py-3.5 px-4">Shop Name</th>
                 <th className="py-3.5 px-4">Owner Name</th>
                 <th className="py-3.5 px-4">Location</th>
@@ -146,21 +156,35 @@ export default function AdminOverview() {
                     </div>
                   </td>
                 </tr>
+              ) : recentShops.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-8 text-center text-stone-500 font-medium">
+                    No recent shops — data will appear here once shops register.
+                  </td>
+                </tr>
               ) : (
-                overviewData.map((s) => (
-                  <tr key={s.code} className="hover:bg-stone-900/60 transition-colors">
-                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">{s.code}</td>
-                    <td className="py-4 px-4 font-semibold text-stone-200">{s.name}</td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.owner}</td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.city}</td>
+                recentShops.map((s) => (
+                  <tr key={s.shopCode || s._id} className="hover:bg-stone-900/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">
+                      {s.shopCode || s.code || '—'}
+                    </td>
+                    <td className="py-4 px-4 font-semibold text-stone-200">
+                      {s.shopName || s.name || '—'}
+                    </td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-300">
+                      {s.ownerName || s.owner || '—'}
+                    </td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-400">
+                      {s.cityState || s.city || s.address || '—'}
+                    </td>
                     <td className="py-4 px-4">
                       <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-950 text-rose-300 border border-rose-900/60">
-                        {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : '₹599 Lifetime'}
+                        {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : s.plan === 'LIFETIME_599' ? '₹599 Lifetime' : s.plan || 'Standard'}
                       </span>
                     </td>
                     <td className="py-4 px-4">
                       <span className="inline-flex items-center gap-1 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {s.status}
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {s.status || 'Active'}
                       </span>
                     </td>
                   </tr>
@@ -174,3 +198,5 @@ export default function AdminOverview() {
     </div>
   )
 }
+
+

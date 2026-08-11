@@ -10,7 +10,12 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const adminToken = localStorage.getItem('adminToken')
-    if (adminToken) {
+    const shopToken = localStorage.getItem('shopToken')
+    if (adminToken && config.url?.startsWith('/admin')) {
+      config.headers.Authorization = `Bearer ${adminToken}`
+    } else if (shopToken) {
+      config.headers.Authorization = `Bearer ${shopToken}`
+    } else if (adminToken) {
       config.headers.Authorization = `Bearer ${adminToken}`
     }
     return config

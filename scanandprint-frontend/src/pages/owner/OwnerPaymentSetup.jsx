@@ -1,21 +1,34 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { CreditCard, Globe, Banknote, Save, ChevronDown, Loader2 } from 'lucide-react'
+import { CreditCard, Globe, Banknote, Save, ChevronDown, Loader2, CheckCircle2 } from 'lucide-react'
+import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
 
 export default function OwnerPaymentSetup() {
-  const [paymentMode, setPaymentMode] = useState('online_counter')
-  const [paymentGateway, setPaymentGateway] = useState('razorpay')
+  const { currentShop, updatePaymentSettings, isSavingPayment } = useAuthStore()
 
-  const [isSaving, setIsSaving] = useState(false)
+  const [paymentMode, setPaymentMode] = useState(currentShop?.paymentSettings?.paymentMode || 'online_counter')
+  const [paymentGateway, setPaymentGateway] = useState(currentShop?.paymentSettings?.paymentGateway || 'razorpay')
+  const [razorpayKeyId, setRazorpayKeyId] = useState(currentShop?.paymentSettings?.razorpayKeyId || '')
+  const [cashfreeAppId, setCashfreeAppId] = useState(currentShop?.paymentSettings?.cashfreeAppId || '')
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    if (currentShop?.paymentSettings) {
+      if (currentShop.paymentSettings.paymentMode) setPaymentMode(currentShop.paymentSettings.paymentMode)
+      if (currentShop.paymentSettings.paymentGateway) setPaymentGateway(currentShop.paymentSettings.paymentGateway)
+      if (currentShop.paymentSettings.razorpayKeyId) setRazorpayKeyId(currentShop.paymentSettings.razorpayKeyId)
+      if (currentShop.paymentSettings.cashfreeAppId) setCashfreeAppId(currentShop.paymentSettings.cashfreeAppId)
+    }
+  }, [currentShop])
+
+  const handleSave = async (e) => {
     e.preventDefault()
-    setIsSaving(true)
-    setTimeout(() => {
-      setIsSaving(false)
-      toast.success('Payment settings updated successfully!')
-    }, 800)
+    await updatePaymentSettings({
+      paymentMode,
+      paymentGateway,
+      razorpayKeyId,
+      cashfreeAppId,
+    })
   }
 
   return (
@@ -162,61 +175,38 @@ export default function OwnerPaymentSetup() {
 
             <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 flex flex-col gap-5">
               
-              <a href="#" className="flex items-center justify-between text-brand text-sm font-bold bg-white p-3 rounded-lg border border-stone-200 shadow-xs hover:bg-stone-50 transition-colors">
-                <span>📖 How to Get the Keys? (Step-by-Step)</span>
-                <ChevronDown className="w-4 h-4" />
-              </a>
+              <div className="flex items-center justify-between text-brand text-sm font-bold bg-white p-3 rounded-lg border border-stone-200 shadow-xs">
+                <span>📖 How to Get the Keys? (Standard API Key Credentials)</span>
+              </div>
 
               {paymentGateway === 'razorpay' && (
-                <>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600">
-                      Razorpay Key ID
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="rzp_live_xxxxxxxxx"
-                      className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600">
-                      Razorpay Key Secret
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter a new secret or leave blank if not changing"
-                      className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-                </>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600">
+                    Razorpay Key ID
+                  </label>
+                  <input
+                    type="text"
+                    value={razorpayKeyId}
+                    onChange={(e) => setRazorpayKeyId(e.target.value)}
+                    placeholder="rzp_live_xxxxxxxxx"
+                    className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
+                  />
+                </div>
               )}
 
               {paymentGateway === 'cashfree' && (
-                <>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600">
-                      Cashfree App ID
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="1234567890abcdef"
-                      className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600">
-                      Cashfree Secret Key
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter a new secret key or leave blank"
-                      className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-                </>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600">
+                    Cashfree App ID
+                  </label>
+                  <input
+                    type="text"
+                    value={cashfreeAppId}
+                    onChange={(e) => setCashfreeAppId(e.target.value)}
+                    placeholder="1234567890abcdef"
+                    className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
+                  />
+                </div>
               )}
 
             </div>
@@ -226,11 +216,11 @@ export default function OwnerPaymentSetup() {
         <div className="flex justify-start">
           <button
             type="submit"
-            disabled={isSaving}
-            className="btn btn-primary py-4 mt-4 px-8"
+            disabled={isSavingPayment}
+            className="btn btn-primary py-4 mt-4 px-8 flex items-center gap-2"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>{isSaving ? 'Saving...' : 'Save Payment Settings'}</span>
+            {isSavingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>{isSavingPayment ? 'Saving Payment Settings...' : 'Save Payment Settings'}</span>
           </button>
         </div>
 
@@ -238,3 +228,4 @@ export default function OwnerPaymentSetup() {
     </div>
   )
 }
+

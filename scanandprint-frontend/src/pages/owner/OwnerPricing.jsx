@@ -1,38 +1,48 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { IndianRupee, CheckCircle2, Save, Loader2 } from 'lucide-react'
+import { IndianRupee, CheckCircle2, Save, Loader2, KeyRound } from 'lucide-react'
+import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
 
 export default function OwnerPricing() {
-  const [bwRate, setBwRate] = useState(5)
-  const [colorRate, setColorRate] = useState(10)
+  const { currentShop, updateRates, changePassword, isSavingRates, isUpdatingPassword } = useAuthStore()
+
+  const [bwRate, setBwRate] = useState(currentShop?.bwRate ?? 5)
+  const [colorRate, setColorRate] = useState(currentShop?.colorRate ?? 10)
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  const [isSavingRates, setIsSavingRates] = useState(false)
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+  useEffect(() => {
+    if (currentShop) {
+      if (currentShop.bwRate !== undefined) setBwRate(currentShop.bwRate)
+      if (currentShop.colorRate !== undefined) setColorRate(currentShop.colorRate)
+    }
+  }, [currentShop])
 
-  const handleSaveRates = (e) => {
+  const handleSaveRates = async (e) => {
     e.preventDefault()
-    setIsSavingRates(true)
-    setTimeout(() => {
-      setIsSavingRates(false)
-      toast.success('Print rates updated successfully!')
-    }, 800)
+    await updateRates({ bwRate: Number(bwRate), colorRate: Number(colorRate) })
   }
 
-  const handleUpdatePassword = (e) => {
+  const handleUpdatePassword = async (e) => {
     e.preventDefault()
-    setIsUpdatingPassword(true)
-    setTimeout(() => {
-      setIsUpdatingPassword(false)
-      toast.success('Password updated successfully!')
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match')
+      return
+    }
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long')
+      return
+    }
+
+    const success = await changePassword(currentPassword, newPassword)
+    if (success) {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-    }, 800)
+    }
   }
 
   return (
@@ -61,10 +71,11 @@ export default function OwnerPricing() {
               <span className="absolute left-3.5 text-stone-500 font-bold text-base">₹</span>
               <input
                 type="number"
-                min="1"
+                min="0.5"
+                step="0.5"
                 required
                 value={bwRate}
-                onChange={(e) => setBwRate(Number(e.target.value))}
+                onChange={(e) => setBwRate(e.target.value)}
                 className="w-full h-12 pl-8 pr-4 rounded-xl border border-stone-300 bg-white text-lg font-extrabold text-stone-900 outline-none focus:border-brand"
               />
             </div>
@@ -81,9 +92,10 @@ export default function OwnerPricing() {
               <input
                 type="number"
                 min="1"
+                step="0.5"
                 required
                 value={colorRate}
-                onChange={(e) => setColorRate(Number(e.target.value))}
+                onChange={(e) => setColorRate(e.target.value)}
                 className="w-full h-12 pl-8 pr-4 rounded-xl border border-rose-300 bg-white text-lg font-extrabold text-stone-900 outline-none focus:border-brand"
               />
             </div>
@@ -95,16 +107,20 @@ export default function OwnerPricing() {
           <button
             type="submit"
             disabled={isSavingRates}
-            className="btn btn-primary py-4 mt-2 px-8"
+            className="btn btn-primary py-4 mt-2 px-8 flex items-center gap-2"
           >
             {isSavingRates ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>{isSavingRates ? 'Saving...' : 'Save Customer Print Rates'}</span>
+            <span>{isSavingRates ? 'Saving Rates...' : 'Save Customer Print Rates'}</span>
           </button>
         </div>
 
       </form>
       {/* Password Form */}
       <form onSubmit={handleUpdatePassword} className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-6">
+        <div>
+          <h3 className="text-lg font-extrabold text-stone-900 font-heading">Change Account Password</h3>
+          <p className="text-xs text-stone-500 mt-0.5">Keep your shop dashboard and agent credentials secure</p>
+        </div>
 
         <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200 flex flex-col gap-2">
           <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
@@ -116,7 +132,7 @@ export default function OwnerPricing() {
               required
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Current Password"
+              placeholder="Enter current password"
               className="w-full h-12 pl-4 pr-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand"
             />
           </div>
@@ -133,7 +149,7 @@ export default function OwnerPricing() {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New Password"
+                placeholder="New password (min 6 chars)"
                 className="w-full h-12 pl-4 pr-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand"
               />
             </div>
@@ -149,7 +165,7 @@ export default function OwnerPricing() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm New Password"
+                placeholder="Confirm new password"
                 className="w-full h-12 pl-4 pr-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand"
               />
             </div>
@@ -161,10 +177,10 @@ export default function OwnerPricing() {
           <button
             type="submit"
             disabled={isUpdatingPassword}
-            className="btn btn-primary py-4 mt-2 px-8"
+            className="btn btn-outline py-4 mt-2 px-8 flex items-center gap-2"
           >
-            {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>{isUpdatingPassword ? 'Updating...' : 'Update Password'}</span>
+            {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin text-brand" /> : <KeyRound className="w-4 h-4 text-brand" />}
+            <span>{isUpdatingPassword ? 'Updating Password...' : 'Update Password'}</span>
           </button>
         </div>
 

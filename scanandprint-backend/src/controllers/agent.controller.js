@@ -1,14 +1,10 @@
 import { authService } from '../services/auth.service.js'
 import { agentService } from '../services/agent.service.js'
-import { sendSuccess, sendError } from '../utils/apiResponse.js'
+import { sendSuccess } from '../utils/apiResponse.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
 
-export const handleAgentAuth = async (req, res, next) => {
-  try {
-    // Already authenticated by authenticateAgent middleware
-    return sendSuccess(res, 200, 'Agent Authenticated', {
-      shop: req.shop
-    })
-  } catch (error) {
-    next(error)
-  }
-}
+export const handleAgentAuth = asyncHandler(async (req, res, next) => {
+  return sendSuccess(res, 200, 'Agent Authenticated', {
+    shop: req.shop
+  })
+})

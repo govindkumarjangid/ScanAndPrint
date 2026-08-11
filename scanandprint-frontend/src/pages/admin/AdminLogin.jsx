@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ShieldCheck, Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
+import { useAdminStore } from '../../store/useAdminStore'
 import toast from 'react-hot-toast'
 
 export default function AdminLogin() {
@@ -8,32 +9,17 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const { adminLogin } = useAdminStore()
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed')
-      }
-
-      // Save token and navigate
-      localStorage.setItem('adminToken', data.data.token)
-      toast.success('Login successful! Redirecting...')
+      await adminLogin(email, password)
       navigate('/admin/dashboard')
     } catch (err) {
-      toast.error(err.message || 'An error occurred')
+      // toast is handled in adminLogin
     } finally {
       setIsLoading(false)
     }

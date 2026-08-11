@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 export default function AdminSettings() {
   const { 
     settingsLoading, 
+    isSavingSettings,
     settingsData, 
     fetchSettings, 
     updateSetting, 
@@ -17,10 +18,9 @@ export default function AdminSettings() {
     fetchSettings()
   }, [fetchSettings])
 
-  const handleSaveSettings = (e) => {
+  const handleSaveSettings = async (e) => {
     e.preventDefault()
-    saveSettings()
-    toast.success('System settings updated successfully!')
+    await saveSettings()
   }
 
   return (
@@ -99,10 +99,11 @@ export default function AdminSettings() {
         {/* Submit */}
         <button
           type="submit"
-          className="btn btn-primary py-3.5 mt-2 w-full"
+          disabled={isSavingSettings}
+          className="btn btn-primary py-3.5 mt-2 w-full flex items-center justify-center gap-2"
         >
-          <ShieldCheck className="w-4 h-4" />
-          <span>Save System Settings</span>
+          {isSavingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+          <span>{isSavingSettings ? 'Saving Settings...' : 'Save System Settings'}</span>
         </button>
 
       </form>

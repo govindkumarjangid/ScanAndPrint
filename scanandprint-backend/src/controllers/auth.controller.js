@@ -1,5 +1,6 @@
 import { authService } from '../services/auth.service.js'
-import { sendSuccess, sendError } from '../utils/apiResponse.js'
+import { sendSuccess } from '../utils/apiResponse.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
 
 const cookieOptions = {
   httpOnly: true,
@@ -7,98 +8,97 @@ const cookieOptions = {
   sameSite: 'lax',
 }
 
-export const registerShop = async (req, res, next) => {
-  try {
-    const { accessToken, refreshToken, shop } = await authService.register(req.body)
+// register a new shop
+export const registerShop = asyncHandler(async (req, res, next) => {
+  const { accessToken, refreshToken, shop } = await authService.register(req.body)
 
-    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 }) // 15 mins
-    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }) // 7 days
+  res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 }) // 15 mins
 
-    return sendSuccess(res, 201, 'Shop registered successfully! Welcome to QR PrintPe.', {
-      token: accessToken,
-      shop,
-    })
-  } catch (error) {
-    if (error.message.includes('already exists')) {
-      return sendError(res, 409, error.message)
-    }
-    next(error)
+  res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }) // 7 days
+
+  return sendSuccess(res, 201, 'Shop registered successfully! Welcome to QR PrintPe.', {
+    token: accessToken,
+    shop,
+  })
+})
+
+// login a shop
+export const loginShop = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body
+
+  const { accessToken, refreshToken, shop } = await authService.login({ email, password })
+
+  res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
+  res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 })
+
+  return sendSuccess(res, 200, 'Login successful!', {
+    token: accessToken,
+    shop,
+  })
+})
+
+// admin login
+export const loginAdmin = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  const { accessToken, admin } = await authService.adminLogin({ email, password });
+
+  res.cookie('adminToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 }); // 2 hours
+
+  return sendSuccess(res, 200, 'Admin login successful!', {
+    token: accessToken,
+    admin,
+  });
+})
+
+// get shop details
+export const getShopProfile = asyncHandler(async (req, res, next) => {
+  return sendSuccess(res, 200, 'Shop profile fetched successfully', { shop: req.shop })
+})
+
+// update shop rates
+export const updateShopRates = asyncHandler(async (req, res, next) => {
+  const updatedShop = await authService.updateRates(req.shop._id, req.body)
+  return sendSuccess(res, 200, 'Print rates updated successfully', { shop: updatedShop })
+})
+
+// update shop printers
+export const updateShopPrinters = asyncHandler(async (req, res, next) => {
+  const updatedShop = await authService.updatePrinters(req.shop._id, req.body)
+  return sendSuccess(res, 200, 'Printers mapped successfully', { shop: updatedShop })
+})
+
+// update shop profile
+export const updateShopProfile = asyncHandler(async (req, res, next) => {
+  const updatedShop = await authService.updateProfile(req.shop._id, req.body)
+  return sendSuccess(res, 200, 'Profile updated successfully', { shop: updatedShop })
+})
+
+// change shop password
+export const changeShopPassword = asyncHandler(async (req, res, next) => {
+  const { currentPassword, newPassword } = req.body
+  if (!currentPassword || !newPassword) {
+    return sendError(res, 400, 'Current and new password are required')
   }
-}
+  await authService.changePassword(req.shop._id, { currentPassword, newPassword })
+  return sendSuccess(res, 200, 'Password updated successfully')
+})
 
-export const loginShop = async (req, res, next) => {
-  try {
-    const { email, password } = req.body
+// update shop payment settings
+export const updateShopPaymentSettings = asyncHandler(async (req, res, next) => {
+  const updatedShop = await authService.updatePaymentSettings(req.shop._id, req.body)
+  return sendSuccess(res, 200, 'Payment settings saved successfully', { shop: updatedShop })
+})
 
-    const { accessToken, refreshToken, shop } = await authService.login({ email, password })
+// submit shop review
+export const submitShopReview = asyncHandler(async (req, res, next) => {
+  const updatedShop = await authService.submitReview(req.shop._id, req.body)
+  return sendSuccess(res, 200, 'Review submitted successfully', { shop: updatedShop })
+})
 
-    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
-    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 })
-
-    return sendSuccess(res, 200, 'Login successful!', {
-      token: accessToken,
-      shop,
-    })
-  } catch (error) {
-    if (error.message.includes('Invalid email or password')) {
-      return sendError(res, 401, error.message)
-    }
-    next(error)
-  }
-}
-
-export const loginAdmin = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    const { accessToken, admin } = await authService.adminLogin({ email, password });
-
-    res.cookie('adminToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 }); // 2 hours
-
-    return sendSuccess(res, 200, 'Admin login successful!', {
-      token: accessToken,
-      admin,
-    });
-  } catch (error) {
-    if (error.message.includes('Invalid admin')) {
-      return sendError(res, 401, error.message);
-    }
-    next(error);
-  }
-}
-
-export const getShopProfile = async (req, res, next) => {
-  try {
-    return sendSuccess(res, 200, 'Shop profile fetched successfully', { shop: req.shop })
-  } catch (error) {
-    next(error)
-  }
-}
-
-export const updateShopRates = async (req, res, next) => {
-  try {
-    const updatedShop = await authService.updateRates(req.shop._id, req.body)
-    return sendSuccess(res, 200, 'Print rates updated successfully', { shop: updatedShop })
-  } catch (error) {
-    next(error)
-  }
-}
-
-export const updateShopPrinters = async (req, res, next) => {
-  try {
-    const updatedShop = await authService.updatePrinters(req.shop._id, req.body)
-    return sendSuccess(res, 200, 'Printers mapped successfully', { shop: updatedShop })
-  } catch (error) {
-    next(error)
-  }
-}
-
-export const logoutShop = async (req, res, next) => {
-  try {
-    res.clearCookie('accessToken', cookieOptions)
-    res.clearCookie('refreshToken', cookieOptions)
-    return sendSuccess(res, 200, 'Logged out successfully')
-  } catch (error) {
-    next(error)
-  }
-}
+// logout shop
+export const logoutShop = asyncHandler(async (req, res, next) => {
+  res.clearCookie('accessToken', cookieOptions)
+  res.clearCookie('refreshToken', cookieOptions)
+  return sendSuccess(res, 200, 'Logged out successfully')
+})

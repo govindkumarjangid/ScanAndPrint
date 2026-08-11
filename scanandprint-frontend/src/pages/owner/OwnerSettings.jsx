@@ -1,24 +1,37 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Settings, CheckCircle2, Save, Loader2 } from 'lucide-react'
+import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
 
 export default function OwnerSettings() {
-  const [shopName, setShopName] = useState('Sharma Cyber Cafe')
-  const [ownerName, setOwnerName] = useState('Rahul Kumar')
-  const [email, setEmail] = useState('rahul@sharmacyber.com')
-  const [phone, setPhone] = useState('9876543210')
-  const [address, setAddress] = useState('Main Market, Opposite Railway Station')
+  const { currentShop, updateProfile, isSavingProfile } = useAuthStore()
 
-  const [isSaving, setIsSaving] = useState(false)
+  const [shopName, setShopName] = useState(currentShop?.shopName || 'Sharma Cyber Cafe')
+  const [ownerName, setOwnerName] = useState(currentShop?.ownerName || 'Rahul Kumar')
+  const [email, setEmail] = useState(currentShop?.email || 'rahul@sharmacyber.com')
+  const [phone, setPhone] = useState(currentShop?.phone || '9876543210')
+  const [address, setAddress] = useState(currentShop?.address || 'Main Market, Opposite Railway Station')
 
-  const handleSaveProfile = (e) => {
+  useEffect(() => {
+    if (currentShop) {
+      if (currentShop.shopName) setShopName(currentShop.shopName)
+      if (currentShop.ownerName) setOwnerName(currentShop.ownerName)
+      if (currentShop.email) setEmail(currentShop.email)
+      if (currentShop.phone) setPhone(currentShop.phone)
+      if (currentShop.address) setAddress(currentShop.address)
+    }
+  }, [currentShop])
+
+  const handleSaveProfile = async (e) => {
     e.preventDefault()
-    setIsSaving(true)
-    setTimeout(() => {
-      setIsSaving(false)
-      toast.success('Shop settings updated successfully!')
-    }, 800)
+    await updateProfile({
+      shopName,
+      ownerName,
+      email,
+      phone,
+      address,
+    })
   }
 
   return (
@@ -101,11 +114,11 @@ export default function OwnerSettings() {
         <div className="flex justify-start">
           <button
             type="submit"
-            disabled={isSaving}
-            className="btn btn-primary py-4 mt-2 px-8"
+            disabled={isSavingProfile}
+            className="btn btn-primary py-4 mt-2 px-8 flex items-center gap-2"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>{isSaving ? 'Saving...' : 'Save Profile Settings'}</span>
+            {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>{isSavingProfile ? 'Saving Profile...' : 'Save Profile Settings'}</span>
           </button>
         </div>
 
@@ -114,3 +127,4 @@ export default function OwnerSettings() {
     </div>
   )
 }
+

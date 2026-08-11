@@ -1,64 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FileText, Search, CheckCircle2, RefreshCw, Printer } from 'lucide-react'
-
-const initialJobs = [
-  {
-    id: 'JOB_98234_108',
-    file: 'Aadhaar_Card_Copy.pdf',
-    customerPhone: '9876543210',
-    pages: 2,
-    copies: 1,
-    type: 'B&W',
-    amount: 10,
-    time: '10:42 AM',
-    status: 'Printed',
-  },
-  {
-    id: 'JOB_98234_107',
-    file: 'College_Project_Report.pdf',
-    customerPhone: '9812345678',
-    pages: 14,
-    copies: 1,
-    type: 'Color',
-    amount: 140,
-    time: '10:30 AM',
-    status: 'Printed',
-  },
-  {
-    id: 'JOB_98234_106',
-    file: 'PAN_Card_Verification.jpg',
-    customerPhone: '9765432109',
-    pages: 1,
-    copies: 2,
-    type: 'Color',
-    amount: 20,
-    time: '10:15 AM',
-    status: 'Printed',
-  },
-  {
-    id: 'JOB_98234_105',
-    file: 'Resume_Rahul_Kumar.pdf',
-    customerPhone: '9988776655',
-    pages: 3,
-    copies: 2,
-    type: 'B&W',
-    amount: 30,
-    time: '09:50 AM',
-    status: 'Printed',
-  },
-]
+import { FileText, Search, CheckCircle2, RefreshCw, Printer, Clock, Loader2 } from 'lucide-react'
+import { useJobStore } from '../../store/useJobStore'
 
 export default function OwnerJobs() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
+  const { jobs, fetchJobs, refreshJobs, isLoading, isRefreshing } = useJobStore()
 
-  const filteredJobs = initialJobs.filter((j) => {
+  useEffect(() => {
+    fetchJobs(1, 50)
+  }, [fetchJobs])
+
+  const filteredJobs = jobs.filter((j) => {
+    const fileName = j.originalFileName || j.file || ''
+    const jobId = j.jobId || j.id || ''
+    const phone = j.customerPhone || ''
     const matchesSearch =
-      j.file.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      j.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      j.customerPhone.includes(searchTerm)
-    const matchesStatus = statusFilter === 'ALL' || j.status === statusFilter
+      fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      jobId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      phone.includes(searchTerm)
+
+    const matchesStatus =
+      statusFilter === 'ALL' ||
+      (statusFilter === 'Printed' && (j.status === 'PRINTED_SUCCESSFULLY' || j.status === 'Printed')) ||
+      (statusFilter === 'Pending' && (j.status === 'PENDING_PAYMENT' || j.status === 'PAYMENT_VERIFIED' || j.status === 'DISPATCHED_TO_AGENT' || j.status === 'Pending'))
+    
     return matchesSearch && matchesStatus
   })
 
@@ -76,9 +43,17 @@ export default function OwnerJobs() {
           </p>
         </div>
 
-        <button className="btn btn-secondary !bg-stone-200 hover:!bg-stone-300 !text-stone-800 btn-sm">
-          <RefreshCw className="w-4 h-4" />
-          <span>Refresh Queue</span>
+        <button
+          onClick={() => refreshJobs(statusFilter)}
+          disabled={isLoading || isRefreshing}
+          className="btn btn-secondary !bg-stone-200 hover:!bg-stone-300 !text-stone-800 btn-sm flex items-center gap-2"
+        >
+          {isRefreshing || isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin text-brand" />
+          ) : (
+            <RefreshCw className="w-4 h-4" />
+          )}
+          <span>{isRefreshing ? 'Refreshing...' : 'Refresh Queue'}</span>
         </button>
       </div>
 
@@ -129,69 +104,97 @@ export default function OwnerJobs() {
               </tr>
             </thead>
             <tbody className="block md:table-row-group space-y-4 md:space-y-0 md:divide-y md:divide-stone-100">
-              {filteredJobs.map((j) => (
-                <tr
-                  key={j.id}
-                  className="block md:table-row bg-stone-50/40 md:bg-transparent border border-stone-200/80 md:border-0 rounded-2xl md:rounded-none p-4 md:p-0 hover:bg-stone-50/60 transition-colors"
-                >
-                  {/* Job ID */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-bold text-stone-900 font-mono text-xs">
-                    <span className="md:hidden text-stone-500 font-sans font-medium">Job ID</span>
-                    {j.id}
-                  </td>
-
-                  {/* Document File */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-semibold text-stone-800">
-                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">File</span>
-                    <span className="truncate max-w-37.5 sm:max-w-50 text-right md:text-left md:max-w-none">{j.file}</span>
-                  </td>
-
-                  {/* Customer */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-mono text-stone-600">
-                    <span className="md:hidden text-stone-500 font-sans font-medium">Customer</span>
-                    {j.customerPhone}
-                  </td>
-
-                  {/* Pages / Copies */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-medium text-stone-600">
-                    <span className="md:hidden text-stone-500 font-sans font-medium">Details</span>
-                    <span>{j.pages} pages × {j.copies} copy</span>
-                  </td>
-
-                  {/* Type */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4">
-                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Type</span>
-                    <span
-                      className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${j.type === 'Color'
-                        ? 'bg-rose-100 text-rose-800'
-                        : 'bg-stone-200 text-stone-800'
-                        }`}
-                    >
-                      {j.type}
-                    </span>
-                  </td>
-
-                  {/* Amount  */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-extrabold text-stone-900 border-t border-stone-100 md:border-0 mt-2 pt-3 md:mt-0 md:pt-4">
-                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Amount</span>
-                    ₹{j.amount}
-                  </td>
-
-                  {/* Time */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-medium text-stone-500">
-                    <span className="md:hidden text-stone-500 font-sans font-medium">Time</span>
-                    {j.time}
-                  </td>
-
-                  {/* Status */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 pb-1 md:pb-4">
-                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Status</span>
-                    <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {j.status}
-                    </span>
+              {isLoading && jobs.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="py-8 text-center text-stone-500">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-brand" />
+                      <span>Loading orders from database...</span>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : filteredJobs.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="py-8 text-center text-stone-500 font-medium">
+                    No print jobs match your search/filter criteria.
+                  </td>
+                </tr>
+              ) : (
+                filteredJobs.map((j) => (
+                  <tr
+                    key={j._id || j.id || j.jobId}
+                    className="block md:table-row bg-stone-50/40 md:bg-transparent border border-stone-200/80 md:border-0 rounded-2xl md:rounded-none p-4 md:p-0 hover:bg-stone-50/60 transition-colors"
+                  >
+                    {/* Job ID */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-bold text-stone-900 font-mono text-xs">
+                      <span className="md:hidden text-stone-500 font-sans font-medium">Job ID</span>
+                      {j.jobId || j.id}
+                    </td>
+
+                    {/* Document File */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-semibold text-stone-800">
+                      <span className="md:hidden text-stone-500 font-sans text-xs font-medium">File</span>
+                      <span className="truncate max-w-40 text-right md:text-left md:max-w-none">
+                        {j.originalFileName || j.file || 'Document.pdf'}
+                      </span>
+                    </td>
+
+                    {/* Customer */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-mono text-stone-600">
+                      <span className="md:hidden text-stone-500 font-sans font-medium">Customer</span>
+                      {j.customerPhone || 'Counter'}
+                    </td>
+
+                    {/* Pages / Copies */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-medium text-stone-600">
+                      <span className="md:hidden text-stone-500 font-sans font-medium">Details</span>
+                      <span>
+                        {j.totalPages || j.pages || 1} pages × {j.copies || 1} copy
+                      </span>
+                    </td>
+
+                    {/* Type */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4">
+                      <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Type</span>
+                      <span
+                        className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${
+                          (j.colorType === 'COLOR' || j.type === 'Color')
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-stone-200 text-stone-800'
+                        }`}
+                      >
+                        {(j.colorType === 'COLOR' || j.type === 'Color') ? 'Color' : 'B&W'}
+                      </span>
+                    </td>
+
+                    {/* Amount  */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 font-extrabold text-stone-900 border-t border-stone-100 md:border-0 mt-2 pt-3 md:mt-0 md:pt-4">
+                      <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Amount</span>
+                      ₹{j.totalAmount || j.amount || 10}
+                    </td>
+
+                    {/* Time */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 text-xs font-medium text-stone-500">
+                      <span className="md:hidden text-stone-500 font-sans font-medium">Time</span>
+                      {j.createdAt ? new Date(j.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (j.time || 'Just now')}
+                    </td>
+
+                    {/* Status */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-4 pb-1 md:pb-4">
+                      <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Status</span>
+                      {(j.status === 'PRINTED_SUCCESSFULLY' || j.status === 'Printed') ? (
+                        <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Printed
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
+                          <Clock className="w-3 h-3 text-amber-600" /> {j.status?.replace(/_/g, ' ') || 'Processing'}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

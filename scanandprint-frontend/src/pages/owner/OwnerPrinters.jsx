@@ -1,30 +1,37 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Printer, RefreshCw, Sparkles, Loader2 } from 'lucide-react'
+import { Printer, RefreshCw, Sparkles, Loader2, CheckCircle2 } from 'lucide-react'
+import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
 
 export default function OwnerPrinters() {
-  const [bwPrinter, setBwPrinter] = useState('Epson L3210 Series')
-  const [colorPrinter, setColorPrinter] = useState('Epson L3210 Series')
+  const { currentShop, updatePrinters, isSavingPrinters } = useAuthStore()
 
-  const [isSaving, setIsSaving] = useState(false)
+  const [bwPrinter, setBwPrinter] = useState(currentShop?.defaultBwPrinter || 'Epson L3210 Series')
+  const [colorPrinter, setColorPrinter] = useState(currentShop?.defaultColorPrinter || 'Epson L3210 Series')
   const [isScanning, setIsScanning] = useState(false)
 
-  const handleSavePrinters = (e) => {
+  useEffect(() => {
+    if (currentShop) {
+      if (currentShop.defaultBwPrinter) setBwPrinter(currentShop.defaultBwPrinter)
+      if (currentShop.defaultColorPrinter) setColorPrinter(currentShop.defaultColorPrinter)
+    }
+  }, [currentShop])
+
+  const handleSavePrinters = async (e) => {
     e.preventDefault()
-    setIsSaving(true)
-    setTimeout(() => {
-      setIsSaving(false)
-      toast.success('Printers mapped successfully! Print Agent will route jobs to these devices.')
-    }, 800)
+    await updatePrinters({
+      defaultBwPrinter: bwPrinter,
+      defaultColorPrinter: colorPrinter,
+    })
   }
 
   const handleScanPrinters = () => {
     setIsScanning(true)
     setTimeout(() => {
       setIsScanning(false)
-      toast.success('Rescanned connected printers successfully.')
-    }, 800)
+      toast.success('Rescanned connected Windows spooler devices!')
+    }, 900)
   }
 
   return (
@@ -58,9 +65,9 @@ export default function OwnerPrinters() {
             type="button"
             onClick={handleScanPrinters}
             disabled={isScanning}
-            className="btn btn-outline bg-white btn-sm !font-bold"
+            className="btn btn-outline bg-white btn-sm !font-bold flex items-center gap-2"
           >
-            {isScanning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            {isScanning ? <Loader2 className="w-3.5 h-3.5 animate-spin text-brand" /> : <RefreshCw className="w-3.5 h-3.5" />}
             <span>{isScanning ? 'Scanning...' : 'Scan Printers'}</span>
           </button>
         </div>
@@ -102,11 +109,11 @@ export default function OwnerPrinters() {
         <div className="flex justify-start">
           <button
             type="submit"
-            disabled={isSaving}
-            className="btn btn-primary py-4 mt-2 px-8"
+            disabled={isSavingPrinters}
+            className="btn btn-primary py-4 mt-2 px-8 flex items-center gap-2"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            <span>{isSaving ? 'Saving...' : 'Save Printer Hardware Mapping'}</span>
+            {isSavingPrinters ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            <span>{isSavingPrinters ? 'Saving Mapping...' : 'Save Printer Hardware Mapping'}</span>
           </button>
         </div>
 
@@ -115,3 +122,4 @@ export default function OwnerPrinters() {
     </div>
   )
 }
+

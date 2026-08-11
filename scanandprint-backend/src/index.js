@@ -18,7 +18,6 @@ import adminRoutes from './routes/admin.route.js'
 
 import { notFoundHandler, globalErrorHandler } from './middlewares/error.middleware.js'
 import { setupSocket } from './socket.js'
-import { seedAdminAndSettings } from './utils/seedAdmin.js'
 
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
@@ -39,14 +38,14 @@ app.use(cors({ origin: envConfig.clientUrl, credentials: true }))
 app.use(cookieParser())
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ extended: true, limit: '50mb' }))
-if (envConfig.nodeEnv === 'development') {
+if (envConfig.nodeEnv === 'development')
   app.use(morgan('dev'))
-}
+
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: '🚀 QR PrintPe Backend Engine Server is Healthy & Operational',
+    message: 'ScanAndPrint Backend Engine Server is Healthy & Operational',
     timestamp: new Date().toISOString(),
     env: envConfig.nodeEnv,
   })
@@ -65,7 +64,6 @@ setupSocket(io)
 
 const startServer = async () => {
   await connectDB()
-  await seedAdminAndSettings()
   server.listen(envConfig.port, () => {
     console.log(`🚀 [ScanAndPrint Server Running]: http://localhost:${envConfig.port} (Env: ${envConfig.nodeEnv})`)
   })

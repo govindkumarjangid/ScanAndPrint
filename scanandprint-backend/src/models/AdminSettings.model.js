@@ -19,7 +19,7 @@ const adminSettingsSchema = new mongoose.Schema({
   },
   supportEmail: {
     type: String,
-    default: "scanandprint@gmail.com"
+    default: "scanqrandprint@gmail.com"
   },
   maintenanceMode: {
     type: Boolean,

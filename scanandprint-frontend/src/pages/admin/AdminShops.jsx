@@ -12,12 +12,13 @@ export default function AdminShops() {
   }, [fetchShops])
 
   const filteredShops = shopsData.filter((s) => {
-    return (
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.city.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    const name = (s.shopName || s.name || '').toLowerCase()
+    const code = (s.shopCode || s.code || '').toLowerCase()
+    const city = (s.cityState || s.city || '').toLowerCase()
+    const term = searchTerm.toLowerCase()
+    return name.includes(term) || code.includes(term) || city.includes(term)
   })
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,21 +73,27 @@ export default function AdminShops() {
                     </div>
                   </td>
                 </tr>
+              ) : filteredShops.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="py-8 text-center text-stone-500 font-medium">
+                    No shops found. Shops will appear here after registration.
+                  </td>
+                </tr>
               ) : (
                 filteredShops.map((s) => (
-                  <tr key={s.code} className="hover:bg-stone-900/60 transition-colors">
-                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">{s.code}</td>
-                    <td className="py-4 px-4 font-semibold text-stone-200">{s.name}</td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.owner}</td>
-                    <td className="py-4 px-4 text-xs font-mono text-stone-400">{s.phone}</td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.city}</td>
+                  <tr key={s.shopCode || s.code || s._id} className="hover:bg-stone-900/60 transition-colors">
+                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">{s.shopCode || s.code || '—'}</td>
+                    <td className="py-4 px-4 font-semibold text-stone-200">{s.shopName || s.name || '—'}</td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.ownerName || s.owner || '—'}</td>
+                    <td className="py-4 px-4 text-xs font-mono text-stone-400">{s.mobile || s.phone || '—'}</td>
+                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.cityState || s.city || '—'}</td>
                     <td className="py-4 px-4">
                       <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-950 text-rose-300 border border-rose-900/60">
-                        {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : '₹599 Lifetime'}
+                        {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : s.plan === 'LIFETIME_599' ? '₹599 Lifetime' : s.plan || 'Standard'}
                       </span>
                     </td>
                     <td className="py-4 px-4">
-                      {s.agentConnected ? (
+                      {(s.agentConnected || s.isOnline) ? (
                         <span className="inline-flex items-center gap-1.5 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
                           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Online
                         </span>

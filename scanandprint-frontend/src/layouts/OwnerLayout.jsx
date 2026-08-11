@@ -1,19 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, ownerNavItems } from '../assets/assets'
+import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, AlertCircle, ownerNavItems } from '../assets/assets'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
+import { useAuthStore } from '../store/useAuthStore'
 
 export default function OwnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
+  const { currentShop, isAuthenticated, fetchProfile, logout } = useAuthStore()
 
-  const isAgentConnected = true
-  const shopCode = 'SHOP_98234'
-  const shopName = 'Sharma Cyber Cafe'
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
+
+  const shopName = currentShop?.shopName || 'Cyber Cafe'
+  const isAgentConnected = currentShop?.isOnline ?? true
 
   const handleLogout = () => {
-    navigate('/shop-login');
+    logout()
   }
 
   return (
