@@ -1,9 +1,9 @@
 import { agentService } from './services/agent.service.js'
 
 /**
- * Initializes Socket.io event listeners for the print agent connection.
- * @param {import('socket.io').Server} io
+ @param {import('socket.io').Server} io
  */
+
 export const setupSocket = (io) => {
   io.on('connection', (socket) => {
     console.log(`🔌 [Socket Connected]: ${socket.id}`)
@@ -12,7 +12,7 @@ export const setupSocket = (io) => {
     socket.on('AGENT_REGISTER', async (data) => {
       try {
         const shop = await agentService.registerAgent(data, socket.id)
-        
+
         const shopRoom = `shop:${shop.shopCode}`
         socket.join(shopRoom)
 

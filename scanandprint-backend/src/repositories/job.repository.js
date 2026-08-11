@@ -1,6 +1,7 @@
 import { PrintJob } from '../models/PrintJob.model.js'
 
 export const jobRepository = {
+
   async create(jobData) {
     return await PrintJob.create(jobData)
   },
@@ -62,11 +63,11 @@ export const jobRepository = {
       { new: true }
     )
   },
-  
+
   async getQueuedJobsByShopCode(shopCode) {
     return await PrintJob.find({
       shopCode,
-      status: 'PAYMENT_VERIFIED', // or QUEUED if we rename it, using PAYMENT_VERIFIED per model
+      status: 'PAYMENT_VERIFIED',
     }).lean()
   }
 }

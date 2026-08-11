@@ -2,6 +2,8 @@ import { shopRepository } from '../repositories/shop.repository.js'
 import { jobRepository } from '../repositories/job.repository.js'
 
 export const kioskService = {
+
+  // Get shop information by its code
   async getShopInfo(shopCode) {
     const shop = await shopRepository.findByCode(shopCode, {
       select: 'shopCode shopName ownerName address bwRate colorRate printerBrand isOnline',
@@ -11,6 +13,7 @@ export const kioskService = {
     return shop
   },
 
+  // Create a new print job for a specific shop
   async createJob(jobData) {
     const { shopCode, copies, totalPages, colorType } = jobData
 
@@ -46,6 +49,7 @@ export const kioskService = {
     return { job: printJob, upiIntentUrl }
   },
 
+  // Verify payment for a specific job and dispatch it to the agent if successful
   async verifyPayment(jobId, paymentTxnId, io) {
     const job = await jobRepository.findByJobId(jobId)
     if (!job) throw new Error('Print job not found')
@@ -56,7 +60,7 @@ export const kioskService = {
 
     if (io) {
       const targetRoom = `shop:${job.shopCode}`
-      console.log(`⚡ [Socket Dispatch] Emitting PRINT_JOB_DISPATCH to room ${targetRoom} for Job ${job.jobId}`)
+      console.log(`Emitting PRINT_JOB_DISPATCH to room ${targetRoom} for Job ${job.jobId}`)
 
       io.to(targetRoom).emit('PRINT_JOB_DISPATCH', {
         jobId: job.jobId,
@@ -76,4 +80,5 @@ export const kioskService = {
 
     return job
   }
+
 }

@@ -5,14 +5,14 @@ import { generateShopCode, generateSecretApiKey } from '../utils/shopCode.util.j
 import Admin from '../models/Admin.model.js'
 
 export const authService = {
+
+  // Register a new shop account
   async register(data) {
     const { password, shopName, email, mobile, fullName, shopAddress, ...rest } = data
 
-    // Check if exists
     const existing = await shopRepository.findByPhoneOrEmail(email, mobile, { lean: true })
-    if (existing) {
+    if (existing)
       throw new Error('A shop account with this email or mobile number already exists')
-    }
 
     const passwordHash = await hashPassword(password)
     const shopCode = generateShopCode(shopName)
@@ -21,8 +21,8 @@ export const authService = {
     const newShop = await shopRepository.create({
       ...rest,
       shopName,
-      ownerName: fullName, // mapping
-      address: shopAddress, // mapping
+      ownerName: fullName,
+      address: shopAddress,
       email: email.toLowerCase(),
       phone: mobile,
       passwordHash,
@@ -33,6 +33,7 @@ export const authService = {
     return this._generateAuthTokens(newShop)
   },
 
+  // Login a shop account and generate auth tokens
   async login({ email, password }) {
     const shop = await shopRepository.findByEmail(email, { includePassword: true })
     if (!shop) throw new Error('Invalid email or password credentials')
@@ -43,29 +44,28 @@ export const authService = {
     return this._generateAuthTokens(shop)
   },
 
+  // Admin login for superadmin access
   async adminLogin({ email, password }) {
-    if (email !== 'scanqrandprint@gmail.com') {
+    if (email !== 'scanqrandprint@gmail.com')
       throw new Error('Invalid admin email');
-    }
 
     let admin = await Admin.findOne({ email });
     if (!admin) {
-      // Auto-seed the admin if it doesn't exist
       admin = new Admin({ email, password: 'adminofscanandprint@2026' });
       await admin.save();
     }
 
     const isMatch = await admin.comparePassword(password);
-    if (!isMatch) {
+    if (!isMatch)
       throw new Error('Invalid admin credentials');
-    }
 
     const payload = { adminId: admin._id, role: 'superadmin' };
     const accessToken = generateToken(payload, process.env.JWT_EXPIRES_IN || '2h');
-    
+
     return { accessToken, admin: { email: admin.email, role: 'superadmin' } };
   },
 
+  // Generate auth tokens for a shop
   _generateAuthTokens(shop) {
     const payload = {
       shopId: shop._id,
@@ -82,14 +82,17 @@ export const authService = {
     return { accessToken, refreshToken, shop: shopResponse }
   },
 
+  // Refresh the access token using a valid refresh token
   async updateRates(shopId, { bwRate, colorRate }) {
     return await shopRepository.updateById(shopId, { bwRate, colorRate })
   },
 
+  // Update the shop's printer settings
   async updatePrinters(shopId, printerData) {
     return await shopRepository.updateById(shopId, printerData)
   },
 
+  // Update the shop's profile information
   async updateProfile(shopId, profileData) {
     const updatePayload = {}
     if (profileData.shopName) updatePayload.shopName = profileData.shopName
@@ -99,10 +102,11 @@ export const authService = {
     if (profileData.address || profileData.shopAddress) updatePayload.address = profileData.address || profileData.shopAddress
     if (profileData.cityState) updatePayload.cityState = profileData.cityState
     if (profileData.pincode) updatePayload.pincode = profileData.pincode
-    
+
     return await shopRepository.updateById(shopId, updatePayload)
   },
 
+  // Change the shop's password after verifying the current password
   async changePassword(shopId, { currentPassword, newPassword }) {
     const shop = await shopRepository.findById(shopId, { includePassword: true })
     if (!shop) throw new Error('Shop not found')
@@ -116,10 +120,12 @@ export const authService = {
     return { success: true }
   },
 
+  // Update the shop's payment settings
   async updatePaymentSettings(shopId, paymentData) {
     return await shopRepository.updateById(shopId, { paymentSettings: paymentData })
   },
 
+  // Submit a review for a shop
   async submitReview(shopId, reviewData) {
     const shop = await shopRepository.findById(shopId)
     if (!shop) throw new Error('Shop not found')
@@ -140,6 +146,30 @@ export const authService = {
       { new: true }
     )
     return updatedShop
-  }
-}
+  },
 
+  // Get all public reviews across shops, sorted by most recent
+  async getAllPublicReviews() {
+    const shops = await shopRepository.findAll(
+      { 'reviews.0': { $exists: true } },
+      { shopName: 1, ownerName: 1, cityState: 1, reviews: 1 }
+    )
+    const reviews = []
+    for (const shop of shops) {
+      for (const r of shop.reviews) {
+        reviews.push({
+          id: r._id,
+          username: r.username || shop.ownerName,
+          shopName: shop.shopName,
+          cityState: shop.cityState || '',
+          stars: r.stars || 5,
+          review: r.review || '',
+          createdAt: r.createdAt || new Date(),
+        })
+      }
+    }
+    reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    return reviews.slice(0, 50)
+  },
+
+}

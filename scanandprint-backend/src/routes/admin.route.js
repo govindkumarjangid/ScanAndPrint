@@ -12,18 +12,19 @@ import { authenticateAdmin } from '../middlewares/auth.middleware.js'
 
 const router = express.Router()
 
-// Public
-router.post('/login', login)
+// public routes
+router.route('/login').post(login)
 
-// Protected (Admin only)
+// protected routes
 router.use(authenticateAdmin)
 
-router.get('/stats', getDashboardStats)
-router.get('/shops', getShops)
-router.get('/agents', getAgents)
-router.get('/transactions', getTransactions)
 
-router.get('/settings', getSettings)
-router.put('/settings', updateSettings)
+router.route('/stats').get(getDashboardStats)
+router.route('/shops').get(getShops)
+router.route('/agents').get(getAgents)
+router.route('/transactions').get(getTransactions)
 
-export default router
+router.route('/settings').get(getSettings)
+router.route('/settings').put(updateSettings)
+
+export default router;

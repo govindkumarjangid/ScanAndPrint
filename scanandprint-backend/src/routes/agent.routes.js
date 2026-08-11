@@ -4,6 +4,6 @@ import { authenticateAgent } from '../middlewares/auth.middleware.js'
 
 const router = express.Router()
 
-router.post('/auth', authenticateAgent, handleAgentAuth)
+router.route('/auth').post(authenticateAgent, handleAgentAuth)
 
 export default router

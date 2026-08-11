@@ -49,7 +49,34 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 export default function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            padding: '6px 10px',
+            fontSize: '12px',
+            borderRadius: '14px',
+            fontWeight: '600',
+            maxWidth: '320px',
+          },
+          success: {
+            style: {
+              padding: '6px 10px',
+              fontSize: '12px',
+              borderRadius: '14px',
+              fontWeight: '600',
+            },
+          },
+          error: {
+            style: {
+              padding: '6px 10px',
+              fontSize: '12px',
+              borderRadius: '14px',
+              fontWeight: '600',
+            },
+          },
+        }}
+      />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Main Website Layout */}

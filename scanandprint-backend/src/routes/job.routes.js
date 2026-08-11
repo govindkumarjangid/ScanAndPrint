@@ -8,12 +8,12 @@ import { authenticateShop, authenticateAgent } from '../middlewares/auth.middlew
 
 const router = express.Router()
 
-// Agent Routes (Protected by API Key & Shop Code)
-router.get('/queued', authenticateAgent, getQueuedJobs)
+// Agent Routes
+router.route('/queued').get(authenticateAgent, getQueuedJobs)
 
-// Owner Dashboard Routes (Protected by JWT Cookie)
+// Owner Dashboard Routes
 router.use(authenticateShop)
-router.get('/', getShopJobs)
-router.get('/analytics', getShopAnalytics)
+router.route('/').get(getShopJobs)
+router.route('/analytics').get(getShopAnalytics)
 
 export default router

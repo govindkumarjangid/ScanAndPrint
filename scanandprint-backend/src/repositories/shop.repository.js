@@ -1,6 +1,7 @@
 import { Shop } from '../models/Shop.model.js'
 
 export const shopRepository = {
+  
   async create(shopData) {
     return await Shop.create(shopData)
   },
@@ -54,5 +55,9 @@ export const shopRepository = {
       { isOnline, lastHeartbeatAt: isOnline ? new Date() : undefined },
       { new: true }
     )
-  }
+  },
+
+  async findAll(filter = {}, projection = {}) {
+    return await Shop.find(filter, projection).lean()
+  },
 }

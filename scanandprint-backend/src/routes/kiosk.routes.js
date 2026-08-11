@@ -9,8 +9,8 @@ import { createJobSchema, verifyPaymentSchema } from '../validators/kiosk.valida
 
 const router = express.Router()
 
-router.get('/:shopCode', getPublicShopInfo)
-router.post('/create-job', validateRequest(createJobSchema), createPrintJob)
-router.post('/payment/verify', validateRequest(verifyPaymentSchema), verifyPayment)
+router.route('/:shopCode').get(getPublicShopInfo)
+router.route('/create-job').post(validateRequest(createJobSchema), createPrintJob)
+router.route('/payment/verify').post(validateRequest(verifyPaymentSchema), verifyPayment)
 
 export default router

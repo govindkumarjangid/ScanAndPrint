@@ -96,6 +96,12 @@ export const submitShopReview = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 200, 'Review submitted successfully', { shop: updatedShop })
 })
 
+// public: get all reviews from all shops (no auth required)
+export const getPublicReviews = asyncHandler(async (req, res, next) => {
+  const reviews = await authService.getAllPublicReviews()
+  return sendSuccess(res, 200, 'Reviews fetched successfully', { reviews })
+})
+
 // logout shop
 export const logoutShop = asyncHandler(async (req, res, next) => {
   res.clearCookie('accessToken', cookieOptions)

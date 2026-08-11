@@ -20,6 +20,21 @@ import {
 } from '../../assets/assets'
 import TestimonialCard from './TestimonialCard'
 import { Link } from 'react-router'
+import api from '../../lib/axios'
+
+// Convert a live DB review to the testimonialCard shape
+const mapLiveReview = (r, index) => ({
+  id: `live-${r.id || index}`,
+  name: r.username || 'Shop Owner',
+  shopName: r.shopName || 'Print Shop',
+  location: r.cityState || 'India',
+  rating: r.stars || 5,
+  feedback: r.review || '',
+  isLive: true,
+  // Avatar initials from name
+  avatar: (r.username || 'SO').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2),
+  avatarBg: 'from-rose-500 to-amber-500',
+})
 
 export default function Testimonials() {
   const scrollRef = useRef(null)
@@ -28,16 +43,32 @@ export default function Testimonials() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [selectedReview, setSelectedReview] = useState(null)
+  const [allReviews, setAllReviews] = useState(testimonialData)
+
+  // Fetch live reviews from backend and prepend to static ones
+  useEffect(() => {
+    const fetchLiveReviews = async () => {
+      try {
+        const res = await api.get('/auth/reviews')
+        if (res.data.success && Array.isArray(res.data.data?.reviews) && res.data.data.reviews.length > 0) {
+          const liveCards = res.data.data.reviews.map(mapLiveReview)
+          setAllReviews([...liveCards, ...testimonialData])
+        }
+      } catch (e) {
+        // silently fallback to static data
+      }
+    }
+    fetchLiveReviews()
+  }, [])
 
   const checkScrollability = () => {
     if (!scrollRef.current) return
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
     setCanScrollLeft(scrollLeft > 10)
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
-
     const cardWidth = window.innerWidth < 640 ? 300 : 360
     const currentIndex = Math.round(scrollLeft / cardWidth)
-    setActiveIndex(Math.min(testimonialData.length - 1, Math.max(0, currentIndex)))
+    setActiveIndex(Math.min(allReviews.length - 1, Math.max(0, currentIndex)))
   }
 
   useEffect(() => {
@@ -50,7 +81,7 @@ export default function Testimonials() {
       el.removeEventListener('scroll', checkScrollability)
       window.removeEventListener('resize', checkScrollability)
     }
-  }, [])
+  }, [allReviews])
 
   // Auto-scroll
   useEffect(() => {
@@ -68,6 +99,7 @@ export default function Testimonials() {
     return () => clearInterval(timer)
   }, [isPaused, selectedReview])
 
+
   const scroll = (direction) => {
     if (!scrollRef.current) return
     const scrollAmount = window.innerWidth < 640 ? 300 : 360
@@ -76,6 +108,7 @@ export default function Testimonials() {
       behavior: 'smooth',
     })
   }
+
 
   const scrollToIndex = (index) => {
     if (!scrollRef.current) return
@@ -167,7 +200,7 @@ export default function Testimonials() {
             msOverflowStyle: 'none',
           }}
         >
-          {testimonialData.map((item) => (
+          {allReviews.map((item) => (
             <TestimonialCard
               key={item.id}
               item={item}
@@ -179,7 +212,7 @@ export default function Testimonials() {
 
       {/* Dots */}
       <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-5">
-        {testimonialData.map((_, idx) => (
+        {allReviews.map((_, idx) => (
           <button
             key={idx}
             onClick={() => scrollToIndex(idx)}
@@ -275,10 +308,17 @@ export default function Testimonials() {
                     <span>{selectedReview.setupTime}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200 font-semibold">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                  <span>Verified Partner</span>
-                </div>
+                {selectedReview.isLive ? (
+                  <div className="flex items-center gap-1 bg-rose-50 text-brand px-2 py-0.5 rounded-md border border-rose-200 font-semibold">
+                    <CheckCircle2 className="w-3 h-3 text-brand" />
+                    <span>Real Shop Owner Review</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200 font-semibold">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    <span>Verified Partner</span>
+                  </div>
+                )}
               </div>
 
               {/* Owner Profile Footer */}

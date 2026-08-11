@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, AlertCircle, ownerNavItems } from '../assets/assets'
+import { Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
 import { useAuthStore } from '../store/useAuthStore'
 
 export default function OwnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const navigate = useNavigate()
   const { currentShop, isAuthenticated, fetchProfile, logout } = useAuthStore()
 
@@ -17,8 +19,13 @@ export default function OwnerLayout() {
   const shopName = currentShop?.shopName || 'Cyber Cafe'
   const isAgentConnected = currentShop?.isOnline ?? true
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await logout()
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   return (
@@ -59,10 +66,13 @@ export default function OwnerLayout() {
         <div className="p-4 border-t border-stone-100">
           <button
             onClick={handleLogout}
-            className="btn btn-outline w-auto !text-rose-600 !border-rose-200 hover:!bg-rose-50"
+            disabled={isLoggingOut}
+            className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center gap-2"
           >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            {isLoggingOut
+              ? <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+              : <LogOut className="w-4 h-4" />}
+            <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
           </button>
         </div>
       </aside>
@@ -172,10 +182,13 @@ export default function OwnerLayout() {
 
               <button
                 onClick={handleLogout}
-                className="btn btn-outline w-auto !text-rose-600 !border-rose-200 hover:!bg-rose-50"
+                disabled={isLoggingOut}
+                className="btn btn-outline w-auto text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center gap-2"
               >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
+                {isLoggingOut
+                  ? <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+                  : <LogOut className="w-4 h-4" />}
+                <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
               </button>
             </motion.aside>
           </>

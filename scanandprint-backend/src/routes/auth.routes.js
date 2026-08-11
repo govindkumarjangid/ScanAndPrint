@@ -9,6 +9,7 @@ import {
   changeShopPassword,
   updateShopPaymentSettings,
   submitShopReview,
+  getPublicReviews,
   logoutShop,
   loginAdmin,
 } from '../controllers/auth.controller.js'
@@ -23,28 +24,30 @@ import {
 
 const router = express.Router()
 
-router.post('/register', validateRequest(registerSchema), registerShop)
-router.post('/login', validateRequest(loginSchema), loginShop)
-router.post('/logout', authenticateShop, logoutShop)
+router.route('/register').post(validateRequest(registerSchema), registerShop)
+router.route('/login').post(validateRequest(loginSchema), loginShop)
+router.route('/logout').post(authenticateShop, logoutShop)
 
 // Admin Route
-router.post('/admin/login', loginAdmin)
+router.route('/admin/login').post(loginAdmin)
+
+// Public Route
+router.route('/reviews').get(getPublicReviews)
 
 // Protected Routes
 router.use(authenticateShop)
 
-router.get('/me', getShopProfile)
-router.put('/profile', updateShopProfile)
-router.put('/rates', validateRequest(updateRatesSchema), updateShopRates)
-router.put('/printers', validateRequest(updatePrintersSchema), updateShopPrinters)
-router.put('/change-password', changeShopPassword)
-router.put('/payment-settings', updateShopPaymentSettings)
-router.post('/review', submitShopReview)
+router.route('/me').get(getShopProfile)
+router.route('/profile').put(updateShopProfile)
+router.route('/rates').put(validateRequest(updateRatesSchema), updateShopRates)
+router.route('/printers').put(validateRequest(updatePrintersSchema), updateShopPrinters)
+router.route('/change-password').put(changeShopPassword)
+router.route('/payment-settings').put(updateShopPaymentSettings)
+router.route('/review').post(submitShopReview)
 
 // Auto-refresh token endpoint
-router.post('/refresh-token', (req, res) => {
+router.route('/refresh-token').post((req, res) => {
   res.status(200).json({ success: true, message: 'Token valid' })
 })
 
 export default router
-
