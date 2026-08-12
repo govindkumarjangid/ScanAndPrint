@@ -133,7 +133,8 @@ label {
   color: #a1a1aa;
 }
 
-input, select {
+input,
+select {
   height: 40px;
   padding: 0 12px;
   background-color: #09090b;
@@ -146,7 +147,8 @@ input, select {
   transition: all 0.2s;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   border-color: #F0245C;
   box-shadow: 0 0 0 2px rgba(240, 36, 92, 0.2);
 }
@@ -170,6 +172,10 @@ input:focus, select:focus {
   align-items: center;
   justify-content: center;
   gap: 6px;
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .btn-primary {
@@ -178,7 +184,6 @@ input:focus, select:focus {
   width: 100%;
   font-size: 14px;
   height: 46px;
-  box-shadow: 0 4px 14px rgba(240, 36, 92, 0.35);
 }
 
 .btn-primary:hover {

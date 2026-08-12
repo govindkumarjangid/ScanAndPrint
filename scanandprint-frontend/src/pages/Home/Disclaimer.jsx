@@ -4,9 +4,9 @@ import { ShieldCheck, Info, ArrowRight, Lock, RefreshCw, FileText } from '../../
 
 export default function Disclaimer() {
   return (
-    <div className="py-12 px-4 sm:px-6 max-w-[960px] mx-auto w-full font-sans">
+    <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-sm flex flex-col gap-8">
-        
+
         {/* Header */}
         <div className="border-b border-stone-200 pb-6 flex flex-col gap-3">
           <div className="flex items-center gap-2 text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 px-3.5 py-1 rounded-full w-max border border-rose-200">
@@ -22,7 +22,7 @@ export default function Disclaimer() {
 
         {/* Legal Notice Box */}
         <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex items-start gap-3.5 text-amber-900 text-xs sm:text-sm leading-relaxed">
-          <Info className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
+          <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
           <div className="flex flex-col gap-1">
             <span className="font-extrabold text-stone-900">Legal Notice:</span>
             <span>
@@ -33,7 +33,7 @@ export default function Disclaimer() {
 
         {/* Content sections */}
         <div className="space-y-8 text-stone-700 text-sm sm:text-base leading-relaxed">
-          
+
           <section className="flex flex-col gap-2">
             <h2 className="text-xl font-extrabold text-stone-900 flex items-center gap-2">
               <span className="text-brand font-mono">1.</span> Overview & Service Scope
@@ -68,7 +68,7 @@ export default function Disclaimer() {
             <p className="text-stone-600">
               For complete details regarding data protection, subscription refunds, and user obligations, please visit our dedicated policy pages:
             </p>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
               <Link
                 to="/privacy-policy"

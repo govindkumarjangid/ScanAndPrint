@@ -34,6 +34,14 @@ export const useAuthStore = create((set, get) => ({
   // Register multi-step state: 1 | 2 | 3
   registerStep: 1,
 
+  // Public Platform Settings (Pricing, Demo limits etc)
+  publicSettings: {
+    monthlyPrice: 399,
+    lifetimePrice: 599,
+    demoMode: false,
+  },
+  isFetchingSettings: false,
+
   // Login form state
   loginEmail: '',
   loginPassword: '',
@@ -58,7 +66,30 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // Actions
+
+  fetchPublicSettings: async () => {
+    try {
+      set({ isFetchingSettings: true })
+      const res = await api.get('/auth/settings')
+      if (res.data.success && res.data.data) {
+        set({
+          publicSettings: {
+            monthlyPrice: res.data.data.monthlyPrice || 399,
+            lifetimePrice: res.data.data.lifetimePrice || 699,
+            demoMode: res.data.data.demoMode || false,
+          }
+        })
+      }
+    } catch (error) {
+      console.warn('Failed to fetch public settings', error)
+    } finally {
+      set({ isFetchingSettings: false })
+    }
+  },
+
   setActiveTab: (tab) => set({ activeTab: tab }),
+
+  setTab: (tab) => set({ activeTab: tab, error: null }),
 
   setRegisterStep: (step) =>
     set((state) => ({
@@ -148,6 +179,32 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Registration failed'
       set({ error: errorMsg })
+      throw new Error(errorMsg)
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  demoRegister: async ({ mobile, password, shopName }) => {
+    try {
+      set({ isLoading: true, error: null })
+      const res = await api.post('/auth/demo-register', { mobile, password, shopName })
+      if (res.data.success) {
+        const { shop, token } = res.data.data
+        if (token) {
+          localStorage.setItem('shopToken', token)
+        }
+        if (shop) {
+          localStorage.setItem('shopData', JSON.stringify(shop))
+        }
+        set({ currentShop: shop, isAuthenticated: true })
+        toast.success('🎉 2-Hour Free Demo Access Activated!')
+        return shop
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Demo registration failed'
+      set({ error: errorMsg })
+      toast.error(errorMsg)
       throw new Error(errorMsg)
     } finally {
       set({ isLoading: false })

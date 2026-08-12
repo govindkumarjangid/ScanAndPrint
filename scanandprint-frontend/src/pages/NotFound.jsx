@@ -10,8 +10,8 @@ export default function NotFound() {
     <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
       {/* Background accents */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-brand/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-rose-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-125 h-125 bg-brand/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-125 h-125 bg-rose-500/5 rounded-full blur-[120px]" />
       </div>
 
       <motion.div
@@ -22,7 +22,7 @@ export default function NotFound() {
         <div className="w-24 h-24 bg-rose-950/50 rounded-3xl border border-rose-900/50 flex items-center justify-center shadow-[0_0_50px_rgb(225,29,72,0.15)] mb-2">
           <AlertTriangle className="w-12 h-12 text-brand" />
         </div>
-        
+
         <div>
           <h1 className="text-7xl font-black text-white font-heading tracking-tighter mb-2">404</h1>
           <h2 className="text-xl sm:text-2xl font-extrabold text-stone-200 mb-3">Page Not Found</h2>

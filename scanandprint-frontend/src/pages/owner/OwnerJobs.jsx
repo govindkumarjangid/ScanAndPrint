@@ -25,7 +25,7 @@ export default function OwnerJobs() {
       statusFilter === 'ALL' ||
       (statusFilter === 'Printed' && (j.status === 'PRINTED_SUCCESSFULLY' || j.status === 'Printed')) ||
       (statusFilter === 'Pending' && (j.status === 'PENDING_PAYMENT' || j.status === 'PAYMENT_VERIFIED' || j.status === 'DISPATCHED_TO_AGENT' || j.status === 'Pending'))
-    
+
     return matchesSearch && matchesStatus
   })
 
@@ -46,7 +46,7 @@ export default function OwnerJobs() {
         <button
           onClick={() => refreshJobs(statusFilter)}
           disabled={isLoading || isRefreshing}
-          className="btn btn-secondary !bg-stone-200 hover:!bg-stone-300 !text-stone-800 btn-sm flex items-center gap-2"
+          className="btn btn-secondary bg-stone-200! hover:bg-stone-300! text-stone-800! btn-sm flex items-center gap-2"
         >
           {isRefreshing || isLoading ? (
             <Loader2 className="w-4 h-4 animate-spin text-brand" />

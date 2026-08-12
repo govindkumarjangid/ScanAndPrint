@@ -65,7 +65,7 @@ export default function OwnerPrinters() {
             type="button"
             onClick={handleScanPrinters}
             disabled={isScanning}
-            className="btn btn-outline bg-white btn-sm !font-bold flex items-center gap-2"
+            className="btn btn-outline bg-white btn-sm font-bold! flex items-center gap-2"
           >
             {isScanning ? <Loader2 className="w-3.5 h-3.5 animate-spin text-brand" /> : <RefreshCw className="w-3.5 h-3.5" />}
             <span>{isScanning ? 'Scanning...' : 'Scan Printers'}</span>

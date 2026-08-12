@@ -43,10 +43,10 @@ export default function AdminOverview() {
           </div>
           <div>
             <h3 className="text-3xl font-extrabold text-white font-heading">
-              ₹{(stats.totalRevenue || 248500).toLocaleString('en-IN')}
+              {stats.totalRevenue ? stats.totalRevenue.toLocaleString('en-IN') : 0}
             </h3>
             <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5" /> +38% growth this month
+              <TrendingUp className="w-3.5 h-3.5" /> Live Data
             </span>
           </div>
         </motion.div>
@@ -66,10 +66,10 @@ export default function AdminOverview() {
           </div>
           <div>
             <h3 className="text-3xl font-extrabold text-white font-heading">
-              {stats.totalShops || 128}
+              {stats.totalShops ?? 0}
             </h3>
             <span className="text-xs font-medium text-stone-400 mt-1 block">
-              Across 18 States in India
+              Across India
             </span>
           </div>
         </motion.div>
@@ -89,10 +89,10 @@ export default function AdminOverview() {
           </div>
           <div>
             <h3 className="text-3xl font-extrabold text-white font-heading">
-              {(stats.totalPrints || 14290).toLocaleString('en-IN')}
+              {stats.totalPrints ? stats.totalPrints.toLocaleString('en-IN') : 0}
             </h3>
             <span className="text-xs font-medium text-stone-400 mt-1 block">
-              100% Zero-fail Auto Print
+              Auto Print Jobs
             </span>
           </div>
         </motion.div>
@@ -104,7 +104,7 @@ export default function AdminOverview() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-              Desktop Agents Live
+              Desktop Agents Configured
             </span>
             <div className="p-2.5 rounded-2xl bg-emerald-950/80 text-emerald-400 border border-emerald-900/60">
               <Monitor className="w-5 h-5" />
@@ -114,12 +114,9 @@ export default function AdminOverview() {
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
               <h3 className="text-2xl font-extrabold text-white">
-                {stats.totalAgents || 114} / {stats.totalShops || 128}
+                {stats.totalAgents ?? 0}
               </h3>
             </div>
-            <span className="text-xs font-medium text-emerald-400 mt-1 block">
-              89% Live Connection Rate
-            </span>
           </div>
         </motion.div>
 

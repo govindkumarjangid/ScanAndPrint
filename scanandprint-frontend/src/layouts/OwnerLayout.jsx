@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, AlertCircle, ownerNavItems } from '../assets/assets'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
 import { useAuthStore } from '../store/useAuthStore'
@@ -9,12 +9,46 @@ import { useAuthStore } from '../store/useAuthStore'
 export default function OwnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [demoTimeLeft, setDemoTimeLeft] = useState('')
+  const [isDemoExpired, setIsDemoExpired] = useState(false)
+
   const navigate = useNavigate()
   const { currentShop, isAuthenticated, fetchProfile, logout } = useAuthStore()
 
   useEffect(() => {
     fetchProfile()
   }, [fetchProfile])
+
+  // Live 2-Hour Demo Countdown Timer Calculation
+  useEffect(() => {
+    if (!currentShop?.isDemoAccount || !currentShop?.demoExpiresAt) {
+      setIsDemoExpired(false)
+      return
+    }
+
+    const updateTimer = () => {
+      const expiryTime = new Date(currentShop.demoExpiresAt).getTime()
+      const now = Date.now()
+      const diffMs = expiryTime - now
+
+      if (diffMs <= 0) {
+        setDemoTimeLeft('00:00:00')
+        setIsDemoExpired(true)
+      } else {
+        const hours = Math.floor(diffMs / (1000 * 60 * 60))
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000)
+
+        const formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        setDemoTimeLeft(formatted)
+        setIsDemoExpired(false)
+      }
+    }
+
+    updateTimer()
+    const interval = setInterval(updateTimer, 1000)
+    return () => clearInterval(interval)
+  }, [currentShop])
 
   const shopName = currentShop?.shopName || 'Cyber Cafe'
   const isAgentConnected = currentShop?.isOnline ?? true
@@ -29,7 +63,7 @@ export default function OwnerLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100/70 flex font-sans text-stone-800">
+    <div className="min-h-screen bg-stone-100/70 flex font-sans text-stone-800 relative">
 
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-stone-200/80 sticky top-0 h-screen justify-between z-30 shadow-xs">
@@ -48,9 +82,10 @@ export default function OwnerLayout() {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 ${isActive
-                      ? 'bg-brand text-white shadow-md shadow-rose-500/20'
-                      : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                    `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 ${
+                      isActive
+                        ? 'bg-brand text-white shadow-md shadow-rose-500/20'
+                        : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
                     }`
                   }
                 >
@@ -67,11 +102,13 @@ export default function OwnerLayout() {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center gap-2"
+            className="btn btn-outline w-full !text-rose-600 !border-rose-200 hover:!bg-rose-50 flex items-center justify-center gap-2 text-xs font-bold"
           >
-            {isLoggingOut
-              ? <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
-              : <LogOut className="w-4 h-4" />}
+            {isLoggingOut ? (
+              <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+            ) : (
+              <LogOut className="w-4 h-4" />
+            )}
             <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
           </button>
         </div>
@@ -80,7 +117,23 @@ export default function OwnerLayout() {
       {/* Content container */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* header */}
+        {/* 2-Hour Free Demo Active Banner */}
+        {currentShop?.isDemoAccount && !isDemoExpired && (
+          <div className="bg-linear-to-r from-amber-500 to-amber-600 text-stone-950 px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-xs z-30">
+            <div className="flex items-center gap-2 mx-auto sm:mx-0">
+              <Clock className="w-4 h-4 text-stone-950 animate-pulse" />
+              <span>
+                Free Demo Trial Active: <span className="font-mono bg-black/10 px-2 py-0.5 rounded-md text-stone-950 font-extrabold">{demoTimeLeft}</span> remaining
+              </span>
+            </div>
+            <Link to="/pricing" className="hidden sm:inline-flex items-center gap-1 bg-stone-950 text-white px-3 py-1 rounded-xl text-[11px] font-extrabold hover:bg-black transition-colors">
+              <span>Upgrade Plan</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        )}
+
+        {/* Header */}
         <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-stone-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -119,7 +172,7 @@ export default function OwnerLayout() {
         </main>
       </div>
 
-      {/* mobile sidebar */}
+      {/* Mobile sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
           <>
@@ -166,9 +219,10 @@ export default function OwnerLayout() {
                         to={item.path}
                         onClick={() => setSidebarOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
-                            ? 'bg-brand text-white shadow-md'
-                            : 'text-stone-700 hover:bg-stone-100'
+                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
+                            isActive
+                              ? 'bg-brand text-white shadow-md'
+                              : 'text-stone-700 hover:bg-stone-100'
                           }`
                         }
                       >
@@ -183,15 +237,59 @@ export default function OwnerLayout() {
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="btn btn-outline w-auto text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center gap-2"
+                className="btn btn-outline w-full !text-rose-600 !border-rose-200 hover:!bg-rose-50 flex items-center justify-center gap-2 text-xs font-bold"
               >
-                {isLoggingOut
-                  ? <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
-                  : <LogOut className="w-4 h-4" />}
+                {isLoggingOut ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+                ) : (
+                  <LogOut className="w-4 h-4" />
+                )}
                 <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
               </button>
             </motion.aside>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* STRICT DEMO EXPIRATION MODAL LOCK */}
+      <AnimatePresence>
+        {isDemoExpired && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/90 backdrop-blur-lg">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-stone-200 flex flex-col items-center gap-6"
+            >
+              <div className="w-16 h-16 rounded-full bg-rose-100 text-brand flex items-center justify-center shadow-lg shadow-rose-500/20">
+                <Lock className="w-8 h-8 stroke-[2.2]" />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <h3 className="text-2xl font-extrabold text-stone-900 font-heading">
+                  Demo Trial Expired ⌛
+                </h3>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Your 2-Hour free demo trial period has completed. Upgrade to a subscription plan to continue using the auto-print software, kiosk, and desktop agent.
+                </p>
+              </div>
+
+              <div className="w-full flex flex-col gap-3">
+                <Link to="/pricing" className="w-full">
+                  <button className="btn btn-primary w-full py-4 shadow-lg flex items-center justify-center gap-2 text-sm font-bold">
+                    <span>Upgrade to Monthly (₹399) / Lifetime (₹599)</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="btn btn-ghost w-full py-2.5 text-xs text-stone-500 hover:text-stone-800 font-bold"
+                >
+                  Sign Out of Demo Account
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

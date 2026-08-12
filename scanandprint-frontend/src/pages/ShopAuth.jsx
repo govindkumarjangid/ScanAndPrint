@@ -100,7 +100,7 @@ export default function ShopAuth() {
       toast.error("Passwords do not match!")
       return
     }
-    
+
     setIsSubmitting(true)
     const registerPromise = async () => {
       const { register } = useAuthStore.getState()
@@ -130,8 +130,8 @@ export default function ShopAuth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50/70 via-pink-50/40 to-stone-100 flex flex-col justify-between py-10 px-4 sm:px-6 font-sans">
-      
+    <div className="min-h-screen bg-linear-to-br from-rose-50/70 via-pink-50/40 to-stone-100 flex flex-col justify-between py-10 px-4 sm:px-6 font-sans">
+
       {/* Top Branding Section */}
       <div className="flex flex-col items-center text-center gap-2 max-w-md mx-auto w-full">
         <motion.div
@@ -153,7 +153,7 @@ export default function ShopAuth() {
       <motion.div
         layout
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="w-full max-w-[460px] mx-auto bg-white/85 backdrop-blur-xl border border-rose-200/70 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-rose-900/10 flex flex-col gap-6 my-6 overflow-hidden"
+        className="w-full max-w-115 mx-auto bg-white/85 backdrop-blur-xl border border-rose-200/70 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-rose-900/10 flex flex-col gap-6 my-6 overflow-hidden"
       >
         {/* Top Pill Tab Switcher with Sliding Active Highlight */}
         <div className="bg-stone-200/60 p-1.5 rounded-2xl grid grid-cols-2 gap-1 font-bold text-sm relative">

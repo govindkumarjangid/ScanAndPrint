@@ -33,6 +33,57 @@ export const authService = {
     return this._generateAuthTokens(newShop)
   },
 
+  // Register a 2-Hour free trial demo shop account
+  async demoRegister(data) {
+    const { mobile, password, shopName = 'Demo Cyber Cafe' } = data
+
+    if (!mobile || !password) {
+      throw new Error('Mobile number and password are required for demo access')
+    }
+
+    const cleanMobile = String(mobile).trim()
+    const demoEmail = `demo_${cleanMobile.slice(-6)}_${Date.now().toString().slice(-4)}@demo.scanandprint.in`
+
+    // Check if phone exists
+    const existing = await shopRepository.findByPhoneOrEmail(demoEmail, cleanMobile, { lean: true })
+    if (existing) {
+      if (existing.isDemoAccount) {
+        const isPasswordValid = await comparePassword(password, existing.passwordHash || '')
+        if (isPasswordValid) {
+          const updated = await shopRepository.updateById(existing._id, {
+            demoExpiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+          })
+          return this._generateAuthTokens(updated)
+        }
+      }
+      throw new Error('An account with this mobile number already exists. Please login instead.')
+    }
+
+    const passwordHash = await hashPassword(password)
+    const shopCode = generateShopCode(shopName || 'DEMO')
+    const secretApiKey = generateSecretApiKey()
+    const demoExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours from now
+
+    const newShop = await shopRepository.create({
+      shopName: shopName || 'Demo Cyber Cafe & Prints',
+      ownerName: 'Demo Owner',
+      address: 'Demo Address, Main Market',
+      email: demoEmail,
+      phone: cleanMobile,
+      passwordHash,
+      shopCode,
+      secretApiKey,
+      planType: 'FREE_TRIAL',
+      isDemoAccount: true,
+      demoExpiresAt,
+      bwRate: 5.0,
+      colorRate: 10.0,
+      isOnline: true,
+    })
+
+    return this._generateAuthTokens(newShop)
+  },
+
   // Login a shop account and generate auth tokens
   async login({ email, password }) {
     const shop = await shopRepository.findByEmail(email, { includePassword: true })
@@ -78,6 +129,10 @@ export const authService = {
 
     const shopResponse = shop.toObject ? shop.toObject() : { ...shop }
     delete shopResponse.passwordHash
+    // Never expose hashed razorpay secret to frontend
+    if (shopResponse.paymentSettings) {
+      delete shopResponse.paymentSettings.razorpayKeySecret
+    }
 
     return { accessToken, refreshToken, shop: shopResponse }
   },
@@ -120,9 +175,35 @@ export const authService = {
     return { success: true }
   },
 
-  // Update the shop's payment settings
+  // Update the shop's payment settings (bcrypt-encrypt razorpayKeySecret)
   async updatePaymentSettings(shopId, paymentData) {
-    return await shopRepository.updateById(shopId, { paymentSettings: paymentData })
+    const { razorpayKeySecret, razorpayKeyId, paymentMode, paymentGateway } = paymentData
+
+    const updateFields = {
+      'paymentSettings.paymentMode': paymentMode || 'online_counter',
+      'paymentSettings.paymentGateway': paymentGateway || 'razorpay',
+    }
+
+    // Save Key ID as-is (not secret, used in frontend checkout)
+    if (razorpayKeyId) {
+      updateFields['paymentSettings.razorpayKeyId'] = razorpayKeyId
+    }
+
+    // Bcrypt hash the Key Secret before saving
+    if (razorpayKeySecret) {
+      const hashedSecret = await hashPassword(razorpayKeySecret)
+      updateFields['paymentSettings.razorpayKeySecret'] = hashedSecret
+      updateFields['paymentSettings.isRazorpayConfigured'] = true
+    }
+
+    const updatedShop = await shopRepository.updateById(shopId, updateFields)
+
+    // Strip hashed secret from response (never expose to frontend)
+    if (updatedShop?.paymentSettings) {
+      updatedShop.paymentSettings.razorpayKeySecret = undefined
+    }
+
+    return updatedShop
   },
 
   // Submit a review for a shop

@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const adminSettingsSchema = new mongoose.Schema({
-  freeDemoMode: {
+  demoMode: {
     type: Boolean,
-    default: true
+    default: false
   },
   demoPagesLimit: {
     type: Number,
@@ -16,6 +16,14 @@ const adminSettingsSchema = new mongoose.Schema({
   convenienceFee: {
     type: Number,
     default: 2
+  },
+  monthlyPrice: {
+    type: Number,
+    default: 399
+  },
+  lifetimePrice: {
+    type: Number,
+    default: 599
   },
   supportEmail: {
     type: String,

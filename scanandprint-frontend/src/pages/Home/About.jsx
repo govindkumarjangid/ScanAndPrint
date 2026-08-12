@@ -12,10 +12,10 @@ import { Zap, ShieldCheck, Printer } from 'lucide-react'
 
 export default function About() {
   return (
-    <div className="flex flex-col gap-16 md:gap-24 py-10 px-4 sm:px-6 max-w-[1200px] mx-auto w-full">
+    <div className="flex flex-col gap-16 md:gap-24 py-10 px-4 sm:px-6 max-w-300 mx-auto w-full">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
-        <span className="text-[#F0245C] font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
+        <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
           Our Journey
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight">
@@ -43,7 +43,7 @@ export default function About() {
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1 */}
           <div className="bg-stone-800/50 backdrop-blur-md p-6 rounded-2xl border border-stone-700 flex flex-col gap-4 hover:bg-stone-800/80 transition-colors">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-stone-900 flex items-center justify-center font-bold shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-amber-400 to-amber-600 text-stone-900 flex items-center justify-center font-bold shadow-lg">
               <Zap className="w-6 h-6 fill-stone-900" />
             </div>
             <div>
@@ -53,10 +53,10 @@ export default function About() {
               </p>
             </div>
           </div>
-          
+
           {/* Card 2 */}
           <div className="bg-stone-800/50 backdrop-blur-md p-6 rounded-2xl border border-stone-700 flex flex-col gap-4 hover:bg-stone-800/80 transition-colors">
-            <div className="w-12 h-12 rounded-xl bg-[#F0245C] text-white flex items-center justify-center font-bold shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-brand text-white flex items-center justify-center font-bold shadow-lg">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
@@ -84,10 +84,10 @@ export default function About() {
 
       {/* Mission & Support Model */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        
+
         {/* Mission */}
-        <div className="bg-gradient-to-br from-rose-50 to-amber-50 rounded-3xl p-8 border border-rose-200/60 flex flex-col gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#F0245C] text-white flex items-center justify-center font-bold">
+        <div className="bg-linear-to-br from-rose-50 to-amber-50 rounded-3xl p-8 border border-rose-200/60 flex flex-col gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-brand text-white flex items-center justify-center font-bold">
             <Target className="w-6 h-6" />
           </div>
           <h3 className="text-2xl font-extrabold text-stone-900">Our Mission</h3>

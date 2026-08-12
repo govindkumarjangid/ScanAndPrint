@@ -91,11 +91,22 @@ const shopSchema = new mongoose.Schema(
       enum: ['FREE_TRIAL', 'MONTHLY_399', 'LIFETIME_599'],
       default: 'MONTHLY_399',
     },
+    isDemoAccount: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    demoExpiresAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
     paymentSettings: {
       paymentMode: { type: String, default: 'online_counter' },
       paymentGateway: { type: String, default: 'razorpay' },
       razorpayKeyId: { type: String, default: '' },
-      cashfreeAppId: { type: String, default: '' },
+      razorpayKeySecret: { type: String, default: '' }, // bcrypt hashed
+      isRazorpayConfigured: { type: Boolean, default: false },
     },
     reviews: [
       {

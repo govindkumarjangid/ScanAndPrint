@@ -15,7 +15,7 @@ export default function CtaBanner() {
         </p>
         <Link to="/register">
           <button
-            className="btn btn-lg !bg-amber-400 hover:!bg-amber-300 !text-stone-900 px-9 shadow-lg"
+            className="btn btn-lg bg-amber-400! hover:bg-amber-300! text-stone-900! px-9 shadow-lg"
           >
             <span>Register Shop Now</span>
             <ArrowRight className="w-5 h-5" />

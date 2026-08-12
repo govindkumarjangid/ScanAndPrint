@@ -22,7 +22,7 @@ export default function AdminShops() {
 
   return (
     <div className="flex flex-col gap-6">
-      
+
       {/* Title */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-heading">
@@ -104,7 +104,7 @@ export default function AdminShops() {
                       )}
                     </td>
                     <td className="py-4 px-4">
-                      <button className="btn btn-ghost btn-sm !text-brand hover:!bg-rose-950/40 w-max">
+                      <button className="btn btn-ghost btn-sm text-brand! hover:bg-rose-950/40! w-max">
                         Manage
                       </button>
                     </td>

@@ -269,7 +269,7 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="bg-white w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[94vh] max-h-[840px]"
+        className="bg-white w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[94vh] max-h-210"
       >
         {/* Header */}
         <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50 shrink-0">
@@ -297,7 +297,7 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
             </button>
             <button
               onClick={onClose}
-              className="btn btn-ghost btn-sm p-2 text-stone-500 hover:!bg-stone-200"
+              className="btn btn-ghost btn-sm p-2 text-stone-500 hover:bg-stone-200!"
             >
               <X className="w-5 h-5" />
             </button>
@@ -305,8 +305,8 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
         </div>
 
         {/* Center Canvas Stage with Sleek Dark Checkerboard Background */}
-        <div className="flex-1 min-h-0 bg-[#09090b] bg-[repeating-conic-gradient(#18181b_0%_25%,_#09090b_0%_50%)] bg-[length:24px_24px] p-4 sm:p-6 flex items-center justify-center overflow-hidden relative">
-          
+        <div className="flex-1 min-h-0 bg-[#09090b] bg-[repeating-conic-gradient(#18181b_0%_25%,#09090b_0%_50%)] bg-size-[24px_24px] p-4 sm:p-6 flex items-center justify-center overflow-hidden relative">
+
           {/* Floating Zoom Controls Badge on Canvas */}
           <div className="absolute top-4 right-4 z-30 bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-stone-700/80 text-white flex items-center gap-2.5 shadow-xl">
             <button
@@ -342,9 +342,8 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
                 src={imageSrc}
                 alt="Crop preview"
                 style={{
-                  transform: `rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${
-                    flipV ? -1 : 1
-                  })`,
+                  transform: `rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1
+                    })`,
                   filter: previewFilterCss || 'none',
                 }}
                 className="max-h-[52vh] max-w-full block object-contain shadow-2xl pointer-events-none"
@@ -361,50 +360,50 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
                 width: `${cropBox.w}%`,
                 height: `${cropBox.h}%`,
               }}
-              className="absolute border-2 border-[#F0245C] shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] cursor-move flex items-center justify-center z-20 group"
+              className="absolute border-2 border-brand shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] cursor-move flex items-center justify-center z-20 group"
             >
               {/* 4 CORNER RESIZE HANDLES */}
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'nw')}
                 onTouchStart={(e) => handleMouseDown(e, 'nw')}
-                className="absolute -top-2.5 -left-2.5 w-5 h-5 bg-[#F0245C] border-2 border-white rounded-full cursor-nwse-resize shadow-md hover:scale-125 transition-transform"
+                className="absolute -top-2.5 -left-2.5 w-5 h-5 bg-brand border-2 border-white rounded-full cursor-nwse-resize shadow-md hover:scale-125 transition-transform"
               />
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'ne')}
                 onTouchStart={(e) => handleMouseDown(e, 'ne')}
-                className="absolute -top-2.5 -right-2.5 w-5 h-5 bg-[#F0245C] border-2 border-white rounded-full cursor-nesw-resize shadow-md hover:scale-125 transition-transform"
+                className="absolute -top-2.5 -right-2.5 w-5 h-5 bg-brand border-2 border-white rounded-full cursor-nesw-resize shadow-md hover:scale-125 transition-transform"
               />
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'sw')}
                 onTouchStart={(e) => handleMouseDown(e, 'sw')}
-                className="absolute -bottom-2.5 -left-2.5 w-5 h-5 bg-[#F0245C] border-2 border-white rounded-full cursor-nesw-resize shadow-md hover:scale-125 transition-transform"
+                className="absolute -bottom-2.5 -left-2.5 w-5 h-5 bg-brand border-2 border-white rounded-full cursor-nesw-resize shadow-md hover:scale-125 transition-transform"
               />
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'se')}
                 onTouchStart={(e) => handleMouseDown(e, 'se')}
-                className="absolute -bottom-2.5 -right-2.5 w-5 h-5 bg-[#F0245C] border-2 border-white rounded-full cursor-nwse-resize shadow-md hover:scale-125 transition-transform"
+                className="absolute -bottom-2.5 -right-2.5 w-5 h-5 bg-brand border-2 border-white rounded-full cursor-nwse-resize shadow-md hover:scale-125 transition-transform"
               />
 
               {/* 4 EDGE RESIZE HANDLES */}
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'n')}
                 onTouchStart={(e) => handleMouseDown(e, 'n')}
-                className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-3 bg-[#F0245C] border-2 border-white rounded-full cursor-ns-resize shadow-md"
+                className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-3 bg-brand border-2 border-white rounded-full cursor-ns-resize shadow-md"
               />
               <div
                 onMouseDown={(e) => handleMouseDown(e, 's')}
                 onTouchStart={(e) => handleMouseDown(e, 's')}
-                className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-3 bg-[#F0245C] border-2 border-white rounded-full cursor-ns-resize shadow-md"
+                className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-3 bg-brand border-2 border-white rounded-full cursor-ns-resize shadow-md"
               />
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'w')}
                 onTouchStart={(e) => handleMouseDown(e, 'w')}
-                className="absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-8 bg-[#F0245C] border-2 border-white rounded-full cursor-ew-resize shadow-md"
+                className="absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-8 bg-brand border-2 border-white rounded-full cursor-ew-resize shadow-md"
               />
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'e')}
                 onTouchStart={(e) => handleMouseDown(e, 'e')}
-                className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-8 bg-[#F0245C] border-2 border-white rounded-full cursor-ew-resize shadow-md"
+                className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-8 bg-brand border-2 border-white rounded-full cursor-ew-resize shadow-md"
               />
 
               {/* Grid Guidelines Inside Crop Box */}
@@ -429,40 +428,37 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
 
         {/* Bottom Control Panel */}
         <div className="p-4 sm:p-5 bg-white border-t border-stone-200 flex flex-col gap-4 shrink-0 shadow-lg">
-          
+
           {/* Sub-Tab Navigation Header */}
           <div className="flex items-center justify-between border-b border-stone-200 pb-3">
             <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-2xl">
               <button
                 type="button"
                 onClick={() => setActiveTab('crop')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                  activeTab === 'crop'
-                    ? 'bg-white text-brand shadow-xs font-bold'
-                    : 'text-stone-600 hover:text-stone-900'
-                }`}
+                className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${activeTab === 'crop'
+                  ? 'bg-white text-brand shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-900'
+                  }`}
               >
                 Crop & Ratio
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('filters')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                  activeTab === 'filters'
-                    ? 'bg-white text-brand shadow-xs font-bold'
-                    : 'text-stone-600 hover:text-stone-900'
-                }`}
+                className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${activeTab === 'filters'
+                  ? 'bg-white text-brand shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-900'
+                  }`}
               >
                 Color Filters
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('adjust')}
-                className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                  activeTab === 'adjust'
-                    ? 'bg-white text-brand shadow-xs font-bold'
-                    : 'text-stone-600 hover:text-stone-900'
-                }`}
+                className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${activeTab === 'adjust'
+                  ? 'bg-white text-brand shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-900'
+                  }`}
               >
                 Adjustments
               </button>
@@ -483,11 +479,10 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
                 type="button"
                 onClick={() => setFlipH(!flipH)}
                 title="Flip Horizontal"
-                className={`p-2 rounded-xl text-xs font-bold cursor-pointer transition-colors border ${
-                  flipH
-                    ? 'bg-stone-900 text-white border-stone-900'
-                    : 'bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200'
-                }`}
+                className={`p-2 rounded-xl text-xs font-bold cursor-pointer transition-colors border ${flipH
+                  ? 'bg-stone-900 text-white border-stone-900'
+                  : 'bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200'
+                  }`}
               >
                 <FlipHorizontal className="w-4 h-4" />
               </button>
@@ -495,11 +490,10 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
                 type="button"
                 onClick={() => setFlipV(!flipV)}
                 title="Flip Vertical"
-                className={`p-2 rounded-xl text-xs font-bold cursor-pointer transition-colors border ${
-                  flipV
-                    ? 'bg-stone-900 text-white border-stone-900'
-                    : 'bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200'
-                }`}
+                className={`p-2 rounded-xl text-xs font-bold cursor-pointer transition-colors border ${flipV
+                  ? 'bg-stone-900 text-white border-stone-900'
+                  : 'bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200'
+                  }`}
               >
                 <FlipVertical className="w-4 h-4" />
               </button>
@@ -518,11 +512,10 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
                     key={preset.label}
                     type="button"
                     onClick={() => handleSelectAspect(preset.value)}
-                    className={`px-3.5 py-2 rounded-2xl text-xs font-extrabold shrink-0 transition-all cursor-pointer border ${
-                      aspect === preset.value
-                        ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20'
-                        : 'bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200'
-                    }`}
+                    className={`px-3.5 py-2 rounded-2xl text-xs font-extrabold shrink-0 transition-all cursor-pointer border ${aspect === preset.value
+                      ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20'
+                      : 'bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200'
+                      }`}
                   >
                     {preset.label}
                   </button>
@@ -548,11 +541,10 @@ export default function ImageEditorModal({ imageFile, isOpen, onClose, onSave })
                       key={preset.name}
                       type="button"
                       onClick={() => applyPreset(preset)}
-                      className={`px-4 py-2 rounded-2xl text-xs font-extrabold shrink-0 transition-all cursor-pointer border flex items-center gap-1.5 ${
-                        isActive
-                          ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20'
-                          : 'bg-stone-100 text-stone-800 border-stone-200 hover:bg-stone-200'
-                      }`}
+                      className={`px-4 py-2 rounded-2xl text-xs font-extrabold shrink-0 transition-all cursor-pointer border flex items-center gap-1.5 ${isActive
+                        ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20'
+                        : 'bg-stone-100 text-stone-800 border-stone-200 hover:bg-stone-200'
+                        }`}
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>{preset.name}</span>

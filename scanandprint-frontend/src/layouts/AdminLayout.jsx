@@ -28,7 +28,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-stone-900 text-stone-100 flex font-sans">
-      
+
       {/* DESKTOP ADMIN SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-72 bg-stone-950 border-r border-stone-800 sticky top-0 h-screen justify-between z-30">
         <div>
@@ -69,10 +69,9 @@ export default function AdminLayout() {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 ${
-                      isActive
-                        ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
-                        : 'text-stone-400 hover:bg-stone-900 hover:text-stone-100'
+                    `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 ${isActive
+                      ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
+                      : 'text-stone-400 hover:bg-stone-900 hover:text-stone-100'
                     }`
                   }
                 >
@@ -88,7 +87,7 @@ export default function AdminLayout() {
         <div className="p-4 border-t border-stone-800">
           <button
             onClick={handleLogout}
-            className="btn btn-outline w-auto !text-rose-400 !bg-rose-950/40 hover:!bg-rose-900/60 !border-rose-900/40"
+            className="btn btn-outline w-auto text-rose-400! bg-rose-950/40! hover:bg-rose-900/60! border-rose-900/40!"
           >
             <LogOut className="w-4 h-4" />
             <span>Admin Sign Out</span>
@@ -98,13 +97,13 @@ export default function AdminLayout() {
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 bg-stone-900">
-        
+
         {/* TOP HEADER */}
         <header className="sticky top-0 z-20 bg-stone-950/90 backdrop-blur-md border-b border-stone-800 px-4 sm:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="btn btn-ghost btn-sm lg:hidden p-2 text-stone-300 hover:!bg-stone-800"
+              className="btn btn-ghost btn-sm lg:hidden p-2 text-stone-300 hover:bg-stone-800!"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -152,7 +151,7 @@ export default function AdminLayout() {
                     </div>
                     <span className="font-extrabold text-base text-white">Admin Panel</span>
                   </div>
-                  <button onClick={() => setSidebarOpen(false)} className="btn btn-ghost btn-sm p-1.5 text-stone-400 hover:!bg-stone-800">
+                  <button onClick={() => setSidebarOpen(false)} className="btn btn-ghost btn-sm p-1.5 text-stone-400 hover:bg-stone-800!">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -166,10 +165,9 @@ export default function AdminLayout() {
                         to={item.path}
                         onClick={() => setSidebarOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
-                            isActive
-                              ? 'bg-brand text-white shadow-md'
-                              : 'text-stone-400 hover:bg-stone-900'
+                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
+                            ? 'bg-brand text-white shadow-md'
+                            : 'text-stone-400 hover:bg-stone-900'
                           }`
                         }
                       >
@@ -183,7 +181,7 @@ export default function AdminLayout() {
 
               <button
                 onClick={handleLogout}
-                className="btn btn-outline w-auto !text-rose-400 !bg-rose-950/40 !border-rose-900/40 hover:!bg-rose-900/60"
+                className="btn btn-outline w-auto text-rose-400! bg-rose-950/40! border-rose-900/40! hover:bg-rose-900/60!"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Admin Sign Out</span>

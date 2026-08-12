@@ -160,7 +160,7 @@ export default function OwnerOverview() {
             <p className="text-xs sm:text-sm text-rose-100 font-medium opacity-90">Download background software for 1-click silent hardware printing.</p>
           </div>
           <Link to="/owner/agent" className="w-max shrink-0">
-            <button className="btn btn-secondary !bg-white !text-brand hover:!bg-rose-50 w-auto sm:w-auto">
+            <button className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50! w-auto sm:w-auto">
               <Download className="size-4 sm:size-5" />
               <span>Download .exe</span>
             </button>

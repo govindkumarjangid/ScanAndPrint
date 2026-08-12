@@ -14,7 +14,7 @@ export default function MainLayout() {
   }, [location.pathname])
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#FFFBF7] relative">
+    <div className="min-h-screen flex flex-col justify-between bg-brand-bg relative">
       <Navbar />
       <AnimatePresence mode="wait">
         <motion.main
@@ -23,7 +23,7 @@ export default function MainLayout() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="flex-grow"
+          className="grow"
         >
           <Outlet />
         </motion.main>

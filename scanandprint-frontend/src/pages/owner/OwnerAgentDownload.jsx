@@ -15,7 +15,7 @@ export default function OwnerAgentDownload() {
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
-      
+
       {/* Title */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading">
@@ -27,7 +27,7 @@ export default function OwnerAgentDownload() {
       </div>
 
       {/* Download Box */}
-      <div className="bg-gradient-to-br from-brand to-rose-600 rounded-3xl p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div className="bg-linear-to-br from-brand to-rose-600 rounded-3xl p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex flex-col gap-2">
           <span className="text-xs font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full w-max">
             Windows 10 / 11 Compatible
@@ -44,7 +44,7 @@ export default function OwnerAgentDownload() {
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            className="btn btn-secondary !bg-white !text-brand hover:!bg-rose-50 px-8 py-4 shadow-lg text-base"
+            className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50 p!x-8 py-4 shadow-lg text-base"
           >
             <Download className="w-5 h-5" />
             <span>Download .exe (88MB)</span>
@@ -72,7 +72,7 @@ export default function OwnerAgentDownload() {
               <span className="text-xs font-bold text-brand uppercase tracking-wider">Secret API Key</span>
               <button
                 onClick={handleCopyKey}
-                className="btn btn-ghost btn-sm !text-brand !px-2 !py-1"
+                className="btn btn-ghost btn-sm text-brand! px-2! py-1!"
               >
                 <Copy className="w-3.5 h-3.5" />
                 <span>{copiedKey ? 'Copied!' : 'Copy'}</span>

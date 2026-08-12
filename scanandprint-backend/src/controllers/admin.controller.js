@@ -50,12 +50,17 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     totalRevenue += (job.files ? job.files.length * 5 : 5)
   })
 
+  // Get recent shops for the dashboard
+  const recentShops = await Shop.find().select('shopName email createdAt planType isActive').sort({ createdAt: -1 }).limit(5)
+
   return sendSuccess(res, 200, 'Stats fetched successfully', {
-    totalShops,
-    totalAgents,
-    totalPrints,
-    totalRevenue,
-    activeUsers: Math.floor(Math.random() * 50) + 10
+    stats: {
+      totalShops,
+      totalAgents,
+      totalPrints,
+      totalRevenue,
+    },
+    recentShops
   })
 })
 

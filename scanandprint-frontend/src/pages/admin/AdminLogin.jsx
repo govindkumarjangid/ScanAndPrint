@@ -49,7 +49,7 @@ export default function AdminLogin() {
         {/* Login Card */}
         <div className="bg-stone-900 border border-stone-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
           {/* Subtle top border gradient */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-stone-800 via-brand to-stone-800 opacity-50" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-stone-800 via-brand to-stone-800 opacity-50" />
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-4">
@@ -95,7 +95,7 @@ export default function AdminLogin() {
               disabled={isLoading}
               className="btn btn-primary w-full py-4 relative overflow-hidden group"
             >
-              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
+              <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin relative z-10" />

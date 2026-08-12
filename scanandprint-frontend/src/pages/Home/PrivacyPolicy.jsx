@@ -4,9 +4,9 @@ import { ShieldCheck, Lock, EyeOff, Server, FileText, CheckCircle2, ArrowRight }
 
 export default function PrivacyPolicy() {
   return (
-    <div className="py-12 px-4 sm:px-6 max-w-[960px] mx-auto w-full font-sans">
+    <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-sm flex flex-col gap-8">
-        
+
         {/* Header */}
         <div className="border-b border-stone-200 pb-6 flex flex-col gap-3">
           <div className="flex items-center gap-2 text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 px-3.5 py-1 rounded-full w-max border border-rose-200">
@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
         </div>
 
         {/* Highlight Banner */}
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 p-5 rounded-2xl flex items-start gap-4 text-emerald-900 text-sm">
+        <div className="bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 p-5 rounded-2xl flex items-start gap-4 text-emerald-900 text-sm">
           <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
             <EyeOff className="w-5 h-5" />
           </div>
@@ -35,7 +35,7 @@ export default function PrivacyPolicy() {
 
         {/* Content Sections */}
         <div className="space-y-8 text-stone-700 text-sm sm:text-base leading-relaxed">
-          
+
           {/* Section 1 */}
           <section className="flex flex-col gap-2">
             <h2 className="text-xl font-extrabold text-stone-900 flex items-center gap-2">

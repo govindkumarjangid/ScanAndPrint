@@ -4,9 +4,9 @@ import { IndianRupee, RefreshCw, CheckCircle2, AlertCircle, ArrowRight, Phone, M
 
 export default function RefundPolicy() {
   return (
-    <div className="py-12 px-4 sm:px-6 max-w-[960px] mx-auto w-full font-sans">
+    <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-sm flex flex-col gap-8">
-        
+
         {/* Header */}
         <div className="border-b border-stone-200 pb-6 flex flex-col gap-3">
           <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-wider bg-emerald-50 px-3.5 py-1 rounded-full w-max border border-emerald-200">
@@ -21,7 +21,7 @@ export default function RefundPolicy() {
         </div>
 
         {/* 7-Day Money Back Guarantee Banner */}
-        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-stone-900 p-6 rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-linear-to-r from-amber-500 to-amber-600 text-stone-900 p-6 rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-stone-900 text-amber-400 flex items-center justify-center font-extrabold text-xl shrink-0 shadow-md">
               7
@@ -41,7 +41,7 @@ export default function RefundPolicy() {
             rel="noreferrer"
             className="shrink-0"
           >
-            <button className="btn btn-primary !bg-stone-900 hover:!bg-stone-800 px-5 shadow-md">
+            <button className="btn btn-primary bg-stone-900! hover:bg-stone-800! px-5 shadow-md">
               Claim Refund
             </button>
           </a>
@@ -49,7 +49,7 @@ export default function RefundPolicy() {
 
         {/* Content Sections */}
         <div className="space-y-8 text-stone-700 text-sm sm:text-base leading-relaxed">
-          
+
           {/* Section 1 */}
           <section className="flex flex-col gap-2">
             <h2 className="text-xl font-extrabold text-stone-900 flex items-center gap-2">

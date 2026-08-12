@@ -1,6 +1,7 @@
 import express from 'express'
 import {
   registerShop,
+  demoRegisterShop,
   loginShop,
   getShopProfile,
   updateShopRates,
@@ -10,6 +11,7 @@ import {
   updateShopPaymentSettings,
   submitShopReview,
   getPublicReviews,
+  getPublicSettings,
   logoutShop,
   loginAdmin,
 } from '../controllers/auth.controller.js'
@@ -25,6 +27,7 @@ import {
 const router = express.Router()
 
 router.route('/register').post(validateRequest(registerSchema), registerShop)
+router.route('/demo-register').post(demoRegisterShop)
 router.route('/login').post(validateRequest(loginSchema), loginShop)
 router.route('/logout').post(authenticateShop, logoutShop)
 
@@ -33,6 +36,7 @@ router.route('/admin/login').post(loginAdmin)
 
 // Public Route
 router.route('/reviews').get(getPublicReviews)
+router.route('/settings').get(getPublicSettings)
 
 // Protected Routes
 router.use(authenticateShop)

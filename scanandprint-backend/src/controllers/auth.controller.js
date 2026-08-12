@@ -1,6 +1,7 @@
 import { authService } from '../services/auth.service.js'
 import { sendSuccess } from '../utils/apiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import AdminSettings from '../models/AdminSettings.model.js'
 
 const cookieOptions = {
   httpOnly: true,
@@ -21,6 +22,20 @@ export const registerShop = asyncHandler(async (req, res, next) => {
     shop,
   })
 })
+
+// 2-Hour free trial demo registration
+export const demoRegisterShop = asyncHandler(async (req, res, next) => {
+  const { accessToken, refreshToken, shop } = await authService.demoRegister(req.body)
+
+  res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 }) // 2 hours
+  res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
+
+  return sendSuccess(res, 201, '2-Hour Free Demo access activated successfully!', {
+    token: accessToken,
+    shop,
+  })
+})
+
 
 // login a shop
 export const loginShop = asyncHandler(async (req, res, next) => {
@@ -100,6 +115,15 @@ export const submitShopReview = asyncHandler(async (req, res, next) => {
 export const getPublicReviews = asyncHandler(async (req, res, next) => {
   const reviews = await authService.getAllPublicReviews()
   return sendSuccess(res, 200, 'Reviews fetched successfully', { reviews })
+})
+
+// public: get system settings (pricing, demo mode)
+export const getPublicSettings = asyncHandler(async (req, res, next) => {
+  let settings = await AdminSettings.findOne()
+  if (!settings) {
+    settings = await AdminSettings.create({})
+  }
+  return sendSuccess(res, 200, 'Settings fetched successfully', settings)
 })
 
 // logout shop
