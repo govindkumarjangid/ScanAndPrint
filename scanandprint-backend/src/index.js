@@ -1,11 +1,16 @@
 import dns from 'node:dns'
 import express from 'express'
 import http from 'http'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { Server } from 'socket.io'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 import { envConfig } from './configs/env.config.js'
 import { connectDB } from './configs/db.configs.js'
@@ -79,6 +84,9 @@ if (envConfig.nodeEnv === 'development')
   app.use(morgan('dev'))
 
 
+
+app.use('/agent-ui', express.static(path.resolve(__dirname, '../../scanandprint-agent/src/ui')))
+app.get('/agent', (req, res) => res.redirect('/agent-ui'))
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({

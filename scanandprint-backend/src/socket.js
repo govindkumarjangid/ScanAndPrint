@@ -21,10 +21,23 @@ export const setupSocket = (io) => {
           success: true,
           shopCode: shop.shopCode,
           shopName: shop.shopName,
+          connectedPrinters: shop.connectedPrinters || [],
         })
       } catch (err) {
         console.warn(`⚠️ [Agent Handshake Refused]: ${err.message}`)
         socket.emit('AGENT_AUTH_ERROR', { message: err.message })
+      }
+    })
+
+    // Agent reports updated printers
+    socket.on('AGENT_PRINTERS_UPDATED', async (data) => {
+      try {
+        if (data?.shopId && Array.isArray(data?.printers)) {
+          await agentService.updateConnectedPrinters(data.shopId, data.printers)
+          console.log(`🖨️ [Printers Synced]: Shop ${data.shopId} has ${data.printers.length} connected printers`)
+        }
+      } catch (err) {
+        console.error('❌ [AGENT_PRINTERS_UPDATED Error]:', err.message)
       }
     })
 

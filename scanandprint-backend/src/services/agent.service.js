@@ -8,12 +8,15 @@ export const agentService = {
   async registerAgent(data, socketId) {
     const { shopId, secretApiKey, agentVersion, ipAddress } = data || {}
 
-    if (!shopId || !secretApiKey)
-      throw new Error('Invalid credentials')
+    const cleanShopCode = String(shopId || '').trim().toUpperCase()
+    const cleanSecret = String(secretApiKey || '').trim()
 
-    const shop = await shopRepository.findByCodeAndSecret(shopId, secretApiKey)
+    if (!cleanShopCode || !cleanSecret)
+      throw new Error('Shop ID and Secret Key are required')
+
+    const shop = await shopRepository.findByCodeAndSecret(cleanShopCode, cleanSecret)
     if (!shop)
-      throw new Error('Invalid Shop Code or Secret Key')
+      throw new Error(`Invalid Shop Code (${cleanShopCode}) or Secret Key`)
 
     await agentRepository.createSession({
       shopId: shop._id,
@@ -23,9 +26,30 @@ export const agentService = {
       isConnected: true,
     })
 
-    await shopRepository.setOnlineStatus(shop._id, true)
+    const updateFields = { isOnline: true, lastHeartbeatAt: new Date() }
+    if (Array.isArray(data?.printers) && data.printers.length > 0) {
+      updateFields.connectedPrinters = data.printers
+      if (!shop.defaultBwPrinter) {
+        const defaultP = data.printers.find((p) => p.isDefault) || data.printers[0]
+        updateFields.defaultBwPrinter = defaultP.name
+      }
+      if (!shop.defaultColorPrinter) {
+        const defaultP = data.printers.find((p) => p.isDefault) || data.printers[0]
+        updateFields.defaultColorPrinter = defaultP.name
+      }
+    }
 
-    return shop
+    const updatedShop = await shopRepository.updateById(shop._id, updateFields)
+    return updatedShop || shop
+  },
+
+  // update connected printers from agent event
+  async updateConnectedPrinters(shopId, printers) {
+    if (!shopId || !Array.isArray(printers)) return null
+    return await shopRepository.updateById(shopId, {
+      connectedPrinters: printers,
+      lastHeartbeatAt: new Date(),
+    })
   },
 
   // handle job success and update the job status

@@ -22,7 +22,7 @@ import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
 
 export default function OwnerPaymentSetup() {
-  const { currentShop, updatePaymentSettings, isSavingPayment } = useAuthStore()
+  const { currentShop, fetchProfile, updatePaymentSettings, isSavingPayment } = useAuthStore()
 
   const [paymentMode, setPaymentMode] = useState(currentShop?.paymentSettings?.paymentMode || 'online_counter')
   const [razorpayKeyId, setRazorpayKeyId] = useState(currentShop?.paymentSettings?.razorpayKeyId || '')
@@ -32,6 +32,10 @@ export default function OwnerPaymentSetup() {
 
   // Check if keys are already saved (masked)
   const hasExistingKeys = currentShop?.paymentSettings?.isRazorpayConfigured ?? false
+
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
 
   useEffect(() => {
     if (currentShop?.paymentSettings) {

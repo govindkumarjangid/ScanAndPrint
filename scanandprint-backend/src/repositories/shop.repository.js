@@ -45,7 +45,7 @@ export const shopRepository = {
     return await query
   },
 
-  async updateById(shopId, updateData, options = { new: true }) {
+  async updateById(shopId, updateData, options = { returnDocument: 'after' }) {
     return await Shop.findByIdAndUpdate(shopId, updateData, options).lean()
   },
 
@@ -53,7 +53,7 @@ export const shopRepository = {
     return await Shop.findByIdAndUpdate(
       shopId,
       { isOnline, lastHeartbeatAt: isOnline ? new Date() : undefined },
-      { new: true }
+      { returnDocument: 'after' }
     )
   },
 

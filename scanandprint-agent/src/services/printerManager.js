@@ -8,7 +8,7 @@ class PrinterManager {
    */
   async getAvailablePrinters() {
     try {
-      const printers = await ptp.getPrinters()
+      const printers = await ptp.getPrinters();
       return printers.map((p) => ({
         name: p.name,
         deviceId: p.deviceId || p.name,
@@ -39,7 +39,7 @@ class PrinterManager {
   async testPrint(printerName) {
     try {
       console.log(`Sending test print to printer: ${printerName || 'System Default'}`)
-      
+
       const tempDir = path.join(process.env.TEMP || '/tmp', 'qr-printpe-test')
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true })

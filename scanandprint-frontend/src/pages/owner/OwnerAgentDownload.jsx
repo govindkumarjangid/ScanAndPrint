@@ -1,16 +1,39 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Key, CheckCircle2, Copy, Monitor, ShieldCheck } from 'lucide-react'
+import { Download, Key, CheckCircle2, Copy, Monitor, ShieldCheck, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useAuthStore } from '../../store/useAuthStore'
+import toast from 'react-hot-toast'
 
 export default function OwnerAgentDownload() {
-  const shopCode = 'SHOP_98234'
-  const secretKey = 'sec_live_a89f31d09x7b219e40f1'
+  const { currentShop, fetchProfile, isLoading } = useAuthStore()
+
+  useEffect(() => {
+    if (!currentShop?.secretApiKey) {
+      fetchProfile()
+    }
+  }, [currentShop, fetchProfile])
+
+  const shopCode = currentShop?.shopCode || ''
+  const secretKey = currentShop?.secretApiKey || ''
+  
   const [copiedKey, setCopiedKey] = useState(false)
+  const [copiedCode, setCopiedCode] = useState(false)
+  const [showSecret, setShowSecret] = useState(false)
 
   const handleCopyKey = () => {
+    if (!secretKey) return
     navigator.clipboard.writeText(secretKey)
     setCopiedKey(true)
+    toast.success('Secret API Key copied to clipboard!')
     setTimeout(() => setCopiedKey(false), 2000)
+  }
+
+  const handleCopyCode = () => {
+    if (!shopCode) return
+    navigator.clipboard.writeText(shopCode)
+    setCopiedCode(true)
+    toast.success('Shop ID Code copied to clipboard!')
+    setTimeout(() => setCopiedCode(false), 2000)
   }
 
   return (
@@ -61,24 +84,67 @@ export default function OwnerAgentDownload() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {/* Shop Code */}
-          <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex flex-col gap-1.5">
-            <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Shop ID Code</span>
-            <span className="text-lg font-extrabold text-stone-900 font-mono">{shopCode}</span>
+          <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Shop ID Code</span>
+              {shopCode && (
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="btn btn-ghost btn-sm text-stone-700 hover:text-stone-900! px-2! py-1! text-xs font-bold"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>{copiedCode ? 'Copied!' : 'Copy'}</span>
+                </button>
+              )}
+            </div>
+            {shopCode ? (
+              <span className="text-lg font-extrabold text-stone-900 font-mono tracking-wide select-all">{shopCode}</span>
+            ) : (
+              <div className="flex items-center gap-2 text-stone-400 py-1">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-xs font-medium">Fetching Shop ID...</span>
+              </div>
+            )}
           </div>
 
           {/* Secret API Key */}
-          <div className="bg-rose-50/60 p-4 rounded-2xl border border-rose-200/80 flex flex-col gap-1.5">
+          <div className="bg-rose-50/60 p-5 rounded-2xl border border-rose-200/80 flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-brand uppercase tracking-wider">Secret API Key</span>
-              <button
-                onClick={handleCopyKey}
-                className="btn btn-ghost btn-sm text-brand! px-2! py-1!"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span>{copiedKey ? 'Copied!' : 'Copy'}</span>
-              </button>
+              <div className="flex items-center gap-1">
+                {secretKey && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowSecret(!showSecret)}
+                      className="p-1 rounded-lg hover:bg-rose-100/80 text-rose-700 transition-colors"
+                      title={showSecret ? 'Hide secret' : 'Show secret'}
+                    >
+                      {showSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyKey}
+                      className="btn btn-ghost btn-sm text-brand! px-2! py-1! text-xs font-bold"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{copiedKey ? 'Copied!' : 'Copy'}</span>
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-            <span className="text-xs font-extrabold text-stone-900 font-mono truncate">{secretKey}</span>
+            {secretKey ? (
+              <span className="text-sm font-extrabold text-stone-900 font-mono truncate select-all">
+                {showSecret ? secretKey : '••••••••••••••••••••••••••••••••'}
+              </span>
+            ) : (
+              <div className="flex items-center gap-2 text-stone-400 py-1">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-xs font-medium">Fetching Secret Key...</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -89,7 +155,7 @@ export default function OwnerAgentDownload() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-stone-700">
           <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
             <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0">1</span>
-            <span>Download & Run <strong>QR_Se_Print_Agent_Setup_1.0.0.exe</strong></span>
+            <span>Download & Run <strong>Scan_and_Print_Agent_Setup_1.0.0.exe</strong></span>
           </div>
           <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
             <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0">2</span>

@@ -40,30 +40,58 @@ export default function AdminAgents() {
             <tbody className="divide-y divide-stone-800/60">
               {agentsLoading ? (
                 <tr>
-                  <td colSpan="6" className="py-8">
+                  <td colSpan="6" className="py-12">
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                      <span className="font-medium">Loading data...</span>
+                      <Loader2 className="w-7 h-7 animate-spin text-rose-500" />
+                      <span className="font-semibold text-xs text-stone-400">Loading active print agents from database...</span>
                     </div>
                   </td>
                 </tr>
+              ) : agentsData.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-12 text-center text-stone-500 text-sm font-medium">
+                    No Desktop Print Agents connected yet. Launch the print agent software to connect.
+                  </td>
+                </tr>
               ) : (
-                agentsData.map((a) => (
-                  <tr key={a.socketId} className="hover:bg-stone-900/60 transition-colors">
-                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">{a.socketId}</td>
-                    <td className="py-4 px-4 font-semibold text-stone-200">{a.shop}</td>
-                    <td className="py-4 px-4 text-xs font-mono text-stone-400">{a.ip}</td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-300">
-                      v{a.version} ({a.platform})
-                    </td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{a.printers}</td>
-                    <td className="py-4 px-4">
-                      <span className="inline-flex items-center gap-1.5 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> {a.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                agentsData.map((a, idx) => {
+                  const socketId = a.socketId || `SOCKET_${idx + 1}`
+                  const shopTitle = a.shopId?.shopName || a.shop || 'Unassigned Shop'
+                  const shopCode = a.shopId?.shopCode ? ` (${a.shopId.shopCode})` : ''
+                  const ip = a.ipAddress || a.ip || '127.0.0.1 (Localhost)'
+                  const ver = a.agentVersion || a.version || '1.0.0'
+                  const os = a.osPlatform || a.platform || 'win32'
+                  const isOnline = a.isConnected ?? true
+                  const printerCount = a.shopId?.connectedPrinters?.length
+                  const printersLabel = printerCount ? `${printerCount} Spooler Devices` : (a.printers || 'System Default')
+
+                  return (
+                    <tr key={a._id || a.socketId || idx} className="hover:bg-stone-900/60 transition-colors">
+                      <td className="py-4 px-4 font-bold text-white font-mono text-xs truncate max-w-[140px] select-all">{socketId}</td>
+                      <td className="py-4 px-4 font-semibold text-stone-200">
+                        {shopTitle}
+                        <span className="text-xs font-mono text-stone-400">{shopCode}</span>
+                      </td>
+                      <td className="py-4 px-4 text-xs font-mono text-stone-400">{ip}</td>
+                      <td className="py-4 px-4 text-xs font-medium text-stone-300">
+                        v{ver} ({os})
+                      </td>
+                      <td className="py-4 px-4 text-xs font-medium text-stone-400">{printersLabel}</td>
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full border ${
+                            isOnline
+                              ? 'bg-emerald-950 text-emerald-300 border-emerald-900'
+                              : 'bg-stone-900 text-stone-400 border-stone-800'
+                          }`}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-stone-500'}`} />
+                          {isOnline ? 'Online' : 'Offline'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

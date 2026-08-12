@@ -10,6 +10,10 @@ export const getPublicShopInfo = asyncHandler(async (req, res, next) => {
     return sendError(res, 400, 'Shop Code is required')
 
   const shop = await kioskService.getShopInfo(shopCode)
+  if (!shop) {
+    return sendError(res, 404, 'Shop not found')
+  }
+  
   return sendSuccess(res, 200, 'Shop details loaded successfully', { shop })
 })
 

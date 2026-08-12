@@ -147,13 +147,11 @@ export const authService = {
     return await shopRepository.updateById(shopId, printerData)
   },
 
-  // Update the shop's profile information
+  // Update the shop's profile information (phone & email are locked and cannot be changed)
   async updateProfile(shopId, profileData) {
     const updatePayload = {}
     if (profileData.shopName) updatePayload.shopName = profileData.shopName
     if (profileData.ownerName) updatePayload.ownerName = profileData.ownerName
-    if (profileData.phone || profileData.mobile) updatePayload.phone = profileData.phone || profileData.mobile
-    if (profileData.email) updatePayload.email = profileData.email.toLowerCase()
     if (profileData.address || profileData.shopAddress) updatePayload.address = profileData.address || profileData.shopAddress
     if (profileData.cityState) updatePayload.cityState = profileData.cityState
     if (profileData.pincode) updatePayload.pincode = profileData.pincode

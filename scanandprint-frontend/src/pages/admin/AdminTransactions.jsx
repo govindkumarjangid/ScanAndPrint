@@ -40,28 +40,57 @@ export default function AdminTransactions() {
             <tbody className="divide-y divide-stone-800/60">
               {transactionsLoading ? (
                 <tr>
-                  <td colSpan="6" className="py-8">
+                  <td colSpan="6" className="py-12">
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                      <span className="font-medium">Loading data...</span>
+                      <Loader2 className="w-7 h-7 animate-spin text-rose-500" />
+                      <span className="font-semibold text-xs text-stone-400">Loading transactions from database...</span>
                     </div>
                   </td>
                 </tr>
+              ) : transactionsData.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-12 text-center text-stone-500 text-sm font-medium">
+                    No transactions recorded in database yet.
+                  </td>
+                </tr>
               ) : (
-                transactionsData.map((t) => (
-                  <tr key={t.id} className="hover:bg-stone-900/60 transition-colors">
-                    <td className="py-4 px-4 font-bold text-white font-mono text-xs">{t.id}</td>
-                    <td className="py-4 px-4 font-semibold text-stone-200">{t.shop}</td>
-                    <td className="py-4 px-4 text-xs font-bold text-rose-400">{t.gateway}</td>
-                    <td className="py-4 px-4 font-extrabold text-white">₹{t.amount}</td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{t.time}</td>
-                    <td className="py-4 px-4">
-                      <span className="inline-flex items-center gap-1 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {t.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                transactionsData.map((t, idx) => {
+                  const txId = t.paymentTxnId || t.jobId || t.id || t._id || `TXN_${idx + 1}`
+                  const shopTitle = t.shopId?.shopName || t.shop || t.shopCode || 'General Kiosk'
+                  const gateway = t.paymentGateway || t.gateway || 'Razorpay UPI'
+                  const amt = t.totalAmount ?? t.amount ?? 0
+                  const timeFormatted = t.createdAt
+                    ? new Date(t.createdAt).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : t.time || 'Recent'
+                  const isSuccess = t.status === 'PRINTED_SUCCESSFULLY' || t.status === 'COMPLETED' || t.status === 'PAID' || t.status === 'Success'
+
+                  return (
+                    <tr key={t._id || t.id || idx} className="hover:bg-stone-900/60 transition-colors">
+                      <td className="py-4 px-4 font-bold text-white font-mono text-xs select-all">{txId}</td>
+                      <td className="py-4 px-4 font-semibold text-stone-200">{shopTitle}</td>
+                      <td className="py-4 px-4 text-xs font-bold text-rose-400 uppercase tracking-wider">{gateway}</td>
+                      <td className="py-4 px-4 font-extrabold text-white">₹{amt}</td>
+                      <td className="py-4 px-4 text-xs font-medium text-stone-400">{timeFormatted}</td>
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full border ${
+                            isSuccess
+                              ? 'bg-emerald-950 text-emerald-300 border-emerald-900'
+                              : 'bg-amber-950 text-amber-300 border-amber-900'
+                          }`}
+                        >
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          {t.status || 'SUCCESS'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

@@ -60,7 +60,7 @@ export const jobRepository = {
     return await PrintJob.findOneAndUpdate(
       { jobId },
       { status, ...extraData },
-      { new: true }
+      { returnDocument: 'after' }
     )
   },
 

@@ -43,19 +43,23 @@ export const useKioskStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to load shop info'
       set({ error: msg })
-      // Fallback shop info for smooth demo testing
-      const fallbackShop = {
-        shopCode: shopCode || 'DEMO_SHOP',
-        shopName: 'Sharma Cyber Cafe & Prints',
-        ownerName: 'Rahul Kumar',
-        address: 'Main Market, Opposite Railway Station, New Delhi',
-        bwRate: 5,
-        colorRate: 10,
-        isOnline: true,
-        printerBrand: 'Epson L3210 Series',
+      if (shopCode === 'DEMO_SHOP') {
+        const fallbackShop = {
+          shopCode: 'DEMO_SHOP',
+          shopName: 'Sharma Cyber Cafe & Prints',
+          ownerName: 'Rahul Kumar',
+          address: 'Main Market, Opposite Railway Station, New Delhi',
+          bwRate: 5,
+          colorRate: 10,
+          isOnline: true,
+          printerBrand: 'Epson L3210 Series',
+        }
+        set({ shopInfo: fallbackShop })
+        return fallbackShop
+      } else {
+        set({ shopInfo: null })
+        return null
       }
-      set({ shopInfo: fallbackShop })
-      return fallbackShop
     } finally {
       set({ isLoadingShop: false })
     }

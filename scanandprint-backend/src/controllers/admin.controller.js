@@ -40,18 +40,27 @@ export const login = asyncHandler(async (req, res) => {
 // get dashboard stats
 export const getDashboardStats = asyncHandler(async (req, res) => {
   const totalShops = await Shop.countDocuments()
-  const totalAgents = await PrintAgent.countDocuments()
+  const totalAgents = await PrintAgent.countDocuments({ isConnected: true })
 
-  const jobs = await PrintJob.find({ status: 'completed' })
-  const totalPrints = jobs.length
+  // Find all completed or paid print jobs
+  const completedJobs = await PrintJob.find({
+    status: { $in: ['PRINTED_SUCCESSFULLY', 'COMPLETED', 'completed', 'PAID', 'PRINTING'] },
+  }).lean()
+
+  const allJobs = await PrintJob.find().lean()
+  const totalPrints = allJobs.reduce((acc, job) => acc + (job.totalPages * (job.copies || 1) || 1), 0)
 
   let totalRevenue = 0
-  jobs.forEach(job => {
-    totalRevenue += (job.files ? job.files.length * 5 : 5)
+  completedJobs.forEach((job) => {
+    totalRevenue += Number(job.totalAmount) || 0
   })
 
-  // Get recent shops for the dashboard
-  const recentShops = await Shop.find().select('shopName email createdAt planType isActive').sort({ createdAt: -1 }).limit(5)
+  // If no transactions yet, show platform base or 0
+  const recentShops = await Shop.find()
+    .select('shopName ownerName email shopCode createdAt planType isOnline cityState address')
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean()
 
   return sendSuccess(res, 200, 'Stats fetched successfully', {
     stats: {
@@ -60,25 +69,35 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
       totalPrints,
       totalRevenue,
     },
-    recentShops
+    recentShops,
   })
 })
 
 // get all shops
 export const getShops = asyncHandler(async (req, res) => {
-  const shops = await Shop.find().select('-password').sort({ createdAt: -1 })
+  const shops = await Shop.find()
+    .select('-passwordHash')
+    .sort({ createdAt: -1 })
+    .lean()
   return sendSuccess(res, 200, 'Shops fetched successfully', shops)
 })
 
-// get all agents
+// get all agents (fixed populate to shopId)
 export const getAgents = asyncHandler(async (req, res) => {
-  const agents = await PrintAgent.find().populate('shop', 'shopName email').sort({ createdAt: -1 })
+  const agents = await PrintAgent.find()
+    .populate('shopId', 'shopName email shopCode isOnline connectedPrinters')
+    .sort({ isConnected: -1, createdAt: -1 })
+    .lean()
   return sendSuccess(res, 200, 'Agents fetched successfully', agents)
 })
 
-// get all transactions
+// get all transactions (fixed populate to shopId)
 export const getTransactions = asyncHandler(async (req, res) => {
-  const transactions = await PrintJob.find().populate('shop', 'shopName').sort({ createdAt: -1 }).limit(100)
+  const transactions = await PrintJob.find()
+    .populate('shopId', 'shopName email shopCode')
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .lean()
   return sendSuccess(res, 200, 'Transactions fetched successfully', transactions)
 })
 

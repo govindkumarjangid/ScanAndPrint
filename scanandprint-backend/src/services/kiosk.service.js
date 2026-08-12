@@ -9,8 +9,7 @@ export const kioskService = {
       select: 'shopCode shopName ownerName address bwRate colorRate printerBrand isOnline',
       lean: true,
     })
-    if (!shop) throw new Error('Shop not found')
-    return shop
+    return shop || null
   },
 
   // Create a new print job for a specific shop

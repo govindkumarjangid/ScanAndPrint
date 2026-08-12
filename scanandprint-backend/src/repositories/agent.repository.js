@@ -23,7 +23,7 @@ export const agentRepository = {
     return await PrintAgent.findOneAndUpdate(
       { socketId },
       { isConnected: false, disconnectedAt: new Date() },
-      { new: true }
+      { returnDocument: 'after' }
     )
   }
 }

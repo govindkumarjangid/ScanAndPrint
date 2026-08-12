@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client'
 import configStore from '../store/configStore.js'
 import printService from './printService.js'
+import printerManager from './printerManager.js'
 
 class SocketService {
   constructor() {
@@ -51,14 +52,24 @@ class SocketService {
       timeout: 10000,
     })
 
-    this.socket.on('connect', () => {
+    this.socket.on('connect', async () => {
       console.log(`[SocketService] 🟢 Connected! Socket ID: ${this.socket.id}`)
       
-      // Emit handshake manually since backend expects AGENT_REGISTER event
+      // Auto detect installed printers on this PC and register with Cloud Server
+      let availablePrinters = []
+      try {
+        availablePrinters = await printerManager.getAvailablePrinters()
+        console.log(`[SocketService] 🖨️ Detected ${availablePrinters.length} local Windows printer(s)`)
+      } catch (err) {
+        console.error('[SocketService] Failed to detect local printers:', err.message)
+      }
+
+      // Emit handshake with detected printers
       this.socket.emit('AGENT_REGISTER', { 
         shopId: shopId.trim(), 
         secretApiKey: secretKey.trim(),
-        agentVersion: '1.0.0'
+        agentVersion: '1.0.0',
+        printers: availablePrinters,
       })
       
       this.isConnected = true
@@ -67,6 +78,20 @@ class SocketService {
 
       // Fetch queued jobs for offline sync recovery
       this.fetchQueuedJobs(targetServerUrl, shopId.trim(), secretKey.trim())
+    })
+
+    // Listen for manual remote rescan request from Web Dashboard
+    this.socket.on('REQUEST_PRINTER_SCAN', async () => {
+      try {
+        console.log('[SocketService] Received remote printer rescan request...')
+        const printers = await printerManager.getAvailablePrinters()
+        this.socket.emit('AGENT_PRINTERS_UPDATED', {
+          shopId: shopId.trim(),
+          printers,
+        })
+      } catch (err) {
+        console.error('[SocketService] Failed to rescan printers:', err.message)
+      }
     })
 
     this.socket.on('disconnect', (reason) => {

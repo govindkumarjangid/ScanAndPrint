@@ -86,6 +86,13 @@ const shopSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    connectedPrinters: [
+      {
+        name: { type: String, trim: true },
+        deviceId: { type: String, trim: true },
+        isDefault: { type: Boolean, default: false },
+      },
+    ],
     planType: {
       type: String,
       enum: ['FREE_TRIAL', 'MONTHLY_399', 'LIFETIME_599'],
