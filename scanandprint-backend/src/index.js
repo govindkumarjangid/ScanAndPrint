@@ -48,6 +48,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'https://scan-and-print.vercel.app',
+  'https://www.scanandprint.in/',
   ...(envConfig.clientUrl
     ? envConfig.clientUrl.split(',').map((u) => u.trim().replace(/\/+$/, ''))
     : []),
