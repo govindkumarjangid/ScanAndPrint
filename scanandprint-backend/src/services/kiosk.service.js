@@ -65,6 +65,7 @@ export const kioskService = {
         jobId: job.jobId,
         shopCode: job.shopCode,
         fileUrl: job.fileUrl,
+        downloadUrl: `/api/kiosk/download/${job.jobId}`,
         originalFileName: job.originalFileName,
         totalPages: job.totalPages,
         colorType: job.colorType,

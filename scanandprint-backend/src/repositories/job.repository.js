@@ -29,14 +29,38 @@ export const jobRepository = {
   },
 
   async getAnalyticsByShop(shopId) {
+    const objectId = mongoose.Types.ObjectId.isValid(shopId)
+      ? new mongoose.Types.ObjectId(shopId)
+      : shopId
+
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+
     const stats = await PrintJob.aggregate([
-      { $match: { shopId, status: { $ne: 'PENDING_PAYMENT' } } },
+      {
+        $match: {
+          $or: [{ shopId: objectId }, { shopId: String(shopId) }],
+          status: { $in: ['PRINTED_SUCCESSFULLY', 'COMPLETED', 'completed', 'PAID', 'PRINTING'] },
+        },
+      },
       {
         $group: {
           _id: null,
           totalRevenue: { $sum: '$totalAmount' },
+          todayRevenue: {
+            $sum: {
+              $cond: [{ $gte: ['$createdAt', todayStart] }, '$totalAmount', 0],
+            },
+          },
           totalJobsCompleted: { $sum: 1 },
-          totalPagesPrinted: { $sum: '$totalPages' },
+          totalPagesPrinted: {
+            $sum: {
+              $multiply: [
+                { $ifNull: ['$totalPages', 1] },
+                { $ifNull: ['$copies', 1] },
+              ],
+            },
+          },
           bwJobsCount: {
             $sum: { $cond: [{ $eq: ['$colorType', 'BLACK_AND_WHITE'] }, 1, 0] },
           },
@@ -47,13 +71,16 @@ export const jobRepository = {
       },
     ])
 
-    return stats[0] || {
-      totalRevenue: 0,
-      totalJobsCompleted: 0,
-      totalPagesPrinted: 0,
-      bwJobsCount: 0,
-      colorJobsCount: 0,
-    }
+    return (
+      stats[0] || {
+        totalRevenue: 0,
+        todayRevenue: 0,
+        totalJobsCompleted: 0,
+        totalPagesPrinted: 0,
+        bwJobsCount: 0,
+        colorJobsCount: 0,
+      }
+    )
   },
 
   async updateJobStatus(jobId, status, extraData = {}) {

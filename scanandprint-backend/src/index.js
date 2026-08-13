@@ -39,9 +39,14 @@ const io = new Server(server, {
 app.set('io', io)
 
 const allowedOrigins = [
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
   'http://localhost:5174',
+  'http://127.0.0.1:5174',
   'http://localhost:3000',
+  'http://127.0.0.1:3000',
   'https://scan-and-print.vercel.app',
   ...(envConfig.clientUrl
     ? envConfig.clientUrl.split(',').map((u) => u.trim().replace(/\/+$/, ''))
@@ -55,9 +60,10 @@ const corsOptions = {
     const isExplicitlyAllowed = allowedOrigins.some(
       (allowed) => cleanOrigin.toLowerCase() === allowed.toLowerCase()
     )
-    const isVercelDomain = /^https:\/\/[a-zA-Z0-9_.-]+\.vercel\.app$/.test(cleanOrigin)
-    const isRenderDomain = /^https:\/\/[a-zA-Z0-9_.-]+\.onrender\.com$/.test(cleanOrigin)
-    if (isExplicitlyAllowed || isVercelDomain || isRenderDomain)
+    const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleanOrigin)
+    const isVercelDomain = /^https:\/\/[a-zA-Z0-9_.-]+\.vercel\.app$/i.test(cleanOrigin)
+    const isRenderDomain = /^https:\/\/[a-zA-Z0-9_.-]+\.onrender\.com$/i.test(cleanOrigin)
+    if (isExplicitlyAllowed || isLocalhost || isVercelDomain || isRenderDomain)
       return callback(null, true)
     console.warn(`[CORS Blocked]: Origin "${origin}" is not allowed`)
     return callback(new Error(`CORS blocked for origin: ${origin}`))
@@ -85,7 +91,14 @@ if (envConfig.nodeEnv === 'development')
 
 
 
-app.use('/agent-ui', express.static(path.resolve(__dirname, '../../scanandprint-agent/src/ui')))
+app.use(
+  '/agent-ui',
+  express.static(path.resolve(__dirname, '../../scanandprint-agent/src/ui'), {
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    },
+  })
+)
 app.get('/agent', (req, res) => res.redirect('/agent-ui'))
 
 app.get('/api/health', (req, res) => {

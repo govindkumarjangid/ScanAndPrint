@@ -17,13 +17,26 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { useJobStore } from '../../store/useJobStore'
 
 export default function OwnerOverview() {
-  const { currentShop } = useAuthStore()
+  const { currentShop, fetchProfile } = useAuthStore()
   const { jobs, analytics, fetchJobs, fetchAnalytics, isLoading } = useJobStore()
 
   useEffect(() => {
-    fetchJobs(1, 10) // fetch latest 10 jobs
+    fetchProfile()
+    fetchJobs(1, 10)
     fetchAnalytics()
-  }, [fetchJobs, fetchAnalytics])
+  }, [fetchProfile, fetchJobs, fetchAnalytics])
+
+  const shopName = currentShop?.shopName || 'Print Shop'
+  const shopLocation = currentShop?.address || currentShop?.cityState || 'Local Shop'
+  const isOnline = currentShop?.isOnline ?? false
+  const printersCount = currentShop?.connectedPrinters?.length || 0
+
+  const todayRevenue = analytics?.todayRevenue ?? analytics?.totalRevenue ?? 0
+  const totalRevenue = analytics?.totalRevenue ?? 0
+  const totalJobs = analytics?.totalJobsCompleted ?? (jobs?.length || 0)
+  const totalPages = analytics?.totalPagesPrinted ?? 0
+  const bwCount = analytics?.bwJobsCount ?? 0
+  const colorCount = analytics?.colorJobsCount ?? 0
 
   return (
     <div className="flex flex-col gap-8">
@@ -31,10 +44,10 @@ export default function OwnerOverview() {
       {/* Title */}
       <div className="flex flex-col gap-0.5 px-2 sm:px-0">
         <h1 className="text-2xl sm:text-[28px] leading-tight font-extrabold text-stone-900 tracking-tight font-heading">
-          {currentShop?.shopName || 'Cyber Cafe'}
+          {shopName}
         </h1>
         <p className="text-sm sm:text-[15px] text-stone-500 font-medium">
-          {currentShop?.address || 'Automated Printing Network'}
+          {shopLocation} {currentShop?.shopCode ? `· ID: ${currentShop.shopCode}` : ''}
         </p>
       </div>
 
@@ -55,9 +68,11 @@ export default function OwnerOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">₹{analytics?.totalRevenue || 0}</h3>
+            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">
+              ₹{Number(todayRevenue).toLocaleString('en-IN')}
+            </h3>
             <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5" /> Lifetime Earnings
+              <TrendingUp className="w-3.5 h-3.5" /> ₹{Number(totalRevenue).toLocaleString('en-IN')} Lifetime Earnings
             </span>
           </div>
         </motion.div>
@@ -76,9 +91,11 @@ export default function OwnerOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">{analytics?.totalJobsCompleted || 0}</h3>
+            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">
+              {totalJobs}
+            </h3>
             <span className="text-xs font-medium text-stone-500 mt-1 block">
-              Successfully Printed
+              Successfully Processed
             </span>
           </div>
         </motion.div>
@@ -97,9 +114,11 @@ export default function OwnerOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">{analytics?.totalPagesPrinted || 0}</h3>
+            <h3 className="text-3xl font-extrabold text-stone-900 font-heading">
+              {totalPages}
+            </h3>
             <span className="text-xs font-medium text-stone-500 mt-1 block">
-              {analytics?.bwJobsCount || 0} B&W · {analytics?.colorJobsCount || 0} Color Jobs
+              {bwCount} B&W · {colorCount} Color
             </span>
           </div>
         </motion.div>
@@ -113,17 +132,19 @@ export default function OwnerOverview() {
             <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
               Print Agent Status
             </span>
-            <div className="p-2.5 rounded-2xl bg-emerald-50 text-emerald-600">
+            <div className={`p-2.5 rounded-2xl ${isOnline ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className={`w-3 h-3 rounded-full ${currentShop?.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-              <h3 className="text-lg font-extrabold text-stone-900">PC Agent {currentShop?.isOnline ? 'Online' : 'Offline'}</h3>
+              <span className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+              <h3 className="text-lg font-extrabold text-stone-900">PC Agent {isOnline ? 'Online' : 'Offline'}</h3>
             </div>
-            <span className={`text-xs font-medium mt-1 block ${currentShop?.isOnline ? 'text-emerald-700' : 'text-rose-700'}`}>
-              {currentShop?.printerBrand} ({currentShop?.isOnline ? 'Ready' : 'Not Connected'})
+            <span className={`text-xs font-medium mt-1 block ${isOnline ? 'text-emerald-700' : 'text-stone-500'}`}>
+              {isOnline
+                ? (printersCount > 0 ? `${printersCount} Hardware Spooler(s) Ready` : 'Ready for Hardware Printing')
+                : 'Launch Desktop Agent to Connect'}
             </span>
           </div>
         </motion.div>

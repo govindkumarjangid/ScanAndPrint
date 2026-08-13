@@ -44,9 +44,17 @@ export const agentService = {
   },
 
   // update connected printers from agent event
-  async updateConnectedPrinters(shopId, printers) {
-    if (!shopId || !Array.isArray(printers)) return null
-    return await shopRepository.updateById(shopId, {
+  async updateConnectedPrinters(shopIdOrCode, printers) {
+    if (!shopIdOrCode || !Array.isArray(printers)) return null
+    let shop = null
+    const str = String(shopIdOrCode).trim().toUpperCase()
+    if (str.includes('_')) {
+      shop = await shopRepository.findByCode(str)
+    } else {
+      shop = await shopRepository.findById(shopIdOrCode)
+    }
+    if (!shop) return null
+    return await shopRepository.updateById(shop._id, {
       connectedPrinters: printers,
       lastHeartbeatAt: new Date(),
     })

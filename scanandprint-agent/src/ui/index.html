@@ -249,10 +249,10 @@
     }
 
     .btn {
-      height: 42px;
+      height: 44px;
       padding: 0 18px;
       border-radius: 14px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 800;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -260,7 +260,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
+      gap: 8px;
       font-family: inherit;
     }
 
@@ -272,7 +272,6 @@
       background: linear-gradient(135deg, #F0245C, #e11d48);
       color: #ffffff;
       width: 100%;
-      font-size: 14px;
       height: 48px;
       border-radius: 16px;
       box-shadow: 0 4px 16px rgba(240, 36, 92, 0.4);
@@ -292,6 +291,38 @@
 
     .btn-secondary:hover {
       background-color: #44403c;
+    }
+
+    /* Approve & Reject Specific Buttons */
+    .btn-approve {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #ffffff;
+      flex: 1;
+      height: 48px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+      font-size: 14px;
+    }
+
+    .btn-approve:hover {
+      background: linear-gradient(135deg, #047857, #059669);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-reject {
+      background-color: #292524;
+      color: #f87171;
+      border: 1px solid #7f1d1d;
+      flex: 1;
+      height: 48px;
+      border-radius: 16px;
+      font-size: 14px;
+    }
+
+    .btn-reject:hover {
+      background-color: #450a0a;
+      border-color: #dc2626;
+      color: #fca5a5;
     }
 
     /* Activity Console Log Card */
@@ -337,7 +368,7 @@
     .alert-error { color: #f87171; }
     .footer-note { font-size: 11px; color: #78716c; font-weight: 600; }
 
-    /* Modal Popup */
+    /* Modal Popups (Generic) */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -398,10 +429,10 @@
       background-color: #0c0a09;
       border: 1px solid #292524;
       border-radius: 16px;
-      padding: 12px 16px;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       text-align: left;
       font-size: 12px;
     }
@@ -412,8 +443,70 @@
       align-items: center;
     }
 
-    .info-label { color: #78716c; font-weight: 700; }
+    .info-label { color: #a8a29e; font-weight: 700; }
     .info-val { color: #f5f5f4; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+    /* Incoming Print Job Modal Card Specific */
+    .job-modal-card {
+      background-color: #1c1917;
+      border: 1px solid #e11d48;
+      box-shadow: 0 10px 45px rgba(240, 36, 92, 0.35);
+      border-radius: 26px;
+      max-width: 480px;
+      width: 100%;
+      padding: 26px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: popIn 0.3s ease;
+    }
+
+    .job-modal-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .job-pulse-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #F0245C, #e11d48);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 20px rgba(240, 36, 92, 0.5);
+      flex-shrink: 0;
+      animation: pulseAnim 1.5s infinite;
+    }
+
+    .badge-color {
+      background-color: rgba(244, 63, 94, 0.2);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .badge-bw {
+      background-color: rgba(168, 162, 158, 0.2);
+      color: #e7e5e4;
+      border: 1px solid rgba(168, 162, 158, 0.4);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .amount-highlight {
+      color: #34d399;
+      font-size: 15px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
 
     .hidden { display: none !important; }
 
@@ -446,7 +539,7 @@
         </div>
         <div>
           <div class="live-title">🟢 Agent Online & Ready to Print</div>
-          <div class="live-sub" id="bannerDetails">Shop: JANGIDCY_1830 · Socket: Active</div>
+          <div class="live-sub" id="bannerDetails">Shop: JANGIDCY_1830 · Hardware: Active</div>
         </div>
       </div>
       <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 10px; font-weight: 800; padding: 5px 9px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); text-transform: uppercase;">
@@ -490,14 +583,14 @@
         <div class="form-group">
           <label for="bwPrinter">BLACK & WHITE DEFAULT PRINTER</label>
           <select id="bwPrinter">
-            <option value="">-- System Default Printer --</option>
+            <option value="">-- Loading Windows Printers... --</option>
           </select>
         </div>
 
         <div class="form-group">
           <label for="colorPrinter">COLOR DEFAULT PRINTER</label>
           <select id="colorPrinter">
-            <option value="">-- System Default Printer --</option>
+            <option value="">-- Loading Windows Printers... --</option>
           </select>
         </div>
 
@@ -537,7 +630,7 @@
     </footer>
   </div>
 
-  <!-- Connection Success Popup Modal -->
+  <!-- 1. Connection Success Popup Modal -->
   <div id="connectionSuccessModal" class="modal-overlay hidden">
     <div class="modal-card">
       <div class="modal-icon-badge">✅</div>
@@ -565,6 +658,64 @@
     </div>
   </div>
 
+  <!-- 2. INCOMING PRINT JOB APPROVE / REJECT MODAL POPUP -->
+  <div id="incomingJobModal" class="modal-overlay hidden">
+    <div class="job-modal-card">
+      
+      <!-- Job Header -->
+      <div class="job-modal-header">
+        <div class="job-pulse-icon">🖨️</div>
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: #ffffff;">New Print Order Received!</h2>
+          <p style="font-size: 12px; color: #a8a29e; margin-top: 2px;">Review details and approve hardware spooling</p>
+        </div>
+      </div>
+
+      <!-- Job Details Grid -->
+      <div class="modal-info-grid">
+        <div class="info-row">
+          <span class="info-label">Order Job ID:</span>
+          <span class="info-val" id="jobModalId" style="color: #67e8f9;">JOB_123456</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Document File:</span>
+          <span class="info-val" id="jobModalFileName" style="color: #fde047; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">document.pdf</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Print Configuration:</span>
+          <span class="info-val" id="jobModalPages">1 Page × 1 Copy</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Color Mode:</span>
+          <span id="jobModalColorBadge" class="badge-bw">BLACK & WHITE</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Amount Paid:</span>
+          <span class="amount-highlight" id="jobModalAmount">₹5.00 (UPI Paid)</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Order Time:</span>
+          <span class="info-val" id="jobModalTime" style="color: #a8a29e;">13 Aug, 1:05 PM</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Target Hardware:</span>
+          <span class="info-val" id="jobModalPrinter" style="color: #38bdf8;">Default Windows Spooler</span>
+        </div>
+      </div>
+
+      <!-- Only 2 Buttons: Approve & Print OR Reject -->
+      <div class="btn-row" style="margin-top: 6px;">
+        <button type="button" id="rejectJobBtn" class="btn btn-reject">
+          ❌ Reject
+        </button>
+        <button type="button" id="approvePrintBtn" class="btn btn-approve">
+          🖨️ Approve & Print
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Socket.io Script with local server and CDN fallback -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -572,6 +723,6 @@
       document.write('<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"><\/script>');
     }
   </script>
-  <script src="renderer.js"></script>
+  <script src="renderer.js?v=2.5"></script>
 </body>
 </html>
