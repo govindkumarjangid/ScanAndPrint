@@ -1,4 +1,5 @@
 import { PrintJob } from '../models/PrintJob.model.js'
+import mongoose from 'mongoose';
 
 export const jobRepository = {
 
