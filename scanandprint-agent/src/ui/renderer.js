@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const cleanShopCode = String(cfg.shopId || '').trim().toUpperCase()
     const cleanSecret = String(cfg.secretKey || '').trim()
-    let targetUrl = cfg.serverUrl || 'http://localhost:5000'
+    let targetUrl = (cfg.serverUrl || 'http://localhost:5000').trim().replace(/\/+$/, '')
     if (!targetUrl.startsWith('http')) {
       targetUrl = 'http://' + targetUrl
     }
@@ -376,10 +376,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           secretKey: cleanSecret,
           agentType: 'DESKTOP_WIN_AGENT',
         },
+        transports: ['websocket', 'polling'],
         reconnection: true,
-        reconnectionAttempts: 10,
+        reconnectionAttempts: 25,
         reconnectionDelay: 2000,
-        timeout: 10000,
+        reconnectionDelayMax: 10000,
+        timeout: 30000,
       })
 
       browserSocket.on('connect', () => {

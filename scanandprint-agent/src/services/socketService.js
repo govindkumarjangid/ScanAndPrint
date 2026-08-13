@@ -39,17 +39,18 @@ class SocketService {
 
     this.hasLoggedOffline = false
 
-    this.socket = io(targetServerUrl, {
+    this.socket = io(targetServerUrl.replace(/\/+$/, ''), {
       auth: {
         shopId: shopId.trim(),
         secretKey: secretKey.trim(),
         agentType: 'DESKTOP_WIN_AGENT',
       },
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: Infinity,
-      reconnectionDelay: 5000,
+      reconnectionDelay: 3000,
       reconnectionDelayMax: 15000,
-      timeout: 10000,
+      timeout: 30000,
     })
 
     this.socket.on('connect', async () => {
