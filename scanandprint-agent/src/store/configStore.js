@@ -27,7 +27,7 @@ class ConfigStore {
     return {
       shopId: 'SHOP_TEST_999',
       secretKey: 'sec_test_secret_123456',
-      serverUrl: 'http://localhost:5000',
+      serverUrl: 'https://scanandprint.onrender.com',
       defaultBwPrinter: 'Microsoft Print to PDF',
       defaultColorPrinter: 'Microsoft Print to PDF',
       autoStartOnBoot: true,

@@ -134,6 +134,12 @@ function setupIpcHandlers() {
     const success = configStore.saveConfig(newConfig)
     if (success) {
       socketService.reconnect()
+      if (typeof newConfig.autoStartOnBoot === 'boolean') {
+        app.setLoginItemSettings({
+          openAtLogin: newConfig.autoStartOnBoot,
+          openAsHidden: true,
+        })
+      }
     }
     return success
   })
@@ -151,6 +157,13 @@ app.whenReady().then(() => {
   setupIpcHandlers()
   createMainWindow()
   setupTray()
+
+  // Apply auto-start-on-boot setting (Windows/macOS)
+  const { autoStartOnBoot } = configStore.getAll()
+  app.setLoginItemSettings({
+    openAtLogin: autoStartOnBoot !== false,
+    openAsHidden: true, // start minimized to tray, don't pop up the settings window
+  })
 
   socketService.onStatusChange((status, details) => {
     agentStatus = { status, details }

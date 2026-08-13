@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let config = {
     shopId: '',
     secretKey: '',
-    serverUrl: window.location.origin && window.location.origin.startsWith('http') ? window.location.origin : 'http://localhost:5000',
+    serverUrl: window.location.origin && window.location.origin.startsWith('http') ? window.location.origin : 'https://scanandprint.onrender.com',
     defaultBwPrinter: '',
     defaultColorPrinter: '',
   }
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Populate Input Fields
   shopIdInput.value = config.shopId || ''
   secretKeyInput.value = config.secretKey || ''
-  serverUrlInput.value = config.serverUrl || 'http://localhost:5000'
+  serverUrlInput.value = config.serverUrl || 'https://scanandprint.onrender.com'
 
   // Query and Populate REAL Installed OS Printers Dynamically
   async function loadPrinters() {
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       // In Browser mode, query real system printers from backend OS spooler API
       try {
-        const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'http://localhost:5000'
+        const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'https://scanandprint.onrender.com'
         const apiUrl = targetUrl.replace(/\/+$/, '') + '/api/print-agent/system-printers'
         const res = await fetch(apiUrl)
         const json = await res.json()
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         } else {
           // In Browser Mode: Send print command to local machine print engine
-          const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'http://localhost:5000'
+          const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'https://scanandprint.onrender.com'
           const printApiUrl = targetUrl.replace(/\/+$/, '') + '/api/print-agent/print-job'
           const res = await fetch(printApiUrl, {
             method: 'POST',
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const cleanShopCode = String(cfg.shopId || '').trim().toUpperCase()
     const cleanSecret = String(cfg.secretKey || '').trim()
-    let targetUrl = (cfg.serverUrl || 'http://localhost:5000').trim().replace(/\/+$/, '')
+    let targetUrl = cfg.serverUrl || 'https://scanandprint.onrender.com'
     if (!targetUrl.startsWith('http')) {
       targetUrl = 'http://' + targetUrl
     }
@@ -376,12 +376,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           secretKey: cleanSecret,
           agentType: 'DESKTOP_WIN_AGENT',
         },
-        transports: ['websocket', 'polling'],
         reconnection: true,
-        reconnectionAttempts: 25,
+        reconnectionAttempts: 10,
         reconnectionDelay: 2000,
-        reconnectionDelayMax: 10000,
-        timeout: 30000,
+        timeout: 10000,
       })
 
       browserSocket.on('connect', () => {
@@ -508,7 +506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } else {
       try {
-        const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'http://localhost:5000'
+        const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'https://scanandprint.onrender.com'
         const printApiUrl = targetUrl.replace(/\/+$/, '') + '/api/print-agent/print-job'
         const res = await fetch(printApiUrl, {
           method: 'POST',
@@ -538,7 +536,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault()
     const cleanShopCode = shopIdInput.value.trim().toUpperCase()
     const cleanSecret = secretKeyInput.value.trim()
-    const cleanServerUrl = serverUrlInput.value.trim() || 'http://localhost:5000'
+    const cleanServerUrl = serverUrlInput.value.trim() || 'https://scanandprint.onrender.com'
 
     shopIdInput.value = cleanShopCode
 

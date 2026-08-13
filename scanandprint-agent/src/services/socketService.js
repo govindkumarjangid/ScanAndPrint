@@ -30,7 +30,7 @@ class SocketService {
       return
     }
 
-    const targetServerUrl = serverUrl || 'http://localhost:5000'
+    const targetServerUrl = serverUrl || 'https://scanandprint.onrender.com'
     console.log(`[SocketService] Target Cloud Server: ${targetServerUrl} (Shop: ${shopId})`)
 
     if (this.socket) {
@@ -39,18 +39,17 @@ class SocketService {
 
     this.hasLoggedOffline = false
 
-    this.socket = io(targetServerUrl.replace(/\/+$/, ''), {
+    this.socket = io(targetServerUrl, {
       auth: {
         shopId: shopId.trim(),
         secretKey: secretKey.trim(),
         agentType: 'DESKTOP_WIN_AGENT',
       },
-      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: Infinity,
-      reconnectionDelay: 3000,
+      reconnectionDelay: 5000,
       reconnectionDelayMax: 15000,
-      timeout: 30000,
+      timeout: 10000,
     })
 
     this.socket.on('connect', async () => {

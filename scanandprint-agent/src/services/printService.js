@@ -41,7 +41,7 @@ class PrintService {
         fileBuffer = Buffer.from(base64Data, 'base64')
       } else {
         // Case 2: Download from remote URLs (Cloudinary, Backend Proxy, or downloadUrl)
-        const serverUrl = configStore.get('serverUrl') || 'http://localhost:5000'
+        const serverUrl = configStore.get('serverUrl') || 'https://scanandprint.onrender.com'
         const candidateUrls = []
 
         if (downloadUrl) {
