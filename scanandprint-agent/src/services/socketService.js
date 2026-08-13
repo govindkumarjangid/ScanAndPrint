@@ -78,6 +78,26 @@ class SocketService {
 
       // Fetch queued jobs for offline sync recovery
       this.fetchQueuedJobs(targetServerUrl, shopId.trim(), secretKey.trim())
+
+      // Extra safety net: if printers were still empty after the retries inside
+      // getAvailablePrinters (e.g. very slow machine at boot), do one more
+      // delayed rescan and push an update to the server - no restart needed.
+      if (availablePrinters.length === 0) {
+        setTimeout(async () => {
+          try {
+            const rescanned = await printerManager.getAvailablePrinters()
+            if (rescanned.length > 0 && this.socket && this.socket.connected) {
+              console.log(`[SocketService] 🖨️ Delayed rescan found ${rescanned.length} printer(s), updating server...`)
+              this.socket.emit('AGENT_PRINTERS_UPDATED', {
+                shopId: shopId.trim(),
+                printers: rescanned,
+              })
+            }
+          } catch (err) {
+            console.error('[SocketService] Delayed printer rescan failed:', err.message)
+          }
+        }, 15000)
+      }
     })
 
     // Listen for manual remote rescan request from Web Dashboard

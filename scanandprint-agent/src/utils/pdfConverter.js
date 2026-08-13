@@ -1,4 +1,4 @@
-import { PDFDocument } from '../../scanandprint-backend/node_modules/pdf-lib/cjs/index.js'
+import { PDFDocument } from 'pdf-lib'
 
 /**
  * Ensures that any input buffer (PDF, PNG, JPG, JPEG, WEBP) is converted to a valid printable PDF Buffer.

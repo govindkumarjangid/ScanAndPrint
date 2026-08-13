@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage } from 'electron'
+import { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, shell } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import configStore from './src/store/configStore.js'
@@ -35,7 +35,7 @@ function createMainWindow() {
     show: true,
     title: 'QR Se Print Agent Settings',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
     },
@@ -95,6 +95,12 @@ function updateTrayMenu() {
       label: '🔄 Reconnect to Server',
       click: () => {
         socketService.reconnect()
+      },
+    },
+    {
+      label: '📁 Open Logs Folder',
+      click: () => {
+        shell.openPath(path.join(app.getPath('userData'), 'logs'))
       },
     },
     { type: 'separator' },

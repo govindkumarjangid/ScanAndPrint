@@ -1,23 +1,59 @@
 import ptp from 'pdf-to-printer'
 import path from 'path'
 import fs from 'fs'
+import { app } from 'electron'
+
+function logToFile(line) {
+  try {
+    const logDir = path.join(app.getPath('userData'), 'logs')
+    if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true })
+    const logPath = path.join(logDir, 'agent.log')
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${line}\n`)
+  } catch (e) {
+    // logging must never crash the app
+  }
+}
 
 class PrinterManager {
   /**
-   * Get list of all installed printers on the system
+   * Get list of all installed printers on the system.
+   * Retries a few times with a short delay if the first attempt returns
+   * empty - this covers the case where the app auto-starts at Windows
+   * login and the Print Spooler / WMI service isn't fully ready yet.
    */
-  async getAvailablePrinters() {
-    try {
-      const printers = await ptp.getPrinters();
-      return printers.map((p) => ({
-        name: p.name,
-        deviceId: p.deviceId || p.name,
-        isDefault: p.isDefault || false,
-      }))
-    } catch (err) {
-      console.error('Error fetching printers via pdf-to-printer:', err)
-      return []
+  async getAvailablePrinters(retries = 3, delayMs = 2000) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const printers = await ptp.getPrinters();
+        logToFile(`getAvailablePrinters (attempt ${attempt}/${retries}): found ${printers.length} printer(s): ${printers.map(p => p.name).join(', ') || 'none'}`)
+
+        if (printers.length > 0) {
+          return printers.map((p) => ({
+            name: p.name,
+            deviceId: p.deviceId || p.name,
+            isDefault: p.isDefault || false,
+          }))
+        }
+
+        // Empty result - wait and retry before giving up (unless this was the last attempt)
+        if (attempt < retries) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs))
+        }
+      } catch (err) {
+        const detail = {
+          message: err?.message,
+          stderr: err?.stderr,
+          stdout: err?.stdout,
+          code: err?.code,
+        }
+        console.error('Error fetching printers via pdf-to-printer:', detail)
+        logToFile(`getAvailablePrinters ERROR (attempt ${attempt}/${retries}): ${JSON.stringify(detail)}`)
+        if (attempt < retries) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs))
+        }
+      }
     }
+    return []
   }
 
   /**
