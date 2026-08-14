@@ -59,7 +59,38 @@ function createMainWindow() {
 
 function createTrayIcon(status) {
   const color = status === 'CONNECTED' ? '#10b981' : status === 'UNCONFIGURED' ? '#f59e0b' : '#ef4444'
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-25 -25 530 550" width="530" height="550">
+  <rect x="0" y="0" width="480" height="270" rx="32" fill="#F0245C"/>
+  <path d="
+    M 100 40
+    Q 70 40 70 70
+    L 70 205
+    Q 70 235 100 235
+    L 350 235
+    Q 380 235 380 205
+    L 380 140
+    L 285 40
+    Z"
+    fill="#fbfbfb"/>
+  <path d="M 285 40 L 285 118 Q 285 140 307 140 L 380 140 Z" fill="#F0245C"/>
+  <circle cx="428" cy="42" r="14" fill="#F0245C"/>
+  <rect x="118" y="118" width="150" height="20" rx="10" fill="#F0245C"/>
+  <rect x="118" y="158" width="150" height="20" rx="10" fill="#F0245C"/>
+  <rect x="20" y="288" width="440" height="22" rx="11" fill="#F0245C"/>
+  <rect x="28" y="322" width="424" height="108" rx="28" fill="#F0245C"/>
+  <path d="
+    M 168 366
+    L 312 366
+    L 372 470
+    Q 380 500 350 500
+    L 130 500
+    Q 100 500 108 470
+    Z"
+    fill="#fbfbfb" stroke="#F0245C" stroke-width="10" stroke-linejoin="round"/>
+
+  <rect x="158" y="398" width="164" height="16" rx="8" fill="#F0245C"/>
+  <rect x="158" y="432" width="164" height="16" rx="8" fill="#F0245C"/>
+</svg>`
   return nativeImage.createFromBuffer(Buffer.from(svg))
 }
 
