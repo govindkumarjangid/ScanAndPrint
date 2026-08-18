@@ -97,6 +97,8 @@ if (envConfig.nodeEnv === 'development')
 
 
 
+import fs from 'fs'
+
 app.use(
   '/agent-ui',
   express.static(path.resolve(__dirname, '../../scanandprint-agent/src/ui'), {
@@ -106,6 +108,22 @@ app.use(
   })
 )
 app.get('/agent', (req, res) => res.redirect('/agent-ui'))
+
+// Direct Desktop Agent .exe installer download endpoint
+app.get(['/download/agent', '/api/print-agent/download', '/downloads/Scan&Print_Agent_Setup_1.0.0.exe', '/downloads/QR_Se_Print_Agent_Setup_1.0.0.exe'], (req, res) => {
+  const possiblePaths = [
+    path.resolve(__dirname, '../../scanandprint-agent/dist/Scan&Print Agent Setup 1.0.0.exe'),
+    path.resolve(__dirname, '../../scanandprint-frontend/public/downloads/Scan&Print_Agent_Setup_1.0.0.exe'),
+  ]
+
+  for (const exePath of possiblePaths) {
+    if (fs.existsSync(exePath)) {
+      return res.download(exePath, 'Scan&Print_Agent_Setup_1.0.0.exe')
+    }
+  }
+
+  return res.status(404).json({ success: false, message: 'Desktop Agent installer executable not found.' })
+})
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({

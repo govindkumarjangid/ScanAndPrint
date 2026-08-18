@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production builds and large installer binaries (>100MB)
+*.exe
+*.dmg
+*.AppImage
+*.msi
+dist/
+*/dist/
+build/
+*/build/
+scanandprint-agent/dist/
+scanandprint-frontend/public/downloads/
+
+# Uploads & Temp cache
+uploads/
+*/uploads/
+temp/
+*/temp/
+
+# Logs
+*.log
+logs/
+*/logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*/.env
+*/.env.local
+
+# OS system files
+.DS_Store
+Thumbs.db

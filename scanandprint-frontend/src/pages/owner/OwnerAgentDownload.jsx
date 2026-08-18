@@ -36,6 +36,10 @@ export default function OwnerAgentDownload() {
     setTimeout(() => setCopiedCode(false), 2000)
   }
 
+  const downloadUrl =
+    import.meta.env.VITE_AGENT_DOWNLOAD_URL ||
+    'https://github.com/govindkumarjangid/PrintPe/releases/latest/download/Scan.Print.Agent.Setup.1.0.0.exe'
+
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
 
@@ -59,18 +63,24 @@ export default function OwnerAgentDownload() {
             Download Print Agent Setup v1.0.0
           </h2>
           <p className="text-rose-100 text-xs sm:text-sm max-w-md leading-relaxed">
-            Single 1-click Windows installer (~88MB). Runs silently in system tray next to the Windows clock.
+            Single 1-click Windows installer (~103MB). Runs silently in system tray next to the Windows clock.
           </p>
         </div>
 
-        <a href="/downloads/QR_Se_Print_Agent_Setup_1.0.0.exe" download className="shrink-0">
+        <a
+          href={downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          download="Scan&Print_Agent_Setup_1.0.0.exe"
+          className="shrink-0"
+        >
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50 p!x-8 py-4 shadow-lg text-base"
+            className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50! px-8 py-4 shadow-lg text-base cursor-pointer"
           >
             <Download className="w-5 h-5" />
-            <span>Download .exe (88MB)</span>
+            <span>Download .exe (103MB)</span>
           </motion.button>
         </a>
       </div>
