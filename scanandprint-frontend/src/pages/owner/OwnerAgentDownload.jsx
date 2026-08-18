@@ -15,7 +15,7 @@ export default function OwnerAgentDownload() {
 
   const shopCode = currentShop?.shopCode || ''
   const secretKey = currentShop?.secretApiKey || ''
-  
+
   const [copiedKey, setCopiedKey] = useState(false)
   const [copiedCode, setCopiedCode] = useState(false)
   const [showSecret, setShowSecret] = useState(false)
@@ -38,7 +38,7 @@ export default function OwnerAgentDownload() {
 
   const downloadUrl =
     import.meta.env.VITE_AGENT_DOWNLOAD_URL ||
-    'https://github.com/govindkumarjangid/PrintPe/releases/latest/download/Scan.Print.Agent.Setup.1.0.0.exe'
+    'https://github.com/govindkumarjangid/PrintPe/releases/latest/download/Scan.Print.Agent.Setup.1.0.2.exe'
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
@@ -60,10 +60,10 @@ export default function OwnerAgentDownload() {
             Windows 10 / 11 Compatible
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold font-heading">
-            Download Print Agent Setup v1.0.0
+            Download Print Agent Setup v1.0.2
           </h2>
           <p className="text-rose-100 text-xs sm:text-sm max-w-md leading-relaxed">
-            Single 1-click Windows installer (~103MB). Runs silently in system tray next to the Windows clock.
+            Single 1-click Windows installer (~103.28MB). Runs silently in system tray next to the Windows clock.
           </p>
         </div>
 
