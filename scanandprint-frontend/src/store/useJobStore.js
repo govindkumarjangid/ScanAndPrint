@@ -12,17 +12,29 @@ export const useJobStore = create((set, get) => ({
     totalCount: 0,
     currentPage: 1,
     totalPages: 1,
+    limit: 10,
   },
 
-  fetchJobs: async (page = 1, limit = 20, status = '') => {
+  fetchJobs: async (page = 1, limit = 10, status = '') => {
     try {
       set({ isLoading: true, error: null })
       const statusQuery = status && status !== 'ALL' ? `&status=${status}` : ''
       const res = await api.get(`/jobs?page=${page}&limit=${limit}${statusQuery}`)
       if (res.data.success) {
+        const jobsList = res.data.data.jobs || []
+        const pag = res.data.data.pagination || {
+          totalCount: jobsList.length,
+          currentPage: Number(page),
+          totalPages: Math.ceil(jobsList.length / limit) || 1,
+        }
         set({
-          jobs: res.data.data.jobs || [],
-          pagination: res.data.data.pagination || { totalCount: (res.data.data.jobs || []).length, currentPage: page, totalPages: 1 },
+          jobs: jobsList,
+          pagination: {
+            totalCount: pag.totalCount ?? jobsList.length,
+            currentPage: Number(pag.currentPage || page),
+            totalPages: Number(pag.totalPages || Math.ceil((pag.totalCount || jobsList.length) / limit) || 1),
+            limit: Number(limit),
+          },
         })
       }
     } catch (error) {
@@ -32,10 +44,10 @@ export const useJobStore = create((set, get) => ({
     }
   },
 
-  refreshJobs: async (status = '') => {
+  refreshJobs: async (page = 1, limit = 10, status = '') => {
     try {
       set({ isRefreshing: true })
-      await get().fetchJobs(1, 20, status)
+      await get().fetchJobs(page, limit, status)
       await get().fetchAnalytics()
       toast.success('Orders queue refreshed!')
     } catch (error) {

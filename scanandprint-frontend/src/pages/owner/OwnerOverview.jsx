@@ -205,49 +205,54 @@ export default function OwnerOverview() {
           </Link>
         </div>
 
-        <div className="w-full overflow-hidden md:overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse block md:table">
+        <div className="w-full overflow-hidden">
+          <table className="w-full text-left text-sm border-collapse block md:table md:table-fixed">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-stone-200/80 text-stone-500 font-bold text-xs uppercase tracking-wider">
-                <th className="py-3 px-4">Job ID</th>
-                <th className="py-3 px-4">File Name</th>
-                <th className="py-3 px-4">Pages & Copies</th>
-                <th className="py-3 px-4">Type</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4 md:w-[22%]">Job ID</th>
+                <th className="py-3 px-4 md:w-[36%]">File Name</th>
+                <th className="py-3 px-4 md:w-[17%]">Pages & Copies</th>
+                <th className="py-3 px-4 md:w-[8%]">Type</th>
+                <th className="py-3 px-4 md:w-[7%]">Amount</th>
+                <th className="py-3 px-4 md:w-[10%] text-right">Status</th>
               </tr>
             </thead>
 
             <tbody className="block md:table-row-group space-y-4 md:space-y-0 md:divide-y md:divide-stone-100">
               {isLoading ? (
-                <tr><td colSpan="6" className="py-4 text-center text-sm text-stone-500">Loading jobs...</td></tr>
+                <tr><td colSpan="6" className="py-6 text-center text-sm text-stone-500 font-medium">Loading jobs...</td></tr>
               ) : jobs.length === 0 ? (
-                <tr><td colSpan="6" className="py-4 text-center text-sm text-stone-500">No print jobs found.</td></tr>
+                <tr><td colSpan="6" className="py-6 text-center text-sm text-stone-500 font-medium">No print jobs found.</td></tr>
               ) : jobs.map((j) => (
                 <tr key={j._id}
                   className="block md:table-row bg-stone-50/40 md:bg-transparent border border-stone-200/80 md:border-0 rounded-2xl md:rounded-none p-4 md:p-0 hover:bg-stone-50/60 transition-colors"
                 >
                   {/* Job ID */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-bold text-stone-900 font-mono text-xs">
-                    <span className="md:hidden text-stone-500 font-sans font-medium">Job ID</span>
-                    {j.jobId}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-bold text-stone-900 font-mono text-xs overflow-hidden">
+                    <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Job ID</span>
+                    <span className="truncate block font-mono text-stone-900" title={j.jobId}>{j.jobId}</span>
                   </td>
 
-                  {/*  File Name */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-semibold text-stone-800">
-                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">File</span>
-                    <span className="truncate max-w-40 text-right md:text-left md:max-w-none">{j.originalFileName}</span>
+                  {/* File Name */}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-semibold text-stone-800 overflow-hidden">
+                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0 mr-2">File</span>
+                    <span
+                      className="truncate block max-w-[160px] sm:max-w-[280px] md:max-w-full text-right md:text-left text-xs sm:text-sm font-medium text-stone-800"
+                      title={j.originalFileName}
+                    >
+                      {j.originalFileName}
+                    </span>
                   </td>
 
                   {/* Pages & Copies */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 text-xs font-medium text-stone-600">
-                    <span className="md:hidden text-stone-500 font-sans font-medium">Details</span>
-                    <span>{j.totalPages} pages × {j.copies} copy</span>
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 text-xs font-medium text-stone-600 whitespace-nowrap overflow-hidden">
+                    <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Details</span>
+                    <span className="truncate block">{j.totalPages} pages × {j.copies} copy</span>
                   </td>
 
                   {/* Type */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4">
-                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Type</span>
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 whitespace-nowrap">
+                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Type</span>
                     <span
                       className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${j.colorType === 'COLOR'
                         ? 'bg-rose-100 text-rose-800'
@@ -259,23 +264,49 @@ export default function OwnerOverview() {
                   </td>
 
                   {/* Amount */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-extrabold text-stone-900 border-t border-stone-100 md:border-0 mt-2 pt-3 md:mt-0 md:pt-3.5">
-                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Amount</span>
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-extrabold text-stone-900 border-t border-stone-100 md:border-0 mt-2 pt-3 md:mt-0 md:pt-3.5 whitespace-nowrap">
+                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Amount</span>
                     ₹{j.totalAmount}
                   </td>
 
                   {/* Status */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 pb-1 md:pb-3.5">
-                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium">Status</span>
-                    {j.status === 'PRINTED_SUCCESSFULLY' ? (
-                      <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Printed
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[11px] font-extrabold px-3 py-1 rounded-full">
-                        <Clock className="w-3 h-3 text-amber-600" /> {j.status.replace(/_/g, ' ')}
-                      </span>
-                    )}
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 pb-1 md:pb-3.5 whitespace-nowrap text-right">
+                    <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Status</span>
+                    <div className="flex items-center md:justify-end">
+                      {(() => {
+                        const s = String(j.status || '').toUpperCase()
+                        if (s.includes('PRINTED') || s === 'COMPLETED' || s === 'SUCCESS') {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>Printed</span>
+                            </span>
+                          )
+                        }
+                        if (s.includes('DISPATCH') || s === 'PRINTING' || s === 'IN_QUEUE') {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 bg-sky-100 text-sky-800 text-[11px] font-extrabold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse shrink-0" />
+                              <span>Dispatch</span>
+                            </span>
+                          )
+                        }
+                        if (s.includes('FAIL') || s.includes('CANCEL') || s.includes('REJECT') || s.includes('ERROR')) {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 text-[11px] font-extrabold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0" />
+                              <span>Failed</span>
+                            </span>
+                          )
+                        }
+                        return (
+                          <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-[11px] font-extrabold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
+                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Pending</span>
+                          </span>
+                        )
+                      })()}
+                    </div>
                   </td>
                 </tr>
               ))}

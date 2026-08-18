@@ -76,17 +76,40 @@ export default function AdminTransactions() {
                       <td className="py-4 px-4 text-xs font-bold text-rose-400 uppercase tracking-wider">{gateway}</td>
                       <td className="py-4 px-4 font-extrabold text-white">₹{amt}</td>
                       <td className="py-4 px-4 text-xs font-medium text-stone-400">{timeFormatted}</td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full border ${
-                            isSuccess
-                              ? 'bg-emerald-950 text-emerald-300 border-emerald-900'
-                              : 'bg-amber-950 text-amber-300 border-amber-900'
-                          }`}
-                        >
-                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                          {t.status || 'SUCCESS'}
-                        </span>
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        {(() => {
+                          const s = String(t.status || '').toUpperCase()
+                          if (s.includes('PRINTED') || s === 'COMPLETED' || s === 'SUCCESS' || s === 'PAID') {
+                            return (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full border bg-emerald-950 text-emerald-300 border-emerald-900 whitespace-nowrap">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                                <span>Printed</span>
+                              </span>
+                            )
+                          }
+                          if (s.includes('DISPATCH') || s === 'PRINTING' || s === 'IN_QUEUE') {
+                            return (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full border bg-sky-950 text-sky-300 border-sky-900 whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse shrink-0" />
+                                <span>Dispatch</span>
+                              </span>
+                            )
+                          }
+                          if (s.includes('FAIL') || s.includes('CANCEL') || s.includes('REJECT') || s.includes('ERROR')) {
+                            return (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full border bg-rose-950 text-rose-300 border-rose-900 whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+                                <span>Failed</span>
+                              </span>
+                            )
+                          }
+                          return (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full border bg-amber-950 text-amber-300 border-amber-900 whitespace-nowrap">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                              <span>Pending</span>
+                            </span>
+                          )
+                        })()}
                       </td>
                     </tr>
                   )

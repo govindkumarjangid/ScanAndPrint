@@ -13,15 +13,35 @@ export const jobRepository = {
     return await query
   },
 
-  async findPaginatedByShop(shopId, { status, skip, limit }) {
-    const filter = { shopId }
-    if (status) filter.status = status
+  async findPaginatedByShop(shopId, { status, skip = 0, limit = 10 }) {
+    const objectId = mongoose.Types.ObjectId.isValid(shopId)
+      ? new mongoose.Types.ObjectId(shopId)
+      : shopId
+
+    const filter = {
+      $or: [{ shopId: objectId }, { shopId: String(shopId) }]
+    }
+
+    if (status && status !== 'ALL') {
+      const s = String(status).toUpperCase()
+      if (s.includes('PRINTED')) {
+        filter.status = { $in: ['PRINTED_SUCCESSFULLY', 'COMPLETED', 'Printed', 'PRINTED'] }
+      } else if (s.includes('DISPATCH')) {
+        filter.status = { $in: ['DISPATCHED_TO_AGENT', 'DISPATCHED', 'Dispatch', 'Dispatched', 'PRINTING', 'IN_QUEUE'] }
+      } else if (s.includes('FAIL') || s.includes('CANCEL')) {
+        filter.status = { $in: ['PRINT_FAILED', 'FAILED', 'CANCELLED', 'REJECTED', 'Failed'] }
+      } else if (s.includes('PENDING')) {
+        filter.status = { $in: ['PENDING_PAYMENT', 'PAYMENT_VERIFIED', 'Pending', 'PENDING'] }
+      } else {
+        filter.status = status
+      }
+    }
 
     const [jobs, totalCount] = await Promise.all([
       PrintJob.find(filter)
         .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
+        .skip(Number(skip))
+        .limit(Number(limit))
         .lean(),
       PrintJob.countDocuments(filter)
     ])
