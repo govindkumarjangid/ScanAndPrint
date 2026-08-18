@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, shell } from 'electron'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 import configStore from './src/store/configStore.js'
 import printerManager from './src/services/printerManager.js'
@@ -15,7 +16,7 @@ let agentStatus = { status: 'DISCONNECTED', details: {} }
 // Prevent multiple instances of the Print Agent from running simultaneously
 const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
-  console.log('Another instance of QR Se Print Agent is already running. Focusing existing instance...')
+  console.log('Another instance of Scan&Print Agent is already running. Focusing existing instance...')
 }
 
 app.on('second-instance', () => {
@@ -27,13 +28,16 @@ app.on('second-instance', () => {
 })
 
 function createMainWindow() {
+  const iconPath = path.join(__dirname, 'assets/icon.png')
+
   mainWindow = new BrowserWindow({
     width: 580,
     height: 680,
     resizable: false,
     autoHideMenuBar: true,
     show: true,
-    title: 'QR Se Print Agent Settings',
+    title: 'Scan&Print Agent Settings',
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
@@ -58,40 +62,19 @@ function createMainWindow() {
 }
 
 function createTrayIcon(status) {
-  const color = status === 'CONNECTED' ? '#10b981' : status === 'UNCONFIGURED' ? '#f59e0b' : '#ef4444'
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-25 -25 530 550" width="530" height="550">
-  <rect x="0" y="0" width="480" height="270" rx="32" fill="#F0245C"/>
-  <path d="
-    M 100 40
-    Q 70 40 70 70
-    L 70 205
-    Q 70 235 100 235
-    L 350 235
-    Q 380 235 380 205
-    L 380 140
-    L 285 40
-    Z"
-    fill="#fbfbfb"/>
-  <path d="M 285 40 L 285 118 Q 285 140 307 140 L 380 140 Z" fill="#F0245C"/>
-  <circle cx="428" cy="42" r="14" fill="#F0245C"/>
-  <rect x="118" y="118" width="150" height="20" rx="10" fill="#F0245C"/>
-  <rect x="118" y="158" width="150" height="20" rx="10" fill="#F0245C"/>
-  <rect x="20" y="288" width="440" height="22" rx="11" fill="#F0245C"/>
-  <rect x="28" y="322" width="424" height="108" rx="28" fill="#F0245C"/>
-  <path d="
-    M 168 366
-    L 312 366
-    L 372 470
-    Q 380 500 350 500
-    L 130 500
-    Q 100 500 108 470
-    Z"
-    fill="#fbfbfb" stroke="#F0245C" stroke-width="10" stroke-linejoin="round"/>
+  let iconFileName = 'tray-disconnected.png'
+  if (status === 'CONNECTED') {
+    iconFileName = 'tray-connected.png'
+  } else if (status === 'UNCONFIGURED') {
+    iconFileName = 'tray-unconfigured.png'
+  }
 
-  <rect x="158" y="398" width="164" height="16" rx="8" fill="#F0245C"/>
-  <rect x="158" y="432" width="164" height="16" rx="8" fill="#F0245C"/>
-</svg>`
-  return nativeImage.createFromBuffer(Buffer.from(svg))
+  const iconPath = path.join(__dirname, 'assets', iconFileName)
+  if (fs.existsSync(iconPath)) {
+    const image = nativeImage.createFromPath(iconPath)
+    return image.resize({ width: 24, height: 24 })
+  }
+  return nativeImage.createFromPath(path.join(__dirname, 'assets/icon.png')).resize({ width: 24, height: 24 })
 }
 
 function updateTrayMenu() {
@@ -103,7 +86,7 @@ function updateTrayMenu() {
   else if (status === 'UNCONFIGURED') statusText = 'Unconfigured'
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: `🖨️ QR Se Print Agent`, enabled: false },
+    { label: `🖨️ Scan&Print Agent`, enabled: false },
     { label: `Status: ${statusText}`, enabled: false },
     { type: 'separator' },
     {
@@ -146,7 +129,7 @@ function updateTrayMenu() {
   ])
 
   tray.setContextMenu(contextMenu)
-  tray.setToolTip(`QR Se Print Agent — ${statusText}`)
+  tray.setToolTip(`Scan&Print Agent — ${statusText}`)
   tray.setImage(createTrayIcon(status))
 }
 
@@ -191,6 +174,9 @@ function setupIpcHandlers() {
 }
 
 app.whenReady().then(() => {
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('com.scanandprint.agent')
+  }
   setupIpcHandlers()
   createMainWindow()
   setupTray()
