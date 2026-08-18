@@ -1,4 +1,3 @@
-import dns from 'node:dns'
 import express from 'express'
 import http from 'http'
 import path from 'path'
@@ -9,6 +8,7 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
 
+import fs from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -23,8 +23,6 @@ import adminRoutes from './routes/admin.route.js'
 
 import { notFoundHandler, globalErrorHandler } from './middlewares/error.middleware.js'
 import { setupSocket } from './socket.js'
-
-dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const app = express()
 const server = http.createServer(app)
@@ -95,9 +93,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 if (envConfig.nodeEnv === 'development')
   app.use(morgan('dev'))
 
-
-
-import fs from 'fs'
 
 app.use(
   '/agent-ui',

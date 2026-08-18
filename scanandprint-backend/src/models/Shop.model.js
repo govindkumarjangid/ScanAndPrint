@@ -98,6 +98,30 @@ const shopSchema = new mongoose.Schema(
       enum: ['FREE_TRIAL', 'MONTHLY_399', 'LIFETIME_599'],
       default: 'MONTHLY_399',
     },
+    subscriptionStatus: {
+      type: String,
+      enum: ['PENDING_PAYMENT', 'ACTIVE', 'EXPIRED', 'CANCELLED'],
+      default: 'PENDING_PAYMENT',
+      index: true,
+    },
+    isSubscriptionActive: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    subscriptionExpiresAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+    lastPaymentId: {
+      type: String,
+      default: '',
+    },
+    lastOrderId: {
+      type: String,
+      default: '',
+    },
     isDemoAccount: {
       type: Boolean,
       default: false,

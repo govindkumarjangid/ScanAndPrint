@@ -93,12 +93,12 @@ export const useAuthStore = create((set, get) => ({
 
   setRegisterStep: (step) =>
     set((state) => ({
-      registerStep: Math.max(1, Math.min(3, step)),
+      registerStep: Math.max(1, Math.min(4, step)),
     })),
 
   nextRegisterStep: () =>
     set((state) => ({
-      registerStep: Math.min(3, state.registerStep + 1),
+      registerStep: Math.min(4, state.registerStep + 1),
     })),
 
   prevRegisterStep: () =>
@@ -133,6 +133,7 @@ export const useAuthStore = create((set, get) => ({
         bwRate: 5,
         colorRate: 10,
         hardwareReady: true,
+        planType: 'MONTHLY_399',
       },
     }),
 
@@ -154,6 +155,74 @@ export const useAuthStore = create((set, get) => ({
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Login failed'
+      set({ error: errorMsg })
+      throw new Error(errorMsg)
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  // 1. Initialize Registration with Plan (Returns Razorpay Order or Free Trial Token)
+  registerInit: async (registerPayload) => {
+    try {
+      set({ isLoading: true, error: null })
+      const res = await api.post('/auth/register-init', registerPayload)
+      if (res.data.success) {
+        const data = res.data.data
+        if (data.isFreeTrial && data.token) {
+          localStorage.setItem('shopToken', data.token)
+          if (data.shop) localStorage.setItem('shopData', JSON.stringify(data.shop))
+          set({ currentShop: data.shop, isAuthenticated: true })
+        }
+        return data
+      }
+      throw new Error(res.data.message || 'Failed to initialize registration')
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Registration failed'
+      set({ error: errorMsg })
+      throw new Error(errorMsg)
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  // 2. Verify Razorpay Payment Signature & Activate Session
+  verifySubscriptionPayment: async (paymentPayload) => {
+    try {
+      set({ isLoading: true, error: null })
+      const res = await api.post('/auth/verify-subscription-payment', paymentPayload)
+      if (res.data.success) {
+        const { shop, token } = res.data.data
+        if (token) {
+          localStorage.setItem('shopToken', token)
+        }
+        if (shop) {
+          localStorage.setItem('shopData', JSON.stringify(shop))
+        }
+        set({ currentShop: shop, isAuthenticated: true })
+        return shop
+      }
+      throw new Error(res.data.message || 'Subscription payment verification failed')
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Payment verification failed'
+      set({ error: errorMsg })
+      throw new Error(errorMsg)
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  // 3. Create Subscription Order for Renewal / Upgrade
+  createSubscriptionOrder: async (planType = 'MONTHLY_399') => {
+    try {
+      set({ isLoading: true, error: null })
+      const res = await api.post('/auth/create-subscription-order', { planType })
+      if (res.data.success) {
+        return res.data.data
+      }
+      throw new Error(res.data.message || 'Failed to generate renewal order')
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to create subscription order'
       set({ error: errorMsg })
       throw new Error(errorMsg)
     } finally {

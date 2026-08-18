@@ -1,36 +1,293 @@
+import crypto from 'crypto'
+import Razorpay from 'razorpay'
 import { shopRepository } from '../repositories/shop.repository.js'
 import { hashPassword, comparePassword } from '../utils/password.util.js'
 import { generateToken } from '../utils/jwt.util.js'
 import { generateShopCode, generateSecretApiKey } from '../utils/shopCode.util.js'
+import { envConfig } from '../configs/env.config.js'
 import Admin from '../models/Admin.model.js'
+import AdminSettings from '../models/AdminSettings.model.js'
+import SubscriptionPayment from '../models/SubscriptionPayment.model.js'
 
 export const authService = {
 
-  // Register a new shop account
-  async register(data) {
-    const { password, shopName, email, mobile, fullName, shopAddress, ...rest } = data
 
-    const existing = await shopRepository.findByPhoneOrEmail(email, mobile, { lean: true })
-    if (existing)
+  async registerInit(data) {
+    const {
+      password,
+      shopName,
+      email,
+      mobile,
+      fullName,
+      shopAddress,
+      planType = 'MONTHLY_399',
+      ...rest
+    } = data
+
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanMobile = String(mobile).trim()
+
+    // Check if email/mobile already exists
+    const existing = await shopRepository.findByPhoneOrEmail(cleanEmail, cleanMobile, { lean: true })
+
+    if (existing) {
+      // If the existing account is pending payment, we can let them complete payment
+      if (existing.subscriptionStatus === 'PENDING_PAYMENT' && !existing.isSubscriptionActive) {
+        return this.createRenewalOrder(existing._id, planType)
+      }
       throw new Error('A shop account with this email or mobile number already exists')
+    }
 
     const passwordHash = await hashPassword(password)
     const shopCode = generateShopCode(shopName)
     const secretApiKey = generateSecretApiKey()
 
+    // 2. Fetch active platform pricing
+    const settings = await AdminSettings.findOne().lean()
+    const monthlyPrice = settings?.monthlyPrice || 399
+    const lifetimePrice = settings?.lifetimePrice || 599
+
+    // 3. Handle Free Trial (Demo) Immediate Activation
+    if (planType === 'FREE_TRIAL') {
+      const demoExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000)
+      const newShop = await shopRepository.create({
+        ...rest,
+        shopName,
+        ownerName: fullName,
+        address: shopAddress,
+        email: cleanEmail,
+        phone: cleanMobile,
+        passwordHash,
+        shopCode,
+        secretApiKey,
+        planType: 'FREE_TRIAL',
+        subscriptionStatus: 'ACTIVE',
+        isSubscriptionActive: true,
+        isDemoAccount: true,
+        demoExpiresAt,
+      })
+
+      const tokens = this._generateAuthTokens(newShop)
+      return {
+        isFreeTrial: true,
+        tokens,
+      }
+    }
+
+    // Determine Paid Plan Amount
+    const planAmount = planType === 'LIFETIME_699' ? lifetimePrice : monthlyPrice
+
+    // Create Shop in PENDING_PAYMENT state
     const newShop = await shopRepository.create({
       ...rest,
       shopName,
       ownerName: fullName,
       address: shopAddress,
-      email: email.toLowerCase(),
-      phone: mobile,
+      email: cleanEmail,
+      phone: cleanMobile,
       passwordHash,
       shopCode,
       secretApiKey,
+      planType,
+      subscriptionStatus: 'PENDING_PAYMENT',
+      isSubscriptionActive: false,
     })
 
-    return this._generateAuthTokens(newShop)
+    // Create Razorpay Subscription Order
+    if (!envConfig.razorpayKeyId || !envConfig.razorpayKeySecret) {
+      throw new Error('Razorpay Gateway credentials are not configured on server')
+    }
+
+    const razorpay = new Razorpay({
+      key_id: envConfig.razorpayKeyId,
+      key_secret: envConfig.razorpayKeySecret,
+    })
+
+    const orderOptions = {
+      amount: Math.round(planAmount * 100), // in paise
+      currency: 'INR',
+      receipt: `sub_${newShop.shopCode}_${Date.now().toString().slice(-4)}`,
+      notes: {
+        shopId: String(newShop._id),
+        shopCode: newShop.shopCode,
+        planType,
+        email: cleanEmail,
+        mobile: cleanMobile,
+      },
+    }
+
+    const razorpayOrder = await razorpay.orders.create(orderOptions)
+
+    // Save pending payment record in DB
+    await SubscriptionPayment.create({
+      shopId: newShop._id,
+      shopCode: newShop.shopCode,
+      planType,
+      amount: planAmount,
+      currency: 'INR',
+      razorpayOrderId: razorpayOrder.id,
+      status: 'CREATED',
+      rawDetails: razorpayOrder,
+    })
+
+    // Save lastOrderId on shop
+    await shopRepository.updateById(newShop._id, { lastOrderId: razorpayOrder.id })
+
+    return {
+      isFreeTrial: false,
+      shopId: newShop._id,
+      shopCode: newShop.shopCode,
+      shopName: newShop.shopName,
+      ownerName: newShop.ownerName,
+      email: newShop.email,
+      phone: newShop.phone,
+      planType,
+      amount: planAmount,
+      amountPaise: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      orderId: razorpayOrder.id,
+      keyId: envConfig.razorpayKeyId,
+    }
+  },
+
+  // Verify Razorpay payment signature and activate shop dashboard access
+  async verifySubscriptionPayment({
+    shopId,
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+    planType,
+  }) {
+    if (!shopId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      throw new Error('Missing Razorpay verification parameters')
+    }
+
+    const shop = await shopRepository.findById(shopId)
+    if (!shop) throw new Error('Shop account not found')
+
+    // Cryptographic HMAC-SHA256 Signature Verification
+    const hmacBody = `${razorpay_order_id}|${razorpay_payment_id}`
+    const expectedSignature = crypto
+      .createHmac('sha256', envConfig.razorpayKeySecret)
+      .update(hmacBody)
+      .digest('hex')
+
+    if (expectedSignature !== razorpay_signature) {
+      // Mark transaction as failed
+      await SubscriptionPayment.findOneAndUpdate(
+        { razorpayOrderId: razorpay_order_id },
+        { status: 'FAILED', razorpayPaymentId: razorpay_payment_id }
+      )
+      throw new Error('Cryptographic signature verification failed. Payment is invalid.')
+    }
+
+    // Determine target plan and expiration date
+    const finalPlanType = planType || shop.planType || 'MONTHLY_399'
+    let subscriptionExpiresAt = null
+
+    if (finalPlanType === 'MONTHLY_399') {
+      // If existing active subscription has days left, extend from current expiry, else from now
+      const baseDate =
+        shop.subscriptionExpiresAt && new Date(shop.subscriptionExpiresAt) > new Date()
+          ? new Date(shop.subscriptionExpiresAt)
+          : new Date()
+      subscriptionExpiresAt = new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000) // +30 days
+    } else if (finalPlanType === 'LIFETIME_599') {
+      subscriptionExpiresAt = null // Permanent lifetime
+    }
+
+    // Activate Shop in database
+    const updatedShop = await shopRepository.updateById(shopId, {
+      subscriptionStatus: 'ACTIVE',
+      isSubscriptionActive: true,
+      planType: finalPlanType,
+      subscriptionExpiresAt,
+      lastPaymentId: razorpay_payment_id,
+      lastOrderId: razorpay_order_id,
+      isDemoAccount: false,
+    })
+
+    // Update SubscriptionPayment log to SUCCESS
+    await SubscriptionPayment.findOneAndUpdate(
+      { razorpayOrderId: razorpay_order_id },
+      {
+        status: 'SUCCESS',
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
+        activatedFrom: new Date(),
+        activatedUntil: subscriptionExpiresAt,
+      },
+      { upsert: true, new: true }
+    )
+
+    // Issue standard JWT session tokens
+    return this._generateAuthTokens(updatedShop)
+  },
+
+  // Create Razorpay Order for Renewal or Plan Upgrade (Existing Shops)
+  async createRenewalOrder(shopId, planType = 'MONTHLY_399') {
+    const shop = await shopRepository.findById(shopId)
+    if (!shop) throw new Error('Shop not found')
+
+    const settings = await AdminSettings.findOne().lean()
+    const monthlyPrice = settings?.monthlyPrice || 399
+    const lifetimePrice = settings?.lifetimePrice || 599
+    const planAmount = planType === 'LIFETIME_599' ? lifetimePrice : monthlyPrice
+
+    if (!envConfig.razorpayKeyId || !envConfig.razorpayKeySecret) {
+      throw new Error('Razorpay Gateway credentials are not configured on server')
+    }
+
+    const razorpay = new Razorpay({
+      key_id: envConfig.razorpayKeyId,
+      key_secret: envConfig.razorpayKeySecret,
+    })
+
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(planAmount * 100),
+      currency: 'INR',
+      receipt: `renew_${shop.shopCode}_${Date.now().toString().slice(-4)}`,
+      notes: {
+        shopId: String(shop._id),
+        shopCode: shop.shopCode,
+        planType,
+        action: 'RENEWAL',
+      },
+    })
+
+    await SubscriptionPayment.create({
+      shopId: shop._id,
+      shopCode: shop.shopCode,
+      planType,
+      amount: planAmount,
+      currency: 'INR',
+      razorpayOrderId: razorpayOrder.id,
+      status: 'CREATED',
+      rawDetails: razorpayOrder,
+    })
+
+    await shopRepository.updateById(shop._id, { lastOrderId: razorpayOrder.id })
+
+    return {
+      isFreeTrial: false,
+      shopId: shop._id,
+      shopCode: shop.shopCode,
+      shopName: shop.shopName,
+      ownerName: shop.ownerName,
+      email: shop.email,
+      phone: shop.phone,
+      planType,
+      amount: planAmount,
+      amountPaise: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      orderId: razorpayOrder.id,
+      keyId: envConfig.razorpayKeyId,
+    }
+  },
+
+  // Register a new shop account (Direct fallback)
+  async register(data) {
+    return this.registerInit(data)
   },
 
   // Register a 2-Hour free trial demo shop account

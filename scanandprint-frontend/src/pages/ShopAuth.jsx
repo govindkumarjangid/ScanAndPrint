@@ -11,8 +11,17 @@ import {
   IndianRupee,
   printerBrandOptions,
   Loader2,
+  Sparkles,
+  ShieldCheck,
+  Zap,
+  Clock,
+  X,
+  AlertTriangle,
+  RefreshCw,
+  Check,
 } from '../assets/assets'
 import { useAuthStore } from '../store/useAuthStore'
+import { loadRazorpayScript } from '../lib/razorpay'
 import toast from 'react-hot-toast'
 
 export default function ShopAuth() {
@@ -27,6 +36,8 @@ export default function ShopAuth() {
     loginPassword,
     rememberMe,
     registerData,
+    publicSettings,
+    fetchPublicSettings,
     setActiveTab,
     nextRegisterStep,
     prevRegisterStep,
@@ -35,6 +46,8 @@ export default function ShopAuth() {
     setRememberMe,
     updateRegisterData,
     resetRegisterForm,
+    registerInit,
+    verifySubscriptionPayment,
   } = useAuthStore()
 
   // Local UI States
@@ -42,15 +55,42 @@ export default function ShopAuth() {
   const [showRegPassword, setShowRegPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState('MONTHLY_399')
+  const [showFailedModal, setShowFailedModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
+  const [lastOrderDetails, setLastOrderDetails] = useState(null)
 
-  // Sync route path with Zustand activeTab on load / URL change
+  useEffect(() => {
+    fetchPublicSettings()
+  }, [fetchPublicSettings])
+
+  const monthlyPrice = publicSettings?.monthlyPrice || 399
+  const lifetimePrice = publicSettings?.lifetimePrice || 599
+  const isDemoAvailable = publicSettings?.demoMode ?? true
+
+  // Sync route path and plan query param with Zustand activeTab on load / URL change
   useEffect(() => {
     if (location.pathname === '/register' || location.pathname === '/register-shop') {
       setActiveTab('register')
     } else if (location.pathname === '/shop-login' || location.pathname === '/login') {
       setActiveTab('login')
     }
-  }, [location.pathname, setActiveTab])
+
+    const params = new URLSearchParams(location.search)
+    const planParam = params.get('plan')
+    if (planParam === 'lifetime') {
+      setSelectedPlan('LIFETIME_599')
+      updateRegisterData({ planType: 'LIFETIME_599' })
+    } else if (planParam === 'monthly') {
+      setSelectedPlan('MONTHLY_399')
+      updateRegisterData({ planType: 'MONTHLY_399' })
+    } else if (planParam === 'demo') {
+      setSelectedPlan('FREE_TRIAL')
+      updateRegisterData({ planType: 'FREE_TRIAL' })
+    }
+  }, [location.pathname, location.search, setActiveTab, updateRegisterData])
 
   // Handle Tab Switch & Sync Browser URL smoothly
   const handleTabSwitch = (tab) => {
@@ -84,6 +124,10 @@ export default function ShopAuth() {
   // Handle Step 1 Next
   const handleStep1Next = (e) => {
     e.preventDefault()
+    if (registerData.password !== registerData.confirmPassword) {
+      toast.error("Passwords do not match!")
+      return
+    }
     nextRegisterStep()
   }
 
@@ -93,18 +137,56 @@ export default function ShopAuth() {
     nextRegisterStep()
   }
 
-  // Handle Register Submit
-  const handleRegisterSubmit = async (e) => {
+  // Handle Step 3 Next (Advances to Step 4: Plan Selection)
+  const handleStep3Next = (e) => {
     e.preventDefault()
-    if (registerData.password !== registerData.confirmPassword) {
-      toast.error("Passwords do not match!")
+    if (Number(registerData.bwRate) <= 0 || Number(registerData.colorRate) <= 0) {
+      toast.error("Please enter valid positive print rates")
       return
     }
+    nextRegisterStep()
+  }
 
-    setIsSubmitting(true)
-    const registerPromise = async () => {
-      const { register } = useAuthStore.getState()
-      await register({
+  // Trigger Razorpay Payment & Activation Flow
+  const triggerRazorpayCheckout = async (planTypeToUse) => {
+    const targetPlan = planTypeToUse || selectedPlan || 'MONTHLY_399'
+
+    try {
+      setIsSubmitting(true)
+
+      // 1. If 2-Hour Demo Free Trial is selected
+      if (targetPlan === 'FREE_TRIAL') {
+        const orderData = await registerInit({
+          fullName: registerData.fullName,
+          mobile: registerData.mobile,
+          email: registerData.email,
+          password: registerData.password,
+          shopName: registerData.shopName,
+          shopAddress: registerData.shopAddress,
+          pincode: registerData.pincode,
+          cityState: registerData.cityState,
+          printerBrand: registerData.printerBrand,
+          bwRate: registerData.bwRate,
+          colorRate: registerData.colorRate,
+          planType: 'FREE_TRIAL',
+        })
+
+        setShowSuccessModal(true)
+        toast.success('🎉 2-Hour Free Demo Activated!')
+        setTimeout(() => navigate('/owner/dashboard'), 1500)
+        return
+      }
+
+      // 2. Load Razorpay Checkout SDK
+      const isScriptLoaded = await loadRazorpayScript()
+      if (!isScriptLoaded) {
+        toast.error('Failed to load Razorpay SDK. Please check your internet connection.')
+        setIsSubmitting(false)
+        return
+      }
+
+      // 3. Create Pending Shop Account & Razorpay Order on Backend
+      const orderData = await registerInit({
         fullName: registerData.fullName,
         mobile: registerData.mobile,
         email: registerData.email,
@@ -115,18 +197,69 @@ export default function ShopAuth() {
         cityState: registerData.cityState,
         printerBrand: registerData.printerBrand,
         bwRate: registerData.bwRate,
-        colorRate: registerData.colorRate
+        colorRate: registerData.colorRate,
+        planType: targetPlan,
       })
-      setTimeout(() => navigate('/owner/dashboard'), 1200)
-    }
 
-    toast.promise(registerPromise(), {
-      loading: 'Registering your shop...',
-      success: 'Registration successful! Welcome to QR PrintPe.',
-      error: (err) => err.message || 'Registration failed'
-    }).finally(() => {
+      setLastOrderDetails(orderData)
+
+      // 4. Open Razorpay Checkout Modal
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amountPaise,
+        currency: orderData.currency || 'INR',
+        name: 'QR PrintPe',
+        description: `${orderData.planType === 'LIFETIME_599' ? 'Lifetime' : 'Monthly'} Subscription Plan`,
+        order_id: orderData.orderId,
+        prefill: {
+          name: orderData.ownerName || registerData.fullName,
+          email: orderData.email || registerData.email,
+          contact: orderData.phone || registerData.mobile,
+        },
+        theme: {
+          color: '#F0245C',
+        },
+        modal: {
+          ondismiss: () => {
+            setIsSubmitting(false)
+            setPaymentError('Payment window was closed before completion. Your shop is not activated yet. Please complete payment to unlock your dashboard.')
+            setShowFailedModal(true)
+          },
+        },
+        handler: async (response) => {
+          try {
+            setIsVerifying(true)
+            await verifySubscriptionPayment({
+              shopId: orderData.shopId,
+              planType: orderData.planType,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            })
+            setShowSuccessModal(true)
+            toast.success('🎉 Payment Verified! Welcome to QR PrintPe.')
+            setTimeout(() => navigate('/owner/dashboard'), 1800)
+          } catch (vErr) {
+            setPaymentError(vErr.message || 'Payment signature verification failed. Please contact support.')
+            setShowFailedModal(true)
+          } finally {
+            setIsVerifying(false)
+            setIsSubmitting(false)
+          }
+        },
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.on('payment.failed', (failResponse) => {
+        setIsSubmitting(false)
+        setPaymentError(failResponse.error?.description || 'Payment transaction failed. Please try again or use another payment method.')
+        setShowFailedModal(true)
+      })
+      rzp.open()
+    } catch (err) {
+      toast.error(err.message || 'Failed to initialize payment')
       setIsSubmitting(false)
-    })
+    }
   }
 
   return (
@@ -298,24 +431,31 @@ export default function ShopAuth() {
               transition={{ duration: 0.25 }}
               className="flex flex-col gap-5 text-left"
             >
-              {/* 3-Step Progress Bar Header */}
+              {/* 4-Step Progress Bar Header */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between text-xs font-extrabold text-stone-800">
                   <span className="text-brand">
                     {registerStep === 1 && 'Step 1 · Personal Details'}
                     {registerStep === 2 && 'Step 2 · Shop Details'}
-                    {registerStep === 3 && 'Step 3 · Printer & Pricing Setup'}
+                    {registerStep === 3 && 'Step 3 · Rates & Setup'}
+                    {registerStep === 4 && 'Step 4 · Plan & Payment'}
                   </span>
-                  <span className="text-stone-400 font-semibold">Step {registerStep} of 3</span>
+                  <span className="text-stone-400 font-semibold">Step {registerStep} of 4</span>
                 </div>
 
                 {/* Progress Fill Bar */}
                 <div className="w-full h-1.5 bg-stone-200/80 rounded-full overflow-hidden">
                   <motion.div
-                    initial={{ width: '33%' }}
+                    initial={{ width: '25%' }}
                     animate={{
                       width:
-                        registerStep === 1 ? '33%' : registerStep === 2 ? '66%' : '100%',
+                        registerStep === 1
+                          ? '25%'
+                          : registerStep === 2
+                          ? '50%'
+                          : registerStep === 3
+                          ? '75%'
+                          : '100%',
                     }}
                     transition={{ duration: 0.3 }}
                     className="h-full bg-brand rounded-full"
@@ -504,7 +644,7 @@ export default function ShopAuth() {
 
               {/* STEP 3: PRINTER SETUP & PRINT PRICING RATES */}
               {registerStep === 3 && (
-                <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
+                <form onSubmit={handleStep3Next} className="flex flex-col gap-4">
                   {/* Printer Brand */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-stone-700">Primary Printer Brand</label>
@@ -601,20 +741,164 @@ export default function ShopAuth() {
 
                     <button
                       type="submit"
-                      disabled={isSubmitting}
                       className="btn btn-primary"
                     >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Registering...</span>
-                        </>
-                      ) : (
-                        <span>Complete Registration ✨</span>
-                      )}
+                      <span>Choose Plan</span>
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </form>
+              )}
+
+              {/* STEP 4: SUBSCRIPTION PLAN SELECTION & RAZORPAY PAYMENT */}
+              {registerStep === 4 && (
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-stone-900">Select Subscription Plan</h3>
+                    <p className="text-xs text-stone-500 mt-0.5">Activate full Owner Dashboard & instant Windows printing</p>
+                  </div>
+
+                  {/* Plan Cards Grid */}
+                  <div className="flex flex-col gap-3">
+                    {/* Monthly Plan */}
+                    <div
+                      onClick={() => {
+                        setSelectedPlan('MONTHLY_399')
+                        updateRegisterData({ planType: 'MONTHLY_399' })
+                      }}
+                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                        selectedPlan === 'MONTHLY_399'
+                          ? 'border-brand bg-rose-50/70 shadow-sm'
+                          : 'border-stone-200 bg-white hover:border-stone-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedPlan === 'MONTHLY_399' ? 'border-brand bg-brand text-white' : 'border-stone-300'
+                        }`}>
+                          {selectedPlan === 'MONTHLY_399' && <Check className="w-3 h-3 stroke-3" />}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-extrabold text-stone-900">Monthly Plan</span>
+                            <span className="text-[10px] font-bold uppercase bg-stone-200 text-stone-700 px-2 py-0.5 rounded-full">Renews monthly</span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Full owner dashboard, live kiosk & print agent</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-extrabold text-stone-900">₹{monthlyPrice}</div>
+                        <div className="text-[10px] text-stone-500 font-semibold">/ 30 days</div>
+                      </div>
+                    </div>
+
+                    {/* Lifetime Plan */}
+                    <div
+                      onClick={() => {
+                        setSelectedPlan('LIFETIME_599')
+                        updateRegisterData({ planType: 'LIFETIME_599' })
+                      }}
+                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
+                        selectedPlan === 'LIFETIME_599'
+                          ? 'border-brand bg-rose-50/70 shadow-sm'
+                          : 'border-stone-200 bg-white hover:border-stone-300'
+                      }`}
+                    >
+                      <div className="absolute top-0 right-0 bg-brand text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-bl-lg">
+                        Best Value
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedPlan === 'LIFETIME_599' ? 'border-brand bg-brand text-white' : 'border-stone-300'
+                        }`}>
+                          {selectedPlan === 'LIFETIME_599' && <Check className="w-3 h-3 stroke-3" />}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-extrabold text-stone-900">Lifetime Access</span>
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                          </div>
+                          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Pay once, permanent access forever</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-extrabold text-stone-900">₹{lifetimePrice}</div>
+                        <div className="text-[10px] text-emerald-600 font-bold">One-time</div>
+                      </div>
+                    </div>
+
+                    {/* Free Trial Demo (if enabled) */}
+                    {isDemoAvailable && (
+                      <div
+                        onClick={() => {
+                          setSelectedPlan('FREE_TRIAL')
+                          updateRegisterData({ planType: 'FREE_TRIAL' })
+                        }}
+                        className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                          selectedPlan === 'FREE_TRIAL'
+                            ? 'border-amber-500 bg-amber-50/60 shadow-sm'
+                            : 'border-stone-200 bg-white hover:border-stone-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            selectedPlan === 'FREE_TRIAL' ? 'border-amber-500 bg-amber-500 text-white' : 'border-stone-300'
+                          }`}>
+                            {selectedPlan === 'FREE_TRIAL' && <Check className="w-3 h-3 stroke-3" />}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm font-extrabold text-stone-900">2-Hour Free Demo</span>
+                              <span className="text-[10px] font-bold uppercase bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">Free Trial</span>
+                            </div>
+                            <p className="text-[11px] text-stone-500 font-medium mt-0.5">Test full live workflow for 2 hours</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-base font-extrabold text-stone-900">₹0</div>
+                          <div className="text-[10px] text-stone-500 font-semibold">2 Hours</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Security Note */}
+                  <div className="flex items-center gap-2 text-[11px] text-stone-500 bg-stone-100/70 p-2.5 rounded-xl border border-stone-200">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Secured by 256-bit encrypted Razorpay Payment Gateway.</span>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="grid grid-cols-2 gap-3 mt-1">
+                    <button
+                      type="button"
+                      onClick={prevRegisterStep}
+                      disabled={isSubmitting || isVerifying}
+                      className="btn btn-outline"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => triggerRazorpayCheckout(selectedPlan)}
+                      disabled={isSubmitting || isVerifying}
+                      className="btn btn-primary"
+                    >
+                      {isSubmitting || isVerifying ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>{isVerifying ? 'Verifying...' : 'Processing...'}</span>
+                        </>
+                      ) : selectedPlan === 'FREE_TRIAL' ? (
+                        <span>Activate Trial ✨</span>
+                      ) : (
+                        <span>Pay ₹{selectedPlan === 'LIFETIME_599' ? lifetimePrice : monthlyPrice} & Activate 💳</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
               )}
 
               {/* Bottom Switch Link */}
@@ -632,6 +916,75 @@ export default function ShopAuth() {
           )}
         </AnimatePresence>
       </motion.div>
+
+      {/* PAYMENT FAILED / CANCELLED MODAL */}
+      {showFailedModal && (
+        <div className="fixed inset-0 bg-stone-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-rose-200 flex flex-col gap-4 text-center"
+          >
+            <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-stone-900 font-heading">Payment Incomplete</h3>
+              <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+                {paymentError || 'Your payment was not completed. Shop Owner Dashboard access is locked until subscription payment is verified.'}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFailedModal(false)
+                  triggerRazorpayCheckout(selectedPlan)
+                }}
+                className="btn btn-primary w-full py-3 flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Retry Payment (₹{selectedPlan === 'LIFETIME_599' ? lifetimePrice : monthlyPrice})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFailedModal(false)}
+                className="btn btn-ghost text-xs text-stone-500 hover:text-stone-800"
+              >
+                Change Plan / Close
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* PAYMENT SUCCESS CELEBRATION MODAL */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-3xl p-7 max-w-sm w-full shadow-2xl border border-emerald-200 flex flex-col gap-4 text-center"
+          >
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-9 h-9" />
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
+                Subscription Active
+              </span>
+              <h3 className="text-xl font-extrabold text-stone-900 font-heading mt-2">Welcome to QR PrintPe!</h3>
+              <p className="text-xs text-stone-500 mt-1">
+                Your shop subscription is verified and active. Redirecting to your Owner Dashboard...
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-brand text-xs font-bold pt-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Launching Dashboard...</span>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Footer Links */}
       <div className="text-center text-xs font-semibold text-stone-500 flex items-center justify-center gap-4">

@@ -19,12 +19,56 @@ export const authenticateShop = async (req, res, next) => {
     if (!decoded || !decoded.shopId)
       return sendError(res, 401, 'Unauthorized: Invalid token payload')
 
-    const shop = await shopRepository.findById(decoded.shopId, { lean: true })
+    const shop = await shopRepository.findById(decoded.shopId)
 
     if (!shop)
       return sendError(res, 401, 'Unauthorized: Shop account not found')
 
-    req.shop = shop
+    // Check if subscription or demo period has expired
+    let isExpired = false
+    if (shop.isDemoAccount && shop.demoExpiresAt) {
+      if (new Date() > new Date(shop.demoExpiresAt)) {
+        isExpired = true
+      }
+    } else if (shop.subscriptionExpiresAt) {
+      if (new Date() > new Date(shop.subscriptionExpiresAt)) {
+        isExpired = true
+      }
+    } else if (shop.subscriptionStatus === 'PENDING_PAYMENT') {
+      isExpired = true
+    }
+
+    if (isExpired && shop.subscriptionStatus !== 'EXPIRED' && !shop.isDemoAccount) {
+      shop.subscriptionStatus = 'EXPIRED'
+      shop.isSubscriptionActive = false
+      await shop.save()
+    }
+
+    req.shop = shop.toObject ? shop.toObject() : shop
+    req.isSubscriptionActive = !isExpired && (shop.isSubscriptionActive || (shop.isDemoAccount && new Date() < new Date(shop.demoExpiresAt)))
+
+    // Allowed endpoints even when expired (for renewing and viewing status)
+    const openExpiredPaths = [
+      '/me',
+      '/profile',
+      '/logout',
+      '/create-subscription-order',
+      '/verify-subscription-payment',
+      '/settings',
+      '/refresh-token'
+    ]
+
+    const isPathAllowed = openExpiredPaths.some(p => req.path.endsWith(p) || req.originalUrl.includes(p))
+
+    if (isExpired && !isPathAllowed) {
+      return res.status(403).json({
+        success: false,
+        isSubscriptionExpired: true,
+        isSubscriptionActive: false,
+        message: 'Your subscription plan has expired. Please renew your subscription to continue using QR PrintPe.',
+      })
+    }
+
     next()
   } catch (error) {
     return sendError(res, 401, 'Unauthorized: Token expired or invalid', error.message)

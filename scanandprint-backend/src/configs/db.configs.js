@@ -13,7 +13,21 @@ export const connectDB = async () => {
 
     const options = { serverSelectionTimeoutMS: 5000, dbName: 'ScanAndPrintDB' };
 
-    const conn = await mongoose.connect(envConfig.mongoUri, options);
+    let conn;
+    try {
+      conn = await mongoose.connect(envConfig.mongoUri, options);
+    } catch (srvErr) {
+      if (envConfig.mongoUri.startsWith('mongodb+srv://')) {
+        console.warn('⚠️ SRV DNS lookup failed. Connecting via direct replica set hosts...');
+        const fallbackUri = envConfig.mongoUri
+          .replace('mongodb+srv://', 'mongodb://')
+          .replace('scanandprintcluster.44thqhk.mongodb.net', 'ac-7q7a7h9-shard-00-00.44thqhk.mongodb.net:27017,ac-7q7a7h9-shard-00-01.44thqhk.mongodb.net:27017,ac-7q7a7h9-shard-00-02.44thqhk.mongodb.net:27017')
+          + (envConfig.mongoUri.includes('?') ? '&' : '?') + 'ssl=true&authSource=admin';
+        conn = await mongoose.connect(fallbackUri, options);
+      } else {
+        throw srvErr;
+      }
+    }
 
     console.log(`✅ MongoDB Connected Successfully: ${conn.connection.host}`);
 

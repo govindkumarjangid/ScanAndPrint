@@ -9,18 +9,68 @@ const cookieOptions = {
   sameSite: 'lax',
 }
 
-// register a new shop
-export const registerShop = asyncHandler(async (req, res, next) => {
-  const { accessToken, refreshToken, shop } = await authService.register(req.body)
+// 1. Initialize Shop Registration (Creates Razorpay Order or Free Trial)
+export const registerInit = asyncHandler(async (req, res, next) => {
+  const result = await authService.registerInit(req.body)
 
-  res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 }) // 15 mins
+  if (result.isFreeTrial && result.tokens) {
+    const { accessToken, refreshToken, shop } = result.tokens
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
+    return sendSuccess(res, 201, '2-Hour Free Demo access activated successfully!', {
+      isFreeTrial: true,
+      token: accessToken,
+      shop,
+    })
+  }
 
-  res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }) // 7 days
+  return sendSuccess(res, 201, 'Subscription Order created. Please complete payment to activate shop.', {
+    isFreeTrial: false,
+    ...result,
+  })
+})
 
-  return sendSuccess(res, 201, 'Shop registered successfully! Welcome to QR PrintPe.', {
+// 2. Cryptographically Verify Razorpay Subscription Payment & Activate Dashboard
+export const verifySubscriptionPayment = asyncHandler(async (req, res, next) => {
+  const { accessToken, refreshToken, shop } = await authService.verifySubscriptionPayment(req.body)
+
+  res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
+  res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 })
+
+  return sendSuccess(res, 200, '🎉 Payment Verified Successfully! Your shop subscription is active.', {
     token: accessToken,
     shop,
   })
+})
+
+// 3. Create Subscription / Renewal Order for Existing / Expired Shop
+export const createSubscriptionOrder = asyncHandler(async (req, res, next) => {
+  const shopId = req.shop?._id || req.body?.shopId
+  const { planType } = req.body
+
+  if (!shopId) {
+    return res.status(400).json({ success: false, message: 'Shop ID is required' })
+  }
+
+  const result = await authService.createRenewalOrder(shopId, planType)
+  return sendSuccess(res, 200, 'Subscription Order generated successfully', result)
+})
+
+// register a new shop (Direct fallback)
+export const registerShop = asyncHandler(async (req, res, next) => {
+  const result = await authService.registerInit(req.body)
+
+  if (result.isFreeTrial && result.tokens) {
+    const { accessToken, refreshToken, shop } = result.tokens
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
+    return sendSuccess(res, 201, 'Shop registered successfully! Welcome to QR PrintPe.', {
+      token: accessToken,
+      shop,
+    })
+  }
+
+  return sendSuccess(res, 201, 'Subscription Order created. Please complete payment to activate.', result)
 })
 
 // 2-Hour free trial demo registration
