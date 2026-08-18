@@ -7,6 +7,9 @@ export const useJobStore = create((set, get) => ({
   analytics: null,
   isLoading: false,
   isRefreshing: false,
+  lastRefreshedAt: 0,
+  currentCooldownDuration: 15,
+  consecutiveRefreshCount: 0,
   error: null,
   pagination: {
     totalCount: 0,
@@ -45,13 +48,45 @@ export const useJobStore = create((set, get) => ({
   },
 
   refreshJobs: async (page = 1, limit = 10, status = '') => {
+    const now = Date.now()
+    const last = get().lastRefreshedAt || 0
+    const cooldownSec = get().currentCooldownDuration || 15
+    const timeSinceLast = (now - last) / 1000
+
+    if (timeSinceLast < cooldownSec) {
+      const waitTime = Math.ceil(cooldownSec - timeSinceLast)
+      toast(`Queue is up to date! Next refresh available in ${waitTime}s`, {
+        id: 'refresh-cooldown',
+        icon: '⏳',
+      })
+      return false
+    }
+
     try {
-      set({ isRefreshing: true })
+      // Determine if consecutive click within 90s of previous cooldown
+      const isConsecutive = last > 0 && ((now - last) < ((cooldownSec + 90) * 1000))
+      const nextCount = isConsecutive ? (get().consecutiveRefreshCount + 1) : 1
+      
+      let nextCooldown = 15
+      if (nextCount === 1) nextCooldown = 15
+      else if (nextCount === 2) nextCooldown = 30
+      else if (nextCount === 3) nextCooldown = 60
+      else nextCooldown = 120
+
+      set({
+        isRefreshing: true,
+        lastRefreshedAt: now,
+        consecutiveRefreshCount: nextCount,
+        currentCooldownDuration: nextCooldown,
+      })
+
       await get().fetchJobs(page, limit, status)
       await get().fetchAnalytics()
-      toast.success('Orders queue refreshed!')
+      toast.success('Orders queue refreshed!', { id: 'refresh-success' })
+      return nextCooldown
     } catch (error) {
       toast.error('Failed to refresh orders')
+      return false
     } finally {
       set({ isRefreshing: false })
     }
@@ -65,6 +100,61 @@ export const useJobStore = create((set, get) => ({
       }
     } catch (error) {
       console.warn('Analytics fetch warning:', error)
+    }
+  },
+
+  triggerPrintNow: async (jobId) => {
+    try {
+      const res = await api.post(`/jobs/${jobId}/print-now`)
+      if (res.data.success) {
+        toast.success('🖨️ Print command sent to hardware printer!')
+        set((state) => ({
+          jobs: state.jobs.map((j) =>
+            j.jobId === jobId ? { ...j, status: 'DISPATCHED_TO_AGENT' } : j
+          ),
+        }))
+        return true
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to trigger print'
+      toast.error(msg)
+      return false
+    }
+  },
+
+  cancelJob: async (jobId) => {
+    try {
+      const res = await api.post(`/jobs/${jobId}/cancel`)
+      if (res.data.success) {
+        toast.success('❌ Job cancelled & removed from spooler!')
+        set((state) => ({
+          jobs: state.jobs.map((j) =>
+            j.jobId === jobId ? { ...j, status: 'PRINT_FAILED' } : j
+          ),
+        }))
+        return true
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to cancel job'
+      toast.error(msg)
+      return false
+    }
+  },
+
+  deleteJob: async (jobId) => {
+    try {
+      const res = await api.delete(`/jobs/${jobId}`)
+      if (res.data.success) {
+        toast.success('🗑️ Order record deleted from database!')
+        set((state) => ({
+          jobs: state.jobs.filter((j) => j.jobId !== jobId && j._id !== jobId),
+        }))
+        return true
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to delete job'
+      toast.error(msg)
+      return false
     }
   },
 }))

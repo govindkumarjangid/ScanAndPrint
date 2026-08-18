@@ -1,11 +1,11 @@
 import ptp from 'pdf-to-printer'
 import path from 'path'
 import fs from 'fs'
-import { app } from 'electron'
 
 function logToFile(line) {
   try {
-    const logDir = path.join(app.getPath('userData'), 'logs')
+    const baseDir = process.env.APPDATA ? path.join(process.env.APPDATA, 'print-pe-agent') : (process.env.TEMP || '/tmp')
+    const logDir = path.join(baseDir, 'logs')
     if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true })
     const logPath = path.join(logDir, 'agent.log')
     fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${line}\n`)

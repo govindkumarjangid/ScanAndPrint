@@ -4,6 +4,7 @@ import fs from 'fs'
 import ptp from 'pdf-to-printer'
 import configStore from '../store/configStore.js'
 import { ensurePdfBuffer } from '../utils/pdfConverter.js'
+import printerManager from './printerManager.js'
 
 class PrintService {
   constructor() {
@@ -27,7 +28,7 @@ class PrintService {
    */
   async executePrintJob(jobData) {
     const { jobId, fileUrl, downloadUrl, colorType, copies = 1, targetPrinterName } = jobData
-    console.log(`[PrintService] Processing Job #${jobId}...`, { colorType, copies, fileUrl })
+    console.log(`[PrintService] 🖨️ Processing Job #${jobId}...`, { colorType, copies, fileUrl: fileUrl?.slice?.(0, 40) })
 
     const tempFilePath = path.join(this.tempDir, `job_${jobId}_${Date.now()}.pdf`)
 
@@ -44,17 +45,22 @@ class PrintService {
         const serverUrl = configStore.get('serverUrl') || 'https://scanandprint.onrender.com'
         const candidateUrls = []
 
+        // Local & Remote fallback URLs
         if (downloadUrl) {
-          candidateUrls.push(
-            downloadUrl.startsWith('http')
-              ? downloadUrl
-              : `${serverUrl.replace(/\/+$/, '')}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`
-          )
+          if (downloadUrl.startsWith('http')) {
+            candidateUrls.push(downloadUrl)
+          } else {
+            candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
+            candidateUrls.push(`http://localhost:5000${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
+            candidateUrls.push(`http://127.0.0.1:5000${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
+          }
         }
         if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://'))) {
           candidateUrls.push(fileUrl)
         }
         candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}/api/kiosk/download/${jobId}`)
+        candidateUrls.push(`http://localhost:5000/api/kiosk/download/${jobId}`)
+        candidateUrls.push(`http://127.0.0.1:5000/api/kiosk/download/${jobId}`)
 
         for (const targetUrl of candidateUrls) {
           try {
@@ -63,25 +69,20 @@ class PrintService {
               method: 'GET',
               url: targetUrl,
               responseType: 'arraybuffer',
-              timeout: 25000,
+              timeout: 15000,
               maxRedirects: 5,
             })
 
             if (response.status === 200 && response.data && response.data.byteLength > 0) {
               const buf = Buffer.from(response.data)
-              // Verify PDF signature (%PDF) or valid binary buffer
-              if (buf.length > 10 && buf.toString('utf8', 0, 4) === '%PDF') {
+              if (buf.length > 10) {
                 fileBuffer = buf
-                console.log(`[PrintService] Successfully verified & downloaded PDF (${fileBuffer.length} bytes) from: ${targetUrl}`)
-                break
-              } else if (buf.length > 50) {
-                fileBuffer = buf
-                console.log(`[PrintService] Downloaded document file (${fileBuffer.length} bytes) from: ${targetUrl}`)
+                console.log(`[PrintService] ✅ Downloaded document (${fileBuffer.length} bytes) from: ${targetUrl}`)
                 break
               }
             }
           } catch (dlErr) {
-            console.warn(`[PrintService] Download attempt failed for ${targetUrl}:`, dlErr.message)
+            // Try next candidate URL
           }
         }
       }
@@ -94,7 +95,7 @@ class PrintService {
       fileBuffer = await ensurePdfBuffer(fileBuffer, jobData.originalFileName || `${jobId}.pdf`)
 
       fs.writeFileSync(tempFilePath, fileBuffer)
-      console.log(`[PrintService] Saved verified local print file: ${tempFilePath} (${fileBuffer.length} bytes)`)
+      console.log(`[PrintService] Saved local print file: ${tempFilePath} (${fileBuffer.length} bytes)`)
 
       // Determine Target Printer (B&W vs Color or Explicit target)
       const config = configStore.getAll()
@@ -108,6 +109,24 @@ class PrintService {
         }
       }
 
+      // Auto-detect physical printer if virtual driver is selected
+      try {
+        const availablePrinters = await printerManager.getAvailablePrinters(2, 1000)
+        if (!selectedPrinter || selectedPrinter === 'Microsoft Print to PDF') {
+          const physical = availablePrinters.find(
+            (p) =>
+              !p.name.includes('Print to PDF') &&
+              !p.name.includes('OneNote') &&
+              !p.name.includes('XPS') &&
+              !p.name.includes('Fax')
+          )
+          if (physical) {
+            selectedPrinter = physical.name
+            console.log(`[PrintService] Auto-selected hardware printer: ${selectedPrinter}`)
+          }
+        }
+      } catch (pErr) {}
+
       console.log(`[PrintService] Sending silent print job to printer: ${selectedPrinter || 'System Default'}`)
 
       // Execute Silent Hardware Print via pdf-to-printer
@@ -119,12 +138,16 @@ class PrintService {
         printOptions.printer = selectedPrinter
       }
 
-      await ptp.print(tempFilePath, printOptions)
-
-      console.log(`[PrintService] Hardware print executed successfully for Job #${jobId}`)
+      try {
+        await ptp.print(tempFilePath, printOptions)
+        console.log(`[PrintService] ✅ Hardware print executed successfully via SumatraPDF for Job #${jobId}`)
+      } catch (printErr) {
+        console.warn(`[PrintService] pdf-to-printer error (${printErr.message}), executing Windows PowerShell Spooler fallback...`)
+        await this.fallbackWindowsPrint(tempFilePath, selectedPrinter)
+      }
 
       // Auto-Purge File Immediately for 100% Privacy
-      this.purgeFile(tempFilePath)
+      setTimeout(() => this.purgeFile(tempFilePath), 3000)
 
       return {
         success: true,
@@ -134,10 +157,35 @@ class PrintService {
       }
     } catch (err) {
       console.error(`[PrintService] Failed to print Job #${jobId}:`, err.message)
-
       this.purgeFile(tempFilePath)
       throw new Error(`Print execution failed: ${err.message}`)
     }
+  }
+
+  /**
+   * Windows Native Spooler Fallback
+   */
+  async fallbackWindowsPrint(filePath, printerName) {
+    const { exec } = await import('child_process')
+    return new Promise((resolve, reject) => {
+      let cmd = ''
+      const safePath = filePath.replace(/'/g, "''")
+      if (printerName) {
+        const safePrinter = printerName.replace(/'/g, "''")
+        cmd = `powershell -Command "Start-Process -FilePath '${safePath}' -Verb PrintTo -ArgumentList '${safePrinter}' -PassThru | Out-Null"`
+      } else {
+        cmd = `powershell -Command "Start-Process -FilePath '${safePath}' -Verb Print -PassThru | Out-Null"`
+      }
+      exec(cmd, { timeout: 15000 }, (error) => {
+        if (error) {
+          console.error('[PrintService] Windows fallback print error:', error.message)
+          reject(error)
+        } else {
+          console.log('[PrintService] ✅ Windows fallback print queued in Spooler')
+          resolve(true)
+        }
+      })
+    })
   }
 
   /**

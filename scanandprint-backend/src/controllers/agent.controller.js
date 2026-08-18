@@ -8,12 +8,46 @@ import { agentService } from '../services/agent.service.js'
 import { sendSuccess, sendError } from '../utils/apiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ensurePdfBuffer } from '../utils/pdfConverter.util.js'
+import { activeAgentsMap } from '../socket.js'
 
 const execFileAsync = promisify(execFile)
 
 export const handleAgentAuth = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 200, 'Agent Authenticated', {
     shop: req.shop,
+  })
+})
+
+import { shopRepository } from '../repositories/shop.repository.js'
+
+// Query real-time in-memory Agent online status with cloud/multi-instance heartbeat fallback
+export const getLiveAgentStatus = asyncHandler(async (req, res, next) => {
+  const shopCode = String(req.params.shopCode || req.query.shopCode || '').trim().toUpperCase()
+  let isOnline = Boolean(shopCode && activeAgentsMap.has(shopCode))
+  let agentInfo = isOnline ? activeAgentsMap.get(shopCode) : null
+  let printers = agentInfo?.printers || []
+
+  // If not in local RAM (e.g. Agent is connected to Cloud Render instance), check DB heartbeat (<90s)
+  if (!isOnline && shopCode) {
+    try {
+      const shop = await shopRepository.findByCode(shopCode)
+      if (shop && shop.isOnline && shop.lastHeartbeatAt) {
+        const diffMs = Date.now() - new Date(shop.lastHeartbeatAt).getTime()
+        if (diffMs < 90000) {
+          isOnline = true
+          printers = shop.connectedPrinters || []
+        }
+      }
+    } catch (e) {
+      console.warn('[AgentStatus] Fallback check warning:', e.message)
+    }
+  }
+
+  return sendSuccess(res, 200, 'Live agent status retrieved', {
+    isOnline,
+    shopCode,
+    printers,
+    connectedAt: agentInfo?.connectedAt || null,
   })
 })
 

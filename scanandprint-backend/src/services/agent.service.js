@@ -2,6 +2,9 @@ import { agentRepository } from '../repositories/agent.repository.js'
 import { shopRepository } from '../repositories/shop.repository.js'
 import { jobRepository } from '../repositories/job.repository.js'
 
+import path from 'path'
+import fs from 'fs'
+
 export const agentService = {
 
   // Register an agent session when it connects
@@ -64,6 +67,17 @@ export const agentService = {
   async handleJobSuccess(jobId, printerName) {
     if (!jobId) throw new Error('Job ID missing')
     await jobRepository.updateJobStatus(jobId, 'PRINTED_SUCCESSFULLY', { printedPrinterName: printerName || '' })
+
+    // Auto-delete local upload file for 100% privacy and disk cleanup
+    try {
+      const filePath = path.join(process.cwd(), 'uploads', 'jobs', `${jobId}.pdf`)
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+        console.log(`[Storage Cleanup] 🗑️ Auto-deleted uploads file for printed job #${jobId}`)
+      }
+    } catch (e) {
+      console.warn(`[Storage Cleanup Warning] Failed to delete file for #${jobId}:`, e.message)
+    }
   },
 
   // handle job failure and update the job status

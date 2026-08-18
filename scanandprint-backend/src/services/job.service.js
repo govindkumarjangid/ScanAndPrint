@@ -31,6 +31,21 @@ export const jobService = {
   // Get queued jobs for a specific shop by its code
   async getQueuedJobs(shopCode) {
     return await jobRepository.getQueuedJobsByShopCode(shopCode)
-  }
+  },
+
+  // Get job by jobId
+  async getJobByJobId(jobId) {
+    return await jobRepository.findByJobId(jobId)
+  },
+
+  // Update status of a job
+  async updateStatus(jobId, status, extraData = {}) {
+    return await jobRepository.updateJobStatus(jobId, status, extraData)
+  },
+
+  // Delete job by jobId and shopId
+  async deleteJob(jobId, shopId) {
+    return await jobRepository.deleteByJobId(jobId, shopId)
+  },
 
 }

@@ -39,6 +39,7 @@ export const jobRepository = {
 
     const [jobs, totalCount] = await Promise.all([
       PrintJob.find(filter)
+        .select('jobId shopCode originalFileName totalPages copies colorType isDuplex totalAmount status createdAt paymentGateway paymentTxnId customerPhone')
         .sort({ createdAt: -1 })
         .skip(Number(skip))
         .limit(Number(limit))
@@ -117,5 +118,9 @@ export const jobRepository = {
       shopCode,
       status: 'PAYMENT_VERIFIED',
     }).lean()
+  },
+
+  async deleteByJobId(jobId, shopId) {
+    return await PrintJob.findOneAndDelete({ jobId, shopId })
   }
 }

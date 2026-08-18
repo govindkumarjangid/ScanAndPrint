@@ -12,7 +12,10 @@ import {
   ChevronRight,
   Filter,
   ChevronDown,
+  X,
+  Trash2,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useJobStore } from '../../store/useJobStore'
 
 export default function OwnerJobs() {
@@ -20,21 +23,83 @@ export default function OwnerJobs() {
   const [appliedSearch, setAppliedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [currentPage, setCurrentPage] = useState(1)
+  const [isSearching, setIsSearching] = useState(false)
+  const [cooldown, setCooldown] = useState(0)
+  const [actionLoadingId, setActionLoadingId] = useState(null)
   const { jobs, pagination, fetchJobs, refreshJobs, isLoading, isRefreshing } = useJobStore()
 
   useEffect(() => {
     fetchJobs(currentPage, 10, statusFilter)
   }, [fetchJobs, currentPage, statusFilter])
 
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = setInterval(() => {
+      setCooldown((c) => (c > 0 ? c - 1 : 0))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [cooldown])
+
   const handleStatusChange = (st) => {
     setStatusFilter(st)
     setCurrentPage(1)
   }
 
-  const handleSearchSubmit = (e) => {
+  const handleRefresh = async () => {
+    if (cooldown > 0) {
+      toast(`Queue is already up to date! Wait ${cooldown >= 60 ? Math.ceil(cooldown / 60) + ' min' : cooldown + 's'}`, {
+        id: 'cooldown-toast',
+        icon: '⏳',
+      })
+      return
+    }
+    const nextCooldown = await refreshJobs(currentPage, 10, statusFilter)
+    if (typeof nextCooldown === 'number' && nextCooldown > 0) {
+      setCooldown(nextCooldown)
+    }
+  }
+
+  const handleSearchSubmit = async (e) => {
     e?.preventDefault()
-    setAppliedSearch(searchInput.trim())
-    setCurrentPage(1)
+    const query = searchInput.trim()
+
+    if (!query) {
+      toast.error('Please enter a Job ID, filename, or phone number to search', {
+        id: 'search-empty-warn',
+      })
+      return
+    }
+
+    try {
+      setIsSearching(true)
+      setAppliedSearch(query)
+      setCurrentPage(1)
+      await fetchJobs(1, 10, statusFilter)
+
+      // Check results from store
+      const currentJobs = useJobStore.getState().jobs || []
+      const q = query.toLowerCase()
+      const matchCount = currentJobs.filter((j) => {
+        const fileName = (j.originalFileName || j.file || '').toLowerCase()
+        const jobId = (j.jobId || j.id || '').toLowerCase()
+        const phone = (j.customerPhone || '').toLowerCase()
+        return fileName.includes(q) || jobId.includes(q) || phone.includes(q)
+      }).length
+
+      if (matchCount > 0) {
+        toast.success(`Found ${matchCount} matching order${matchCount > 1 ? 's' : ''}!`, {
+          id: 'search-result-toast',
+        })
+      } else {
+        toast.error(`No orders found matching "${query}"`, {
+          id: 'search-result-toast',
+        })
+      }
+    } catch (err) {
+      toast.error('Search failed, please try again')
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   const filteredJobs = jobs.filter((j) => {
@@ -53,31 +118,46 @@ export default function OwnerJobs() {
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading">
-            Print Orders Queue & History
-          </h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading">
+              Print Orders Queue & History
+            </h1>
+            <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Live Sync Active</span>
+            </span>
+          </div>
           <p className="text-stone-500 text-sm mt-0.5 font-medium">
             Monitor real-time incoming auto-print documents and order statuses
           </p>
         </div>
 
         <button
-          onClick={() => refreshJobs(currentPage, 10, statusFilter)}
-          disabled={isLoading || isRefreshing}
-          className="btn btn-secondary bg-stone-200! hover:bg-stone-300! text-stone-800! btn-sm flex items-center gap-2"
+          onClick={handleRefresh}
+          disabled={isLoading || isRefreshing || isSearching || cooldown > 0}
+          className={`btn btn-sm flex items-center gap-2 transition-all ${cooldown > 0
+              ? 'bg-stone-100! text-stone-400! border border-stone-200! cursor-not-allowed'
+              : 'btn-secondary bg-stone-200! hover:bg-stone-300! text-stone-800!'
+            }`}
         >
           {isRefreshing || isLoading ? (
             <Loader2 className="w-4 h-4 animate-spin text-brand" />
           ) : (
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${cooldown > 0 ? 'text-stone-400' : ''}`} />
           )}
-          <span>{isRefreshing ? 'Refreshing...' : 'Refresh Queue'}</span>
+          <span>
+            {isRefreshing
+              ? 'Refreshing...'
+              : cooldown > 0
+                ? `Refresh in ${cooldown >= 60 ? `${Math.floor(cooldown / 60)}m ${cooldown % 60 ? (cooldown % 60) + 's' : ''}` : `${cooldown}s`}`
+                : 'Refresh Queue'}
+          </span>
         </button>
       </div>
 
       {/* Filter & Search Bar */}
       <div className="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-        
+
         {/* Search Input & Button */}
         <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5 w-full sm:w-auto flex-1 max-w-md">
           <div className="relative flex-1">
@@ -99,10 +179,20 @@ export default function OwnerJobs() {
           </div>
           <button
             type="submit"
-            className="btn btn-primary h-10 px-4 text-xs font-extrabold flex items-center gap-1.5 shrink-0 rounded-xl shadow-2xs"
+            disabled={isSearching || isLoading}
+            className="btn btn-primary h-10 px-4 text-xs font-extrabold flex items-center gap-1.5 shrink-0 rounded-xl shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Search className="w-3.5 h-3.5" />
-            <span>Search</span>
+            {isSearching ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Searching...</span>
+              </>
+            ) : (
+              <>
+                <Search className="w-3.5 h-3.5" />
+                <span>Search</span>
+              </>
+            )}
           </button>
         </form>
 
@@ -132,29 +222,31 @@ export default function OwnerJobs() {
           <table className="w-full text-left text-sm border-collapse block md:table md:table-fixed">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-stone-200/80 text-stone-500 font-bold text-xs uppercase tracking-wider">
-                <th className="py-3.5 px-3 md:w-[16%]">Job ID</th>
-                <th className="py-3.5 px-3 md:w-[25%]">Document File</th>
+                <th className="py-3.5 px-3 md:w-[15%]">Job ID</th>
+                <th className="py-3.5 px-3 md:w-[21%]">Document File</th>
                 <th className="py-3.5 px-3 md:w-[10%]">Customer</th>
-                <th className="py-3.5 px-3 md:w-[12%]">Pages / Copies</th>
-                <th className="py-3.5 px-3 md:w-[7%]">Type</th>
+                <th className="py-3.5 px-3 md:w-[10%]">Pages / Copies</th>
+                <th className="py-3.5 px-3 md:w-[6%]">Type</th>
                 <th className="py-3.5 px-3 md:w-[7%]">Amount</th>
-                <th className="py-3.5 px-3 md:w-[11%]">Time</th>
-                <th className="py-3.5 px-3 md:w-[12%] text-right">Status</th>
+                <th className="py-3.5 px-3 md:w-[9%]">Time</th>
+                <th className="py-3.5 px-3 md:w-[10%] text-center">Status</th>
+                <th className="py-3.5 px-3 md:w-[12%] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="block md:table-row-group space-y-4 md:space-y-0 md:divide-y md:divide-stone-100">
-              {isLoading && jobs.length === 0 ? (
+              {isLoading ? (
                 <tr>
-                  <td colSpan="8" className="py-8 text-center text-stone-500 font-medium">
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin text-brand" />
-                      <span>Loading orders from database...</span>
+                  <td colSpan="9" className="py-16 text-center text-stone-500 font-medium">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-brand" />
+                      <span className="text-sm font-semibold text-stone-700">Loading print orders...</span>
+                      <span className="text-xs text-stone-400">Fetching orders queue from database</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredJobs.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-8 text-center text-stone-500 font-medium">
+                  <td colSpan="9" className="py-12 text-center text-stone-500 font-medium">
                     No print jobs match your search/filter criteria.
                   </td>
                 </tr>
@@ -170,40 +262,37 @@ export default function OwnerJobs() {
                       <span className="truncate block font-mono text-stone-900" title={j.jobId || j.id}>{j.jobId || j.id}</span>
                     </td>
 
-                    {/* Document File */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 font-semibold text-stone-800 overflow-hidden">
-                      <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0 mr-2">File</span>
-                      <span
-                        className="truncate block max-w-[160px] sm:max-w-[280px] md:max-w-full text-right md:text-left text-xs sm:text-sm font-medium text-stone-800"
-                        title={j.originalFileName || j.file || 'Document.pdf'}
-                      >
-                        {j.originalFileName || j.file || 'Document.pdf'}
-                      </span>
+                    {/* File Name */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 overflow-hidden">
+                      <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">File</span>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <FileText className="w-4 h-4 text-stone-400 shrink-0 hidden sm:block" />
+                        <span className="font-bold text-stone-800 truncate block text-xs" title={j.originalFileName || j.fileName || 'document.pdf'}>
+                          {j.originalFileName || j.fileName || 'document.pdf'}
+                        </span>
+                      </div>
                     </td>
 
-                    {/* Customer */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 text-xs font-mono text-stone-600 overflow-hidden whitespace-nowrap">
+                    {/* Customer Phone */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 text-xs font-medium text-stone-600 overflow-hidden">
                       <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Customer</span>
-                      <span className="truncate block">{j.customerPhone || 'Counter'}</span>
+                      <span className="truncate block">{j.customerPhone ? `+91 ${j.customerPhone}` : 'Counter Walk-in'}</span>
                     </td>
 
-                    {/* Pages / Copies */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 text-xs font-medium text-stone-600 overflow-hidden whitespace-nowrap">
-                      <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Details</span>
-                      <span className="truncate block">
-                        {j.totalPages || j.pages || 1} p × {j.copies || 1} c
-                      </span>
+                    {/* Pages & Copies */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 text-xs font-medium text-stone-600 overflow-hidden">
+                      <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Pages/Copies</span>
+                      <span className="truncate block">{j.totalPages || 1}p × {j.copies || 1}c {j.isDuplex ? '(2-Sided)' : ''}</span>
                     </td>
 
                     {/* Type */}
                     <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 whitespace-nowrap">
                       <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Type</span>
                       <span
-                        className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${
-                          (j.colorType === 'COLOR' || j.type === 'Color')
+                        className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${(j.colorType === 'COLOR' || j.type === 'Color')
                             ? 'bg-rose-100 text-rose-800'
                             : 'bg-stone-200 text-stone-800'
-                        }`}
+                          }`}
                       >
                         {(j.colorType === 'COLOR' || j.type === 'Color') ? 'Color' : 'B&W'}
                       </span>
@@ -222,9 +311,9 @@ export default function OwnerJobs() {
                     </td>
 
                     {/* Status */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 pb-1 md:pb-4 whitespace-nowrap text-right">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 pb-1 md:pb-4 whitespace-nowrap text-center">
                       <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Status</span>
-                      <div className="flex items-center md:justify-end">
+                      <div className="flex items-center md:justify-center">
                         {(() => {
                           const s = String(j.status || '').toUpperCase()
                           if (s.includes('PRINTED') || s === 'COMPLETED' || s === 'SUCCESS') {
@@ -256,6 +345,82 @@ export default function OwnerJobs() {
                               <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                               <span>Pending</span>
                             </span>
+                          )
+                        })()}
+                      </div>
+                    </td>
+
+                    {/* Actions Column */}
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 whitespace-nowrap text-right">
+                      <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Actions</span>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {(() => {
+                          const s = String(j.status || '').toUpperCase()
+                          const isBusy = actionLoadingId === j.jobId
+
+                          if (s.includes('PRINTED') || s === 'COMPLETED' || s === 'SUCCESS') {
+                            return (
+                              <button
+                                onClick={async () => {
+                                  setActionLoadingId(j.jobId)
+                                  await useJobStore.getState().deleteJob(j.jobId)
+                                  setActionLoadingId(null)
+                                }}
+                                disabled={isBusy}
+                                title="Delete completed order from database"
+                                className="btn btn-xs bg-stone-100 hover:bg-rose-50 text-stone-600 hover:text-rose-600 border border-stone-200 hover:border-rose-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-stone-500" /> : <Trash2 className="w-3 h-3 text-stone-500" />}
+                                <span>Delete</span>
+                              </button>
+                            )
+                          }
+                          if (s.includes('FAIL') || s.includes('CANCEL')) {
+                            return (
+                              <button
+                                onClick={async () => {
+                                  setActionLoadingId(j.jobId)
+                                  await useJobStore.getState().triggerPrintNow(j.jobId)
+                                  setActionLoadingId(null)
+                                }}
+                                disabled={isBusy}
+                                title="Retry print to hardware printer"
+                                className="btn btn-xs bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-amber-600" /> : <RefreshCw className="w-3 h-3 text-amber-600" />}
+                                <span>Retry</span>
+                              </button>
+                            )
+                          }
+                          return (
+                            <>
+                              <button
+                                onClick={async () => {
+                                  setActionLoadingId(j.jobId)
+                                  await useJobStore.getState().triggerPrintNow(j.jobId)
+                                  setActionLoadingId(null)
+                                }}
+                                disabled={isBusy}
+                                title="Approve & Send directly to Windows hardware printer"
+                                className="btn btn-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-extrabold px-2.5 py-1 flex items-center gap-1 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-white" /> : <Printer className="w-3 h-3" />}
+                                <span>{isBusy ? 'Printing...' : 'Print'}</span>
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  setActionLoadingId(j.jobId)
+                                  await useJobStore.getState().cancelJob(j.jobId)
+                                  setActionLoadingId(null)
+                                }}
+                                disabled={isBusy}
+                                title="Cancel and delete print job from queue"
+                                className="btn btn-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                <X className="w-3 h-3" />
+                                <span>Cancel</span>
+                              </button>
+                            </>
                           )
                         })()}
                       </div>
@@ -301,11 +466,10 @@ export default function OwnerJobs() {
                       <button
                         onClick={() => setCurrentPage(p)}
                         disabled={isLoading}
-                        className={`w-8 h-8 rounded-xl text-xs font-extrabold flex items-center justify-center transition-all ${
-                          currentPage === p
+                        className={`w-8 h-8 rounded-xl text-xs font-extrabold flex items-center justify-center transition-all ${currentPage === p
                             ? 'bg-brand text-white shadow-2xs'
                             : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                        }`}
+                          }`}
                       >
                         {p}
                       </button>

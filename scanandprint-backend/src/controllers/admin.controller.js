@@ -73,32 +73,144 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
   })
 })
 
-// get all shops
+import { activeAgentsMap } from '../socket.js'
+
+// get all shops with pagination & search
 export const getShops = asyncHandler(async (req, res) => {
-  const shops = await Shop.find()
-    .select('-passwordHash')
-    .sort({ createdAt: -1 })
-    .lean()
-  return sendSuccess(res, 200, 'Shops fetched successfully', shops)
+  const { page = 1, limit = 10, search = '' } = req.query
+  const query = {}
+
+  if (search && search.trim()) {
+    const regex = new RegExp(search.trim(), 'i')
+    query.$or = [{ shopName: regex }, { shopCode: regex }, { email: regex }, { phone: regex }]
+  }
+
+  const skip = (Number(page) - 1) * Number(limit)
+  const [shops, totalCount] = await Promise.all([
+    Shop.find(query)
+      .select('-passwordHash')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean(),
+    Shop.countDocuments(query),
+  ])
+
+  return sendSuccess(res, 200, 'Shops fetched successfully', {
+    shops,
+    pagination: {
+      totalCount,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalCount / Number(limit)) || 1,
+      limit: Number(limit),
+    },
+  })
 })
 
-// get all agents (fixed populate to shopId)
+// get all agents (Strictly 1 row per shop with Live In-Memory Socket data & system details)
 export const getAgents = asyncHandler(async (req, res) => {
-  const agents = await PrintAgent.find()
-    .populate('shopId', 'shopName email shopCode isOnline connectedPrinters')
-    .sort({ isConnected: -1, createdAt: -1 })
+  const { page = 1, limit = 10, search = '', status = '' } = req.query
+  const query = {}
+
+  if (search && search.trim()) {
+    const regex = new RegExp(search.trim(), 'i')
+    query.$or = [{ shopName: regex }, { shopCode: regex }, { email: regex }]
+  }
+
+  // Fetch all shops from DB
+  const shops = await Shop.find(query)
+    .select('shopName ownerName email phone shopCode address cityState connectedPrinters isOnline lastHeartbeatAt createdAt')
+    .sort({ createdAt: -1 })
     .lean()
-  return sendSuccess(res, 200, 'Agents fetched successfully', agents)
+
+  // Map each shop with its LIVE Socket and system info
+  const mappedAgents = shops.map((shop) => {
+    const cleanCode = String(shop.shopCode || '').trim().toUpperCase()
+    const isSocketOnline = activeAgentsMap.has(cleanCode) || activeAgentsMap.has(String(shop._id))
+    const agentData = activeAgentsMap.get(cleanCode) || activeAgentsMap.get(String(shop._id))
+
+    const isRecentHeartbeat = shop.isOnline && shop.lastHeartbeatAt && ((Date.now() - new Date(shop.lastHeartbeatAt).getTime()) < 90000)
+    const isOnline = Boolean(isSocketOnline || isRecentHeartbeat)
+
+    return {
+      _id: shop._id,
+      shopId: {
+        _id: shop._id,
+        shopName: shop.shopName,
+        email: shop.email,
+        shopCode: shop.shopCode,
+        phone: shop.phone,
+        address: shop.address || shop.cityState || 'Local Store',
+      },
+      socketId: agentData?.socketId ? `${agentData.socketId.slice(0, 10)}...` : (isOnline ? 'Active' : 'Offline'),
+      ipAddress: agentData?.ipAddress || (isOnline ? '127.0.0.1 (Localhost)' : '—'),
+      agentVersion: agentData?.agentVersion || 'v1.0.0',
+      osArch: agentData?.osArch || 'win32 (64-bit)',
+      connectedPrinters: agentData?.printers?.length ? agentData.printers : (shop.connectedPrinters || []),
+      isConnected: isOnline,
+      isOnline: isOnline,
+      lastHeartbeatAt: agentData?.connectedAt || shop.lastHeartbeatAt || null,
+      createdAt: shop.createdAt,
+    }
+  })
+
+  // Filter by online/offline if requested
+  let filtered = mappedAgents
+  if (status === 'ONLINE') {
+    filtered = mappedAgents.filter((a) => a.isOnline)
+  } else if (status === 'OFFLINE') {
+    filtered = mappedAgents.filter((a) => !a.isOnline)
+  }
+
+  const totalCount = filtered.length
+  const skip = (Number(page) - 1) * Number(limit)
+  const paginatedAgents = filtered.slice(skip, skip + Number(limit))
+
+  return sendSuccess(res, 200, 'Agents fetched successfully', {
+    agents: paginatedAgents,
+    pagination: {
+      totalCount,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalCount / Number(limit)) || 1,
+      limit: Number(limit),
+    },
+  })
 })
 
-// get all transactions (fixed populate to shopId)
+// get all transactions with pagination & status filtering
 export const getTransactions = asyncHandler(async (req, res) => {
-  const transactions = await PrintJob.find()
-    .populate('shopId', 'shopName email shopCode')
-    .sort({ createdAt: -1 })
-    .limit(100)
-    .lean()
-  return sendSuccess(res, 200, 'Transactions fetched successfully', transactions)
+  const { page = 1, limit = 10, search = '', status = '' } = req.query
+  const query = {}
+
+  if (status && status !== 'ALL') {
+    query.status = status
+  }
+
+  if (search && search.trim()) {
+    const regex = new RegExp(search.trim(), 'i')
+    query.$or = [{ jobId: regex }, { shopCode: regex }, { customerPhone: regex }, { originalFileName: regex }]
+  }
+
+  const skip = (Number(page) - 1) * Number(limit)
+  const [transactions, totalCount] = await Promise.all([
+    PrintJob.find(query)
+      .populate('shopId', 'shopName email shopCode')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean(),
+    PrintJob.countDocuments(query),
+  ])
+
+  return sendSuccess(res, 200, 'Transactions fetched successfully', {
+    transactions,
+    pagination: {
+      totalCount,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalCount / Number(limit)) || 1,
+      limit: Number(limit),
+    },
+  })
 })
 
 // get subscription plans

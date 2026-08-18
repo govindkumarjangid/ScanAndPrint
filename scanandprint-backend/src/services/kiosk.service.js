@@ -1,5 +1,6 @@
 import { shopRepository } from '../repositories/shop.repository.js'
 import { jobRepository } from '../repositories/job.repository.js'
+import { memoryCache } from '../utils/cache.util.js'
 
 export const kioskService = {
 
@@ -41,6 +42,8 @@ export const kioskService = {
       status: 'PENDING_PAYMENT',
     })
 
+    memoryCache.invalidateShop(shop._id)
+
     const upiIntentUrl = `upi://pay?pa=qrseprint@ybl&pn=${encodeURIComponent(
       shop.shopName
     )}&am=${totalAmount.toFixed(2)}&tr=${jobId}&tn=Print_Job_${jobId}&cu=INR`
@@ -56,6 +59,10 @@ export const kioskService = {
     job.status = 'PAYMENT_VERIFIED'
     job.paymentTxnId = paymentTxnId || `TXN_${Date.now()}`
     await job.save()
+
+    if (job.shopId) {
+      memoryCache.invalidateShop(job.shopId)
+    }
 
     if (io) {
       const targetRoom = `shop:${job.shopCode}`

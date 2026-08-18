@@ -1,12 +1,20 @@
 import path from 'path'
 import fs from 'fs'
-import { app } from 'electron'
+
+function getUserDataPath() {
+  if (process.env.APPDATA) {
+    return path.join(process.env.APPDATA, 'print-pe-agent')
+  }
+  if (process.platform === 'darwin') {
+    return path.join(process.env.HOME || '', 'Library', 'Application Support', 'print-pe-agent')
+  }
+  return path.join(process.env.HOME || process.cwd(), '.config', 'print-pe-agent')
+}
 
 // Custom lightweight JSON store for reliability across Electron versions
 class ConfigStore {
   constructor() {
-    const userDataPath = app ? app.getPath('userData') : process.cwd()
-    this.configPath = path.join(userDataPath, 'config.json')
+    this.configPath = path.join(getUserDataPath(), 'config.json')
     this.data = this.loadConfig()
   }
 

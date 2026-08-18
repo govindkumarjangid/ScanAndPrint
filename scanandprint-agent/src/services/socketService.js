@@ -64,11 +64,17 @@ class SocketService {
         console.error('[SocketService] Failed to detect local printers:', err.message)
       }
 
-      // Emit handshake with detected printers
+      // Detect OS Arch (32-bit / 64-bit) and system info
+      const osArch = `${process.platform} (${process.arch === 'x64' ? '64-bit' : process.arch === 'ia32' ? '32-bit' : process.arch})`
+      
+      // Emit handshake with detected printers and system info
       this.socket.emit('AGENT_REGISTER', { 
         shopId: shopId.trim(), 
         secretApiKey: secretKey.trim(),
         agentVersion: '1.0.0',
+        osArch,
+        platform: process.platform,
+        ipAddress: '127.0.0.1 (Localhost)',
         printers: availablePrinters,
       })
       
@@ -100,6 +106,9 @@ class SocketService {
       }
     })
 
+    // Map to hold pending print jobs in queue before owner approval
+    this.heldJobs = new Map()
+
     // Listen for manual remote rescan request from Web Dashboard
     this.socket.on('REQUEST_PRINTER_SCAN', async () => {
       try {
@@ -129,29 +138,47 @@ class SocketService {
       this.notifyStatusChange('DISCONNECTED', { error: 'Server offline' })
     })
 
-    // Real-time Print Job Event Handler
+    // Real-time Print Job Dispatch Event: Hold in queue & pre-buffer file
     this.socket.on('PRINT_JOB_DISPATCH', async (jobData) => {
-      console.log('[SocketService] Received PRINT_JOB_DISPATCH event:', jobData)
+      console.log(`[SocketService] 📥 Received Print Job #${jobData.jobId} - Holding in queue for Owner approval`)
+      if (jobData?.jobId) {
+        this.heldJobs.set(jobData.jobId, jobData)
+      }
+    })
+
+    // Trigger Physical Printing on Owner Action (Print Now)
+    this.socket.on('EXECUTE_PRINT_NOW', async (data) => {
+      const jobId = data?.jobId
+      const jobData = this.heldJobs.get(jobId) || data
+      console.log(`[SocketService] 🖨️ Executing Print Job #${jobId} to hardware spooler...`)
+
       try {
         const result = await printService.executePrintJob(jobData)
+        this.heldJobs.delete(jobId)
 
-        // Emit success back to Cloud Server
         if (this.socket && this.socket.connected) {
           this.socket.emit('JOB_SUCCESS', {
-            jobId: jobData.jobId,
-            printedOn: result.printedOn,
-            timestamp: result.timestamp,
+            jobId: jobId,
+            printedOn: result?.printedOn || data?.printerName,
+            timestamp: result?.timestamp || new Date().toISOString(),
           })
         }
       } catch (err) {
-        console.error('[SocketService] Failed job processing:', err.message)
+        console.error(`[SocketService] ❌ Failed to print job #${jobId}:`, err.message)
         if (this.socket && this.socket.connected) {
           this.socket.emit('JOB_FAILED', {
-            jobId: jobData.jobId,
+            jobId: jobId,
             error: err.message,
           })
         }
       }
+    })
+
+    // Cancel Job and Delete from Hardware Spooler / Queue
+    this.socket.on('PRINT_JOB_CANCEL', (data) => {
+      const jobId = data?.jobId
+      console.log(`[SocketService] 🗑️ Cancelling and discarding Job #${jobId} from queue`)
+      this.heldJobs.delete(jobId)
     })
   }
 

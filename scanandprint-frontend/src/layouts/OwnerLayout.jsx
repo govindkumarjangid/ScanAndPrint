@@ -5,12 +5,15 @@ import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
 import { useAuthStore } from '../store/useAuthStore'
+import { getSocket } from '../lib/socket'
+import api from '../lib/axios'
 
 export default function OwnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [demoTimeLeft, setDemoTimeLeft] = useState('')
   const [isDemoExpired, setIsDemoExpired] = useState(false)
+  const [isAgentConnected, setIsAgentConnected] = useState(false)
 
   const navigate = useNavigate()
   const { currentShop, isAuthenticated, fetchProfile, logout } = useAuthStore()
@@ -18,6 +21,35 @@ export default function OwnerLayout() {
   useEffect(() => {
     fetchProfile()
   }, [fetchProfile])
+
+  // Real-time Agent Socket Connection (Pure Socket.IO - 0 API Polling Overhead)
+  useEffect(() => {
+    const shopCode = currentShop?.shopCode || currentShop?._id
+    if (!shopCode) return
+
+    const socket = getSocket()
+    const joinRoom = () => {
+      socket.emit('JOIN_SHOP_DASHBOARD', { shopCode })
+      socket.emit('CHECK_AGENT_STATUS', { shopCode })
+    }
+
+    if (socket.connected) {
+      joinRoom()
+    }
+    socket.on('connect', joinRoom)
+
+    const handleAgentStatus = (data) => {
+      if (data?.shopCode && data.shopCode !== shopCode) return
+      setIsAgentConnected(Boolean(data?.isOnline))
+    }
+
+    socket.on('AGENT_STATUS_CHANGE', handleAgentStatus)
+
+    return () => {
+      socket.off('connect', joinRoom)
+      socket.off('AGENT_STATUS_CHANGE', handleAgentStatus)
+    }
+  }, [currentShop?.shopCode, currentShop?._id])
 
   // Live 2-Hour Demo Countdown Timer Calculation
   useEffect(() => {
@@ -51,7 +83,6 @@ export default function OwnerLayout() {
   }, [currentShop])
 
   const shopName = currentShop?.shopName || 'Cyber Cafe'
-  const isAgentConnected = currentShop?.isOnline ?? true
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -158,10 +189,17 @@ export default function OwnerLayout() {
             </Link>
 
             <Link to="/owner/agent">
-              <button className="hidden sm:flex btn btn-sm bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Print Agent Online</span>
-              </button>
+              {isAgentConnected ? (
+                <button className="hidden sm:flex btn btn-sm bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 items-center gap-1.5 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span>Print Agent Online</span>
+                </button>
+              ) : (
+                <button className="hidden sm:flex btn btn-sm bg-rose-50 text-rose-700 border border-rose-200/80 hover:bg-rose-100 items-center gap-1.5 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                  <span>Print Agent Offline</span>
+                </button>
+              )}
             </Link>
           </div>
         </header>

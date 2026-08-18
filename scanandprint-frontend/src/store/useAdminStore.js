@@ -67,12 +67,15 @@ export const useAdminStore = create((set, get) => ({
     }
   },
   
-  fetchShops: async () => {
+  fetchShops: async (page = 1, limit = 10, search = '') => {
     set({ shopsLoading: true })
     try {
-      const response = await api.get('/admin/shops')
-      if (response.data.success && Array.isArray(response.data.data)) {
-        set({ shopsData: response.data.data })
+      const response = await api.get(`/admin/shops?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`)
+      if (response.data.success) {
+        const raw = response.data.data
+        const shops = Array.isArray(raw) ? raw : raw.shops || []
+        const pagination = raw.pagination || { totalCount: shops.length, currentPage: page, totalPages: 1, limit }
+        set({ shopsData: shops, shopsPagination: pagination })
       }
     } catch (error) {
       console.warn('Shops fetch note:', error)
@@ -81,12 +84,15 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  fetchTransactions: async () => {
+  fetchTransactions: async (page = 1, limit = 10, search = '', status = '') => {
     set({ transactionsLoading: true })
     try {
-      const response = await api.get('/admin/transactions')
-      if (response.data.success && Array.isArray(response.data.data)) {
-        set({ transactionsData: response.data.data })
+      const response = await api.get(`/admin/transactions?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&status=${status}`)
+      if (response.data.success) {
+        const raw = response.data.data
+        const list = Array.isArray(raw) ? raw : raw.transactions || []
+        const pagination = raw.pagination || { totalCount: list.length, currentPage: page, totalPages: 1, limit }
+        set({ transactionsData: list, transactionsPagination: pagination })
       }
     } catch (error) {
       console.warn('Transactions fetch note:', error)
@@ -95,12 +101,15 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  fetchAgents: async () => {
+  fetchAgents: async (page = 1, limit = 10, search = '', status = '') => {
     set({ agentsLoading: true })
     try {
-      const response = await api.get('/admin/agents')
-      if (response.data.success && Array.isArray(response.data.data)) {
-        set({ agentsData: response.data.data })
+      const response = await api.get(`/admin/agents?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&status=${status}`)
+      if (response.data.success) {
+        const raw = response.data.data
+        const list = Array.isArray(raw) ? raw : raw.agents || []
+        const pagination = raw.pagination || { totalCount: list.length, currentPage: page, totalPages: 1, limit }
+        set({ agentsData: list, agentsPagination: pagination })
       }
     } catch (error) {
       console.warn('Agents fetch note:', error)
