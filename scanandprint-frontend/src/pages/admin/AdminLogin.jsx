@@ -42,7 +42,7 @@ export default function AdminLogin() {
           </div>
           <h1 className="text-3xl font-black text-white tracking-tight mb-2">Super Admin</h1>
           <p className="text-stone-400 font-medium text-sm text-center">
-            Sign in to access the QR PrintPe management console
+            Sign in to access the Scan&Print management console
           </p>
         </div>
 

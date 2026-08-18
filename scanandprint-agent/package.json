@@ -1,5 +1,5 @@
 {
-  "name": "print-pe-agent",
+  "name": "scan-and-print-agent",
   "version": "1.0.0",
   "description": "Production Desktop Print Agent for Scan&Print (SP ScanAndPrint) automated printing network",
   "main": "main.js",

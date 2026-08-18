@@ -54,7 +54,7 @@ export default function OwnerReview() {
           Give a Review
         </h1>
         <p className="text-stone-500 text-sm mt-0.5 font-medium">
-          Share your experience with QR PrintPe and help us improve
+          Share your experience with Scan&Print and help us improve
         </p>
       </div>
 

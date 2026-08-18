@@ -76,7 +76,7 @@ class PrinterManager {
     try {
       console.log(`Sending test print to printer: ${printerName || 'System Default'}`)
 
-      const tempDir = path.join(process.env.TEMP || '/tmp', 'qr-printpe-test')
+      const tempDir = path.join(process.env.TEMP || '/tmp', 'scan-and-print-test')
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true })
       }

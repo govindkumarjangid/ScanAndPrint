@@ -102,7 +102,7 @@ export default function TermsConditions() {
               <span className="text-brand font-mono">7.</span> Governing Law & Legal Contact
             </h2>
             <p className="text-stone-600">
-              These Terms shall be governed by and construed in accordance with the laws of India. For any legal inquiries or clarifications, please contact us at <a href="mailto:qrseprint@gmail.com" className="text-brand font-bold underline">qrseprint@gmail.com</a>.
+              These Terms shall be governed by and construed in accordance with the laws of India. For any legal inquiries or clarifications, please contact us at <a href="mailto:scanqrandprint@gmail.com" className="text-brand font-bold underline">scanqrandprint@gmail.com</a>.
             </p>
           </section>
 

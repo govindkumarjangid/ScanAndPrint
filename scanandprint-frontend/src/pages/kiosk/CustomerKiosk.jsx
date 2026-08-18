@@ -100,7 +100,7 @@ export default function CustomerKiosk() {
               P
             </div>
             <span className="text-lg font-extrabold text-stone-900 tracking-tight font-heading">
-              QR Print<span className="text-brand">Pe</span>
+              Scan<span className="text-brand">&Print</span>
             </span>
           </Link>
         </header>
@@ -144,7 +144,7 @@ export default function CustomerKiosk() {
         </main>
 
         <footer className="text-center text-xs font-semibold text-stone-400 py-4">
-          Powered by <span className="text-stone-700 font-extrabold">QR PrintPe</span>
+          Powered by <span className="text-stone-700 font-extrabold">Scan&Print</span>
         </footer>
       </div>
     )
@@ -221,7 +221,7 @@ export default function CustomerKiosk() {
 
       {/* Footer */}
       <footer className="text-center text-xs font-semibold text-stone-500">
-        Powered by <span className="text-stone-800 font-extrabold">QR PrintPe</span> · Smart Self-Service Printing
+        Powered by <span className="text-stone-800 font-extrabold">Scan&Print</span> · Smart Self-Service Printing
       </footer>
     </div>
   )

@@ -65,7 +65,7 @@ export const authenticateShop = async (req, res, next) => {
         success: false,
         isSubscriptionExpired: true,
         isSubscriptionActive: false,
-        message: 'Your subscription plan has expired. Please renew your subscription to continue using QR PrintPe.',
+        message: 'Your subscription plan has expired. Please renew your subscription to continue using Scan&Print.',
       })
     }
 

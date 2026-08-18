@@ -131,7 +131,7 @@ export const useKioskStore = create((set, get) => ({
           key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TBRpwJ4pTFgPiY',
           amount: Math.round(totalAmount * 100), // Amount in paise
           currency: 'INR',
-          name: shopInfo?.shopName || 'QR PrintPe',
+          name: shopInfo?.shopName || 'Scan&Print',
           description: `Print Job ${currentJobId} (${currentJob?.totalPages || 1} Pages)`,
           image: '/favicon.ico',
           handler: async (response) => {

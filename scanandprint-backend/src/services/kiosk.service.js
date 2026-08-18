@@ -44,7 +44,7 @@ export const kioskService = {
 
     memoryCache.invalidateShop(shop._id)
 
-    const upiIntentUrl = `upi://pay?pa=qrseprint@ybl&pn=${encodeURIComponent(
+    const upiIntentUrl = `upi://pay?pa=scanandprint@ybl&pn=${encodeURIComponent(
       shop.shopName
     )}&am=${totalAmount.toFixed(2)}&tr=${jobId}&tn=Print_Job_${jobId}&cu=INR`
 

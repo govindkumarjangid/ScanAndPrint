@@ -115,7 +115,7 @@ export default function OwnerPrinters() {
                   ? `${connectedPrinters.length} spooler device(s) reported by Desktop Agent on your PC`
                   : isAgentOnline
                   ? 'Desktop Agent is online. Scanning connected USB & WiFi printers...'
-                  : 'Desktop Agent offline. Launch QR Se Print Agent on your PC to auto-detect USB printers.'}
+                  : 'Desktop Agent offline. Launch Scan&Print Agent on your PC to auto-detect USB printers.'}
               </p>
             </div>
           </div>

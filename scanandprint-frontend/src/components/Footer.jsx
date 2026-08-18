@@ -92,8 +92,8 @@ export default function Footer() {
             <ul className="flex flex-col gap-3 text-sm">
               <li className="flex items-center gap-2 text-stone-300">
                 <Mail className="w-4 h-4 text-brand" />
-                <a href="mailto:qrseprint@gmail.com" className="hover:text-white transition-colors">
-                  scanandprint@gmail.com
+                <a href="mailto:scanqrandprint@gmail.com" className="hover:text-white transition-colors">
+                  scanqrandprint@gmail.com
                 </a>
               </li>
               <li className="flex items-center gap-2 text-stone-300">

@@ -121,7 +121,7 @@ export default function PrivacyPolicy() {
             </p>
             <div className="bg-rose-50/60 border border-rose-200 p-4 rounded-2xl text-xs sm:text-sm text-stone-800 flex flex-col gap-1">
               <span className="font-bold text-stone-900">Scan&Print Privacy Desk</span>
-              <span>Email: <a href="mailto:qrseprint@gmail.com" className="text-brand font-bold underline">qrseprint@gmail.com</a></span>
+              <span>Email: <a href="mailto:scanqrandprint@gmail.com" className="text-brand font-bold underline">scanqrandprint@gmail.com</a></span>
               <span>Phone / WhatsApp Support: <strong>+91 84048 32414</strong></span>
               <span>Address: Main Market, Digital Hub, India</span>
             </div>

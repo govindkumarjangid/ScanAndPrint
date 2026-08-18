@@ -26,7 +26,7 @@ export default function OwnerQrCode() {
       })
 
       const link = document.createElement('a')
-      link.download = `QR_PrintPe_${shopCode}_Poster.png`
+      link.download = `ScanAndPrint_${shopCode}_Poster.png`
       link.href = dataUrl
       document.body.appendChild(link)
       link.click()
@@ -49,7 +49,7 @@ export default function OwnerQrCode() {
             Shop QR Poster (A4)
           </h1>
           <p className="text-stone-500 text-sm mt-1 font-medium">
-            Download this portrait poster matching the official QR Se Print theme.
+            Download this portrait poster matching the official Scan&Print theme.
           </p>
         </div>
 

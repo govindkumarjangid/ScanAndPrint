@@ -140,7 +140,7 @@ export default function OwnerLayout() {
         key: orderData.keyId,
         amount: orderData.amountPaise,
         currency: orderData.currency || 'INR',
-        name: 'QR PrintPe',
+        name: 'Scan&Print',
         description: `Renew ${planType === 'LIFETIME_599' ? 'Lifetime' : 'Monthly'} Subscription`,
         order_id: orderData.orderId,
         prefill: {

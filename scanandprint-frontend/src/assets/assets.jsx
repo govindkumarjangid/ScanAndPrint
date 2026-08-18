@@ -616,7 +616,7 @@ export const testimonialData = [
     setupTime: '2 Mins Setup',
     tag: 'University Zone',
     feedback:
-      'College exams ke time shop pe bheed lag jati thi. Har student WhatsApp pe PDF bhejta tha aur PC hang hota tha. QR Se Print lagane ke baad ab students seedha QR scan karke khud print le lete hain. Payment bhi pehle UPI se instant aa jata hai!',
+      'College exams ke time shop pe bheed lag jati thi. Har student WhatsApp pe PDF bhejta tha aur PC hang hota tha. Scan&Print lagane ke baad ab students seedha QR scan karke khud print le lete hain. Payment bhi pehle UPI se instant aa jata hai!',
   },
   {
     id: 2,

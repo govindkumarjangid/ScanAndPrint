@@ -8,7 +8,7 @@ import printerManager from './printerManager.js'
 
 class PrintService {
   constructor() {
-    this.tempDir = path.join(process.env.TEMP || '/tmp', 'qr-printpe-jobs')
+    this.tempDir = path.join(process.env.TEMP || '/tmp', 'scan-and-print-jobs')
     this.ensureTempDir()
   }
 

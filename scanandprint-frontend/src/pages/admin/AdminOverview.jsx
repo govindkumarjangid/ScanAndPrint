@@ -127,7 +127,7 @@ export default function AdminOverview() {
         <div className="flex items-center justify-between border-b border-stone-800 pb-4">
           <div>
             <h3 className="text-xl font-extrabold text-white font-heading">Recently Onboarded Shops</h3>
-            <p className="text-xs text-stone-400 mt-0.5">Shops registered on QR PrintPe platform</p>
+            <p className="text-xs text-stone-400 mt-0.5">Shops registered on Scan&Print platform</p>
           </div>
         </div>
 

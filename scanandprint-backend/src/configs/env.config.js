@@ -5,8 +5,8 @@ dotenv.config()
 export const envConfig = {
   port: process.env.PORT || 5000,
   nodeEnv: process.env.NODE_ENV || 'development',
-  mongoUri: (process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/qrseprint').trim().replace(/['"]/g, ''),
-  jwtSecret: process.env.JWT_SECRET || 'qr_se_print_super_secret_jwt_key_2026',
+  mongoUri: (process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ScanAndPrintDB').trim().replace(/['"]/g, ''),
+  jwtSecret: process.env.JWT_SECRET || 'scan_and_print_super_secret_jwt_key_2026',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
   cloudinaryApiKey: process.env.CLOUDINARY_API_KEY || '',

@@ -137,7 +137,7 @@ export default function RefundPolicy() {
               </a>
 
               <a
-                href="mailto:qrseprint@gmail.com?subject=Refund%20Request"
+                href="mailto:scanqrandprint@gmail.com?subject=Refund%20Request"
                 className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center gap-3 hover:bg-rose-100/60 transition-all group"
               >
                 <div className="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center font-bold">
@@ -145,7 +145,7 @@ export default function RefundPolicy() {
                 </div>
                 <div>
                   <span className="text-[11px] font-bold uppercase text-stone-400">Email Support</span>
-                  <p className="font-extrabold text-stone-900 text-sm">qrseprint@gmail.com</p>
+                  <p className="font-extrabold text-stone-900 text-sm">scanqrandprint@gmail.com</p>
                 </div>
               </a>
             </div>

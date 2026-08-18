@@ -208,7 +208,7 @@ export default function ShopAuth() {
         key: orderData.keyId,
         amount: orderData.amountPaise,
         currency: orderData.currency || 'INR',
-        name: 'QR PrintPe',
+        name: 'Scan&Print',
         description: `${orderData.planType === 'LIFETIME_599' ? 'Lifetime' : 'Monthly'} Subscription Plan`,
         order_id: orderData.orderId,
         prefill: {
@@ -237,7 +237,7 @@ export default function ShopAuth() {
               razorpay_signature: response.razorpay_signature,
             })
             setShowSuccessModal(true)
-            toast.success('🎉 Payment Verified! Welcome to QR PrintPe.')
+            toast.success('🎉 Payment Verified! Welcome to Scan&Print.')
             setTimeout(() => navigate('/owner/dashboard'), 1800)
           } catch (vErr) {
             setPaymentError(vErr.message || 'Payment signature verification failed. Please contact support.')
@@ -275,7 +275,7 @@ export default function ShopAuth() {
         </motion.div>
 
         <h1 className="text-2xl sm:text-3xl font-extrabold text-brand tracking-tight">
-          QR PrintPe
+          Scan&Print
         </h1>
         <p className="text-stone-500 text-xs sm:text-sm font-medium">
           Automated Cyber Café Printing Network
@@ -973,7 +973,7 @@ export default function ShopAuth() {
               <span className="text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
                 Subscription Active
               </span>
-              <h3 className="text-xl font-extrabold text-stone-900 font-heading mt-2">Welcome to QR PrintPe!</h3>
+              <h3 className="text-xl font-extrabold text-stone-900 font-heading mt-2">Welcome to Scan&Print!</h3>
               <p className="text-xs text-stone-500 mt-1">
                 Your shop subscription is verified and active. Redirecting to your Owner Dashboard...
               </p>

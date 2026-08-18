@@ -40,7 +40,7 @@ export default function AdminLayout() {
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold text-lg tracking-tight text-white leading-none">
-                  QR <span className="text-brand">PrintPe</span>
+                  Scan<span className="text-brand">&Print</span>
                 </span>
                 <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">
                   Super Admin Panel
