@@ -267,18 +267,21 @@ export default function ShopAuth() {
 
       {/* Top Branding Section */}
       <div className="flex flex-col items-center text-center gap-2 max-w-md mx-auto w-full">
-        <motion.div
-          whileHover={{ scale: 1.05, rotate: 3 }}
-          className="w-13 h-13 rounded-full border-2 border-brand bg-white flex items-center justify-center p-2 shadow-md shadow-rose-900/10"
-        >
-          <QrCode className="w-7 h-7 text-brand stroke-[2.2]" />
-        </motion.div>
+        <Link to="/" className="inline-flex flex-col items-center group cursor-pointer">
+          <motion.div
+            whileHover={{ scale: 1.06, rotate: 2 }}
+            whileTap={{ scale: 0.96 }}
+            className="w-16 h-16 rounded-2xl bg-white border border-rose-200/90 p-2.5 shadow-xl shadow-rose-900/10 flex items-center justify-center relative overflow-hidden group-hover:border-brand/60 group-hover:shadow-rose-500/20 transition-all duration-300"
+          >
+            <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
+          </motion.div>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-brand tracking-tight">
-          Scan&Print
-        </h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-3 text-stone-900 font-heading">
+            Scan<span className="text-brand">&Print</span>
+          </h1>
+        </Link>
         <p className="text-stone-500 text-xs sm:text-sm font-medium">
-          Automated Cyber Café Printing Network
+          {activeTab === 'login' ? 'Shop Owner Login Portal' : 'Register Your Shop & Start Printing'}
         </p>
       </div>
 

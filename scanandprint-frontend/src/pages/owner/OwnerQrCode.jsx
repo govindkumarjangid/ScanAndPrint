@@ -85,9 +85,9 @@ export default function OwnerQrCode() {
                 Scan<span className="text-[#E6005C] mx-1">&</span>Print
               </h1>
 
-              {/* Right printer icon in pink box */}
-              <div className="bg-[#E6005C] p-3 rounded-2xl ml-2">
-                <Printer className="w-12 h-12 text-white stroke-[2.5]" />
+              {/* Right logo icon in white/pink container */}
+              <div className="w-16 h-16 bg-white border-2 border-[#E6005C] p-2 rounded-2xl ml-2 flex items-center justify-center shadow-md">
+                <img src="/svgs/logo.svg" alt="Scan&Print" className="w-full h-full object-contain" />
               </div>
 
               {/* Right red lines */}
@@ -150,8 +150,11 @@ export default function OwnerQrCode() {
                     eyeRadius={0}
                     fgColor="#000000"
                     bgColor="#ffffff"
-                    logoWidth={50}
-                    logoHeight={50}
+                    logoImage="/svgs/logo.svg"
+                    logoWidth={56}
+                    logoHeight={56}
+                    logoOpacity={1}
+                    removeQrCodeBehindLogo={true}
                     quietZone={10}
                   />
                   {/* Downward triangle pointer */}

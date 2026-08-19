@@ -327,8 +327,8 @@ export default function OwnerJobs() {
                           if (s.includes('DISPATCH') || s === 'PRINTING' || s === 'IN_QUEUE') {
                             return (
                               <span className="inline-flex items-center gap-1.5 bg-sky-100 text-sky-800 text-[11px] font-extrabold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
-                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse shrink-0" />
-                                <span>Dispatch</span>
+                                <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping shrink-0" />
+                                <span>Auto-Printing</span>
                               </span>
                             )
                           }
@@ -343,7 +343,7 @@ export default function OwnerJobs() {
                           return (
                             <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-[11px] font-extrabold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
                               <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                              <span>Pending</span>
+                              <span>Pending Payment</span>
                             </span>
                           )
                         })()}
@@ -360,36 +360,98 @@ export default function OwnerJobs() {
 
                           if (s.includes('PRINTED') || s === 'COMPLETED' || s === 'SUCCESS') {
                             return (
-                              <button
-                                onClick={async () => {
-                                  setActionLoadingId(j.jobId)
-                                  await useJobStore.getState().deleteJob(j.jobId)
-                                  setActionLoadingId(null)
-                                }}
-                                disabled={isBusy}
-                                title="Delete completed order from database"
-                                className="btn btn-xs bg-stone-100 hover:bg-rose-50 text-stone-600 hover:text-rose-600 border border-stone-200 hover:border-rose-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
-                              >
-                                {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-stone-500" /> : <Trash2 className="w-3 h-3 text-stone-500" />}
-                                <span>Delete</span>
-                              </button>
+                              <>
+                                <button
+                                  onClick={async () => {
+                                    setActionLoadingId(j.jobId)
+                                    await useJobStore.getState().triggerPrintNow(j.jobId)
+                                    setActionLoadingId(null)
+                                  }}
+                                  disabled={isBusy}
+                                  title="Reprint copy on hardware printer"
+                                  className="btn btn-xs bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-stone-500" /> : <Printer className="w-3 h-3 text-stone-600" />}
+                                  <span>Reprint</span>
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    setActionLoadingId(j.jobId)
+                                    await useJobStore.getState().deleteJob(j.jobId)
+                                    setActionLoadingId(null)
+                                  }}
+                                  disabled={isBusy}
+                                  title="Delete completed order from database"
+                                  className="btn btn-xs bg-stone-50 hover:bg-rose-50 text-stone-500 hover:text-rose-600 border border-stone-200 hover:border-rose-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-stone-500" /> : <Trash2 className="w-3 h-3 text-stone-500" />}
+                                  <span>Delete</span>
+                                </button>
+                              </>
                             )
                           }
                           if (s.includes('FAIL') || s.includes('CANCEL')) {
                             return (
-                              <button
-                                onClick={async () => {
-                                  setActionLoadingId(j.jobId)
-                                  await useJobStore.getState().triggerPrintNow(j.jobId)
-                                  setActionLoadingId(null)
-                                }}
-                                disabled={isBusy}
-                                title="Retry print to hardware printer"
-                                className="btn btn-xs bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
-                              >
-                                {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-amber-600" /> : <RefreshCw className="w-3 h-3 text-amber-600" />}
-                                <span>Retry</span>
-                              </button>
+                              <>
+                                <button
+                                  onClick={async () => {
+                                    setActionLoadingId(j.jobId)
+                                    await useJobStore.getState().triggerPrintNow(j.jobId)
+                                    setActionLoadingId(null)
+                                  }}
+                                  disabled={isBusy}
+                                  title="Retry / Reprint job to hardware printer"
+                                  className="btn btn-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-amber-600" /> : <RefreshCw className="w-3 h-3 text-amber-600" />}
+                                  <span>Reprint</span>
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    setActionLoadingId(j.jobId)
+                                    await useJobStore.getState().deleteJob(j.jobId)
+                                    setActionLoadingId(null)
+                                  }}
+                                  disabled={isBusy}
+                                  title="Delete failed order"
+                                  className="btn btn-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  <span>Delete</span>
+                                </button>
+                              </>
+                            )
+                          }
+                          if (s.includes('DISPATCH') || s === 'PRINTING') {
+                            return (
+                              <>
+                                <button
+                                  onClick={async () => {
+                                    setActionLoadingId(j.jobId)
+                                    await useJobStore.getState().triggerPrintNow(j.jobId)
+                                    setActionLoadingId(null)
+                                  }}
+                                  disabled={isBusy}
+                                  title="Re-trigger print to printer"
+                                  className="btn btn-xs bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-sky-600" /> : <Printer className="w-3 h-3" />}
+                                  <span>Reprint</span>
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    setActionLoadingId(j.jobId)
+                                    await useJobStore.getState().cancelJob(j.jobId)
+                                    setActionLoadingId(null)
+                                  }}
+                                  disabled={isBusy}
+                                  title="Cancel print job"
+                                  className="btn btn-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold px-2 py-1 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  <X className="w-3 h-3" />
+                                  <span>Cancel</span>
+                                </button>
+                              </>
                             )
                           }
                           return (
@@ -401,7 +463,7 @@ export default function OwnerJobs() {
                                   setActionLoadingId(null)
                                 }}
                                 disabled={isBusy}
-                                title="Approve & Send directly to Windows hardware printer"
+                                title="Override and print immediately"
                                 className="btn btn-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-extrabold px-2.5 py-1 flex items-center gap-1 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
                               >
                                 {isBusy ? <Loader2 className="w-3 h-3 animate-spin text-white" /> : <Printer className="w-3 h-3" />}

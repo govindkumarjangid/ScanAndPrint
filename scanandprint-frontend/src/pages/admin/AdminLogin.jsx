@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, Link } from 'react-router'
 import { ShieldCheck, Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import toast from 'react-hot-toast'
@@ -35,16 +35,22 @@ export default function AdminLogin() {
 
       <div className="relative w-full max-w-md">
         {/* Logo Header */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-brand text-white rounded-2xl flex items-center justify-center shadow-[0_0_40px_rgb(225,29,72,0.3)] mb-6 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-            <ShieldCheck className="w-8 h-8 relative z-10" />
+        <Link to="/" className="flex flex-col items-center mb-8 group cursor-pointer">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-14 h-14 bg-white/95 rounded-2xl p-2.5 flex items-center justify-center shadow-[0_0_30px_rgba(240,36,92,0.25)] border border-stone-700/60 group-hover:scale-105 transition-transform duration-300">
+              <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
+            </div>
+            <div className="w-14 h-14 bg-brand text-white rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(240,36,92,0.25)] relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight mb-2">Super Admin</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight mb-1 font-heading">
+            Super Admin
+          </h1>
           <p className="text-stone-400 font-medium text-sm text-center">
             Sign in to access the Scan&Print management console
           </p>
-        </div>
+        </Link>
 
         {/* Login Card */}
         <div className="bg-stone-900 border border-stone-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">

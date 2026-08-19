@@ -138,24 +138,43 @@ class SocketService {
       this.notifyStatusChange('DISCONNECTED', { error: 'Server offline' })
     })
 
-    // Real-time Print Job Dispatch Event: Hold in queue & pre-buffer file
+    // Real-time Print Job Dispatch Event: Auto-Print Immediately to Hardware Spooler!
     this.socket.on('PRINT_JOB_DISPATCH', async (jobData) => {
-      console.log(`[SocketService] 📥 Received Print Job #${jobData.jobId} - Holding in queue for Owner approval`)
-      if (jobData?.jobId) {
-        this.heldJobs.set(jobData.jobId, jobData)
-      }
-    })
+      const jobId = jobData?.jobId
+      console.log(`[SocketService] 🖨️ Auto-Printing Job #${jobId} directly (Zero-Click Auto Print)...`)
 
-    // Trigger Physical Printing on Owner Action (Print Now)
-    this.socket.on('EXECUTE_PRINT_NOW', async (data) => {
-      const jobId = data?.jobId
-      const jobData = this.heldJobs.get(jobId) || data
-      console.log(`[SocketService] 🖨️ Executing Print Job #${jobId} to hardware spooler...`)
+      if (jobId) {
+        this.heldJobs.set(jobId, jobData)
+      }
 
       try {
         const result = await printService.executePrintJob(jobData)
-        this.heldJobs.delete(jobId)
+        if (this.socket && this.socket.connected) {
+          this.socket.emit('JOB_SUCCESS', {
+            jobId: jobId,
+            printedOn: result?.printedOn,
+            timestamp: result?.timestamp || new Date().toISOString(),
+          })
+        }
+      } catch (err) {
+        console.error(`[SocketService] ❌ Failed to auto-print job #${jobId}:`, err.message)
+        if (this.socket && this.socket.connected) {
+          this.socket.emit('JOB_FAILED', {
+            jobId: jobId,
+            error: err.message,
+          })
+        }
+      }
+    })
 
+    // Trigger Physical Printing on Owner Action (Manual Reprint / Retry)
+    this.socket.on('EXECUTE_PRINT_NOW', async (data) => {
+      const jobId = data?.jobId
+      const jobData = this.heldJobs.get(jobId) || data
+      console.log(`[SocketService] 🖨️ Re-executing Print Job #${jobId} to hardware spooler...`)
+
+      try {
+        const result = await printService.executePrintJob(jobData)
         if (this.socket && this.socket.connected) {
           this.socket.emit('JOB_SUCCESS', {
             jobId: jobId,
@@ -164,7 +183,7 @@ class SocketService {
           })
         }
       } catch (err) {
-        console.error(`[SocketService] ❌ Failed to print job #${jobId}:`, err.message)
+        console.error(`[SocketService] ❌ Failed to re-print job #${jobId}:`, err.message)
         if (this.socket && this.socket.connected) {
           this.socket.emit('JOB_FAILED', {
             jobId: jobId,

@@ -423,15 +423,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideConnectionSuccess()
       })
 
-      // Listen for incoming print jobs and trigger the APPROVE / REJECT Modal!
+      // Listen for incoming print jobs: Auto-Print directly!
       browserSocket.on('PRINT_JOB_DISPATCH', (jobData) => {
         const isColor = jobData.colorType === 'COLOR'
         const selectedPrinter = (isColor ? cfg.defaultColorPrinter : cfg.defaultBwPrinter) || (detectedPrinters[0]?.name || 'Default Hardware Spooler')
 
-        logActivity(`🔔 [Incoming Job]: ${jobData.jobId || 'Job'} (${jobData.totalPages || 1} pages, ${jobData.colorType || 'B&W'}) - Awaiting Shop Approval`, 'info')
-        
-        // Open Approve / Reject Popup Modal for Shopkeeper
-        showIncomingJobModal(jobData, selectedPrinter)
+        logActivity(`🖨️ [Auto-Print Active]: Direct auto-printing Job #${jobData.jobId || 'Job'} (${jobData.totalPages || 1} pages, ${jobData.colorType || 'B&W'}) to ${selectedPrinter}...`, 'success')
       })
 
     } catch (e) {
@@ -464,7 +461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.electronAPI.onPrintJob((event, jobData) => {
         const isColor = jobData.colorType === 'COLOR'
         const selectedPrinter = (isColor ? config.defaultColorPrinter : config.defaultBwPrinter) || (detectedPrinters[0]?.name || 'Default Spooler')
-        showIncomingJobModal(jobData, selectedPrinter)
+        logActivity(`🖨️ [Auto-Print]: Processing Job #${jobData.jobId} to ${selectedPrinter}`, 'success')
       })
     }
   } else {

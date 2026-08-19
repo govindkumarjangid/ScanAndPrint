@@ -6,38 +6,58 @@ import sharp from 'sharp'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const assetsDir = path.resolve(__dirname, '../assets')
 
-const mainIconSvg = fs.readFileSync(path.join(assetsDir, 'icon.svg'), 'utf8')
+// Base logo SVG path
+const logoSvgPath = path.join(assetsDir, 'icon.svg')
+const logoContent = fs.readFileSync(logoSvgPath, 'utf8')
 
-const getTraySvg = (statusColor) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Top Paper -->
-  <path d="M 18 8 L 46 8 C 48 8 50 10 50 12 L 50 24 L 14 24 L 14 12 C 14 10 16 8 18 8 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-  <line x1="20" y1="14" x2="44" y2="14" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="20" y1="18" x2="38" y2="18" stroke="#CBD5E1" stroke-width="1.5" stroke-linecap="round"/>
+// Function to generate tray SVG with status dot
+const getTraySvg = (statusColor) => `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Rounded Base Background for Tray visibility on light/dark Windows Taskbar -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+  
+  <!-- Embedded Official Logo -->
+  <svg x="6" y="6" width="52" height="52" viewBox="205 200 837 861">
+    ${logoContent.replace(/<\/?svg[^>]*>/g, '')}
+  </svg>
 
-  <!-- Main Printer Body -->
-  <rect x="8" y="22" width="48" height="24" rx="6" fill="#F0245C" stroke="#BE123C" stroke-width="1.5"/>
-  <!-- Output Slot -->
-  <rect x="14" y="34" width="36" height="4" rx="2" fill="#881337"/>
+  <!-- Status Indicator Badge (Bottom Right) -->
+  <circle cx="50" cy="50" r="9" fill="#0F172A" stroke="#FFFFFF" stroke-width="2"/>
+  <circle cx="50" cy="50" r="6.5" fill="${statusColor}"/>
+</svg>`
 
-  <!-- Bottom Output Paper -->
-  <path d="M 16 36 L 48 36 L 48 52 C 48 54 46 56 44 56 L 20 56 C 18 56 16 54 16 52 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-  <line x1="20" y1="42" x2="44" y2="42" stroke="#F0245C" stroke-width="2" stroke-linecap="round"/>
-  <line x1="20" y1="46" x2="40" y2="46" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+const getAppIconSvg = () => `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFF1F4"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#F0245C" flood-opacity="0.15"/>
+    </filter>
+  </defs>
 
-  <!-- Status Badge Dot (Bottom Right) -->
-  <circle cx="50" cy="50" r="10" fill="#0F172A" stroke="#FFFFFF" stroke-width="2"/>
-  <circle cx="50" cy="50" r="7" fill="${statusColor}"/>
+  <!-- High-DPI App Icon Rounded Card -->
+  <rect x="24" y="24" width="464" height="464" rx="100" fill="url(#bgGrad)" stroke="#F0245C" stroke-width="8" filter="url(#shadow)"/>
+
+  <!-- Official Logo Graphic -->
+  <svg x="56" y="56" width="400" height="400" viewBox="205 200 837 861">
+    ${logoContent.replace(/<\/?svg[^>]*>/g, '')}
+  </svg>
 </svg>`
 
 async function generateAll() {
-  console.log('Rendering SVG assets to pixel-perfect PNGs via Sharp...')
+  console.log('Rendering official Scan&Print SVG assets to pixel-perfect PNGs via Sharp...')
 
   // 1. App Icon (512x512 PNG)
-  await sharp(Buffer.from(mainIconSvg))
+  const appIconSvg = getAppIconSvg()
+  fs.writeFileSync(path.join(assetsDir, 'icon-full.svg'), appIconSvg)
+  await sharp(Buffer.from(appIconSvg))
     .resize(512, 512)
     .png()
     .toFile(path.join(assetsDir, 'icon.png'))
-  console.log('✅ assets/icon.png created (512x512 PNG)')
+  console.log('✅ assets/icon.png created (512x512 PNG from official logo.svg)')
 
   // 2. Tray Connected (64x64 PNG)
   const connectedSvg = getTraySvg('#10B981')
@@ -66,13 +86,13 @@ async function generateAll() {
     .toFile(path.join(assetsDir, 'tray-unconfigured.png'))
   console.log('✅ assets/tray-unconfigured.png created (64x64 PNG)')
 
-  // Default tray-icon.png
+  // 5. Default tray-icon.png
   await sharp(Buffer.from(connectedSvg))
     .resize(64, 64)
     .png()
     .toFile(path.join(assetsDir, 'tray-icon.png'))
 
-  console.log('🎉 All icons successfully generated!')
+  console.log('🎉 All official Scan&Print icons successfully generated!')
 }
 
 generateAll().catch(console.error)

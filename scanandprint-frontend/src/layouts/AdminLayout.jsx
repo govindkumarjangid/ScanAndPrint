@@ -9,6 +9,7 @@ import {
   adminNavItems,
 } from '../assets/assets'
 import { motion, AnimatePresence } from 'framer-motion'
+import { AdminLogo } from '../components/ui/AdminLogo'
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -34,19 +35,7 @@ export default function AdminLayout() {
         <div>
           {/* Logo */}
           <div className="p-6 border-b border-stone-800/80 flex items-center justify-between">
-            <Link to="/admin/dashboard" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center shadow-lg shadow-rose-500/20">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-lg tracking-tight text-white leading-none">
-                  Scan<span className="text-brand">&Print</span>
-                </span>
-                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">
-                  Super Admin Panel
-                </span>
-              </div>
-            </Link>
+            <AdminLogo />
           </div>
 
           {/* Platform Status Badge */}
@@ -145,12 +134,7 @@ export default function AdminLayout() {
             >
               <div>
                 <div className="flex items-center justify-between pb-4 mb-4 border-b border-stone-800">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-brand text-white flex items-center justify-center">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <span className="font-extrabold text-base text-white">Admin Panel</span>
-                  </div>
+                  <AdminLogo />
                   <button onClick={() => setSidebarOpen(false)} className="btn btn-ghost btn-sm p-1.5 text-stone-400 hover:bg-stone-800!">
                     <X className="w-5 h-5" />
                   </button>

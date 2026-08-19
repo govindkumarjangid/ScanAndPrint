@@ -1,6 +1,6 @@
 {
   "name": "scan-and-print-agent",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Production Desktop Print Agent for Scan&Print (SP ScanAndPrint) automated printing network",
   "main": "main.js",
   "type": "module",

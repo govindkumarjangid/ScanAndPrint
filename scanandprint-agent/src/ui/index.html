@@ -54,13 +54,19 @@
     .logo-icon {
       width: 44px;
       height: 44px;
-      background: linear-gradient(135deg, #F0245C, #e11d48);
+      background: #ffffff;
+      border: 1.5px solid rgba(240, 36, 92, 0.4);
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 4px 16px rgba(240, 36, 92, 0.4);
+      padding: 5px;
+      box-shadow: 0 4px 16px rgba(240, 36, 92, 0.25);
+    }
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     h1 {
@@ -519,7 +525,9 @@
     <!-- Header -->
     <header class="header">
       <div class="logo-group">
-        <div class="logo-icon">🖨️</div>
+        <div class="logo-icon">
+          <img src="../../assets/icon.svg" alt="Scan&Print Logo" />
+        </div>
         <div>
           <h1>Scan&Print Agent</h1>
           <p class="subtitle">Production Desktop Agent v1.0.0</p>

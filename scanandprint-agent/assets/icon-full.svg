@@ -1,10 +1,20 @@
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Rounded Base Background for Tray visibility on light/dark Windows Taskbar -->
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
-  
-  <!-- Embedded Official Logo -->
-  <svg x="6" y="6" width="52" height="52" viewBox="205 200 837 861">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFF1F4"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#F0245C" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- High-DPI App Icon Rounded Card -->
+  <rect x="24" y="24" width="464" height="464" rx="100" fill="url(#bgGrad)" stroke="#F0245C" stroke-width="8" filter="url(#shadow)"/>
+
+  <!-- Official Logo Graphic -->
+  <svg x="56" y="56" width="400" height="400" viewBox="205 200 837 861">
     
 <g transform="translate(0.000000,1254.000000) scale(0.100000,-0.100000)">
 <path d="M4613 10380 c-98 -20 -204 -104 -250 -199 l-28 -56 -3 -1227 -2
@@ -95,8 +105,4 @@ l0 -120 120 0 120 0 0 120 0 120 -120 0 -120 0 0 -120z M8890 8200 l0 -120
 </g>
 
   </svg>
-
-  <!-- Status Indicator Badge (Bottom Right) -->
-  <circle cx="50" cy="50" r="9" fill="#0F172A" stroke="#FFFFFF" stroke-width="2"/>
-  <circle cx="50" cy="50" r="6.5" fill="#F59E0B"/>
 </svg>

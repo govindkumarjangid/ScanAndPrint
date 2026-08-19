@@ -77,7 +77,7 @@ export default function Navbar() {
         <div className="md:hidden">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="btn btn-ghost btn-sm p-2 text-stone-700 hover:!bg-stone-200/60"
+            className="btn btn-ghost btn-sm p-2 text-stone-700 hover:bg-stone-200/60!"
             aria-label="Toggle menu"
           >
             <Menu className="w-6 h-6" />
@@ -111,7 +111,7 @@ export default function Navbar() {
                       <Logo />
                       <button
                         onClick={() => setMobileMenuOpen(false)}
-                        className="btn btn-ghost btn-sm p-2 text-stone-600 hover:!bg-stone-200/60"
+                        className="btn btn-ghost btn-sm p-2 text-stone-600 hover:bg-stone-200/60!"
                       >
                         <X className="w-6 h-6" />
                       </button>
