@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, AlertCircle, Store, RefreshCw, ArrowLeft } from 'lucide-react'
+import { Loader2, AlertCircle, Store, RefreshCw, ArrowLeft, CheckCircle2 } from 'lucide-react'
 
 import KioskHeader from '../../components/kiosk/KioskHeader'
 import FileUploadStage from '../../components/kiosk/FileUploadStage'
@@ -10,33 +10,83 @@ import PrintOptionsStage from '../../components/kiosk/PrintOptionsStage'
 import PaymentStage from '../../components/kiosk/PaymentStage'
 import PrintTrackingStage from '../../components/kiosk/PrintTrackingStage'
 import { useKioskStore } from '../../store/useKioskStore'
+import { getExactPageCount } from '../../lib/pdfUtil'
+import { getSocket } from '../../lib/socket'
 
 export default function CustomerKiosk() {
   const { shopCode: paramShopCode } = useParams()
   const shopCode = paramShopCode || 'DEMO_SHOP'
 
-  const { shopInfo: storeShopInfo, isLoadingShop, error, fetchShopInfo, resetJobFlow, } = useKioskStore()
+  const { shopInfo: storeShopInfo, isLoadingShop, error, fetchShopInfo, resetJobFlow } = useKioskStore()
 
-  useEffect(() => {
-    fetchShopInfo(shopCode)
-  }, [shopCode, fetchShopInfo])
-
-  const shopInfo = storeShopInfo
+  const [shopInfo, setShopInfo] = useState(storeShopInfo)
   const [step, setStep] = useState(1)
   const [selectedFile, setSelectedFile] = useState(null)
-  const [totalPages, setTotalPages] = useState(1)
+  const [totalDocPages, setTotalDocPages] = useState(1)
+  const [selectedPagesCount, setSelectedPagesCount] = useState(1)
+  const [pageRangeMode, setPageRangeMode] = useState('all')
+  const [customRangeStr, setCustomRangeStr] = useState('')
+  const [isAnalyzingPdf, setIsAnalyzingPdf] = useState(false)
   const [colorType, setColorType] = useState('BLACK_AND_WHITE')
   const [copies, setCopies] = useState(1)
   const [isDuplex, setIsDuplex] = useState(false)
   const [customerPhone, setCustomerPhone] = useState('')
   const [cropModalOpen, setCropModalOpen] = useState(false)
 
-  const handleFileSelect = (file) => {
+  useEffect(() => {
+    fetchShopInfo(shopCode).then((info) => {
+      if (info) setShopInfo(info)
+    })
+  }, [shopCode, fetchShopInfo])
+
+  useEffect(() => {
+    if (storeShopInfo) {
+      setShopInfo(storeShopInfo)
+    }
+  }, [storeShopInfo])
+
+  // Live Socket.IO Synchronization for Printer Online Status
+  useEffect(() => {
+    const socket = getSocket()
+    if (!socket || !shopCode) return
+
+    const room = `shop:${shopCode}`
+    socket.emit('JOIN_KIOSK', { shopCode })
+
+    const handleStatusChange = (data) => {
+      if (data && data.shopCode === shopCode) {
+        setShopInfo((prev) => (prev ? { ...prev, isOnline: data.isOnline } : prev))
+      }
+    }
+
+    socket.on('AGENT_STATUS_CHANGE', handleStatusChange)
+
+    return () => {
+      socket.off('AGENT_STATUS_CHANGE', handleStatusChange)
+    }
+  }, [shopCode])
+
+  // Exact PDF Page Count Detection
+  const handleFileSelect = async (file) => {
     setSelectedFile(file)
-    const isImg = file.type?.startsWith('image/')
-    const estimatedPages = file.type?.includes('pdf') ? Math.floor(Math.random() * 3) + 1 : 1
-    setTotalPages(estimatedPages)
-    if (isImg) setCropModalOpen(true)
+    setIsAnalyzingPdf(true)
+    try {
+      const realCount = await getExactPageCount(file)
+      setTotalDocPages(realCount)
+      setSelectedPagesCount(realCount)
+      setPageRangeMode('all')
+      setCustomRangeStr('')
+    } catch (err) {
+      console.warn('Page count error:', err)
+      setTotalDocPages(1)
+      setSelectedPagesCount(1)
+    } finally {
+      setIsAnalyzingPdf(false)
+    }
+
+    if (file.type?.startsWith('image/')) {
+      setCropModalOpen(true)
+    }
   }
 
   const handleSaveEditedImage = (editedFile) => {
@@ -45,13 +95,16 @@ export default function CustomerKiosk() {
   }
 
   const ratePerPage = colorType === 'COLOR' ? (shopInfo?.colorRate ?? 10) : (shopInfo?.bwRate ?? 5)
-  const totalAmount = totalPages * copies * ratePerPage
+  const totalAmount = selectedPagesCount * copies * ratePerPage
 
   const getJobFormData = () => {
     const formData = new FormData()
     formData.append('shopCode', shopInfo?.shopCode || shopCode || 'DEMO')
     formData.append('customerPhone', customerPhone || '')
-    formData.append('totalPages', String(totalPages))
+    formData.append('totalPages', String(selectedPagesCount))
+    formData.append('totalDocPages', String(totalDocPages))
+    formData.append('pageRangeMode', pageRangeMode)
+    formData.append('customRangeStr', customRangeStr || '')
     formData.append('colorType', colorType)
     formData.append('copies', String(copies))
     formData.append('isDuplex', String(isDuplex))
@@ -67,7 +120,10 @@ export default function CustomerKiosk() {
   const handleNewOrder = () => {
     resetJobFlow()
     setSelectedFile(null)
-    setTotalPages(1)
+    setTotalDocPages(1)
+    setSelectedPagesCount(1)
+    setPageRangeMode('all')
+    setCustomRangeStr('')
     setCopies(1)
     setIsDuplex(false)
     setStep(1)
@@ -95,11 +151,9 @@ export default function CustomerKiosk() {
     return (
       <div className="min-h-screen bg-stone-100/80 flex flex-col justify-between font-sans text-stone-800 p-4">
         <header className="py-4 text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-extrabold font-heading text-sm shadow-md">
-              P
-            </div>
-            <span className="text-lg font-extrabold text-stone-900 tracking-tight font-heading">
+          <Link to="/" className="inline-flex items-center gap-2.5 group">
+            <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-8 h-8 object-contain group-hover:scale-105 transition-transform" />
+            <span className="text-xl font-extrabold text-stone-900 tracking-tight font-heading">
               Scan<span className="text-brand">&Print</span>
             </span>
           </Link>
@@ -151,24 +205,64 @@ export default function CustomerKiosk() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100/80 flex flex-col justify-between font-sans text-stone-800 pb-10 relative">
+    <div className="min-h-screen bg-stone-100/90 flex flex-col justify-between font-sans text-stone-800 pb-4 sm:pb-8 relative">
       {/* Header with Live Rates & Status */}
       <KioskHeader shopInfo={shopInfo} />
 
+      {/* 4-Step Progress Stepper */}
+      <div className="max-w-xl w-full mx-auto px-2 sm:px-4 pt-2 sm:pt-3 pb-1">
+        <div className="flex items-center justify-between bg-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl border border-stone-200/80 shadow-2xs text-[11px] font-bold">
+          <div className={`flex items-center gap-1 sm:gap-1.5 ${step >= 1 ? 'text-brand font-extrabold' : 'text-stone-400'}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 1 ? 'bg-brand text-white' : 'bg-stone-200 text-stone-600'}`}>
+              1
+            </span>
+            <span>Upload</span>
+          </div>
+
+          <div className={`flex-1 h-0.5 mx-1.5 sm:mx-2 rounded-full ${step >= 2 ? 'bg-brand' : 'bg-stone-200'}`} />
+
+          <div className={`flex items-center gap-1 sm:gap-1.5 ${step >= 2 ? 'text-brand font-extrabold' : 'text-stone-400'}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 2 ? 'bg-brand text-white' : 'bg-stone-200 text-stone-600'}`}>
+              2
+            </span>
+            <span>Options</span>
+          </div>
+
+          <div className={`flex-1 h-0.5 mx-1.5 sm:mx-2 rounded-full ${step >= 3 ? 'bg-brand' : 'bg-stone-200'}`} />
+
+          <div className={`flex items-center gap-1 sm:gap-1.5 ${step >= 3 ? 'text-brand font-extrabold' : 'text-stone-400'}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 3 ? 'bg-brand text-white' : 'bg-stone-200 text-stone-600'}`}>
+              3
+            </span>
+            <span>Payment</span>
+          </div>
+
+          <div className={`flex-1 h-0.5 mx-1.5 sm:mx-2 rounded-full ${step >= 4 ? 'bg-brand' : 'bg-stone-200'}`} />
+
+          <div className={`flex items-center gap-1 sm:gap-1.5 ${step >= 4 ? 'text-brand font-extrabold' : 'text-stone-400'}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 4 ? 'bg-brand text-white' : 'bg-stone-200 text-stone-600'}`}>
+              4
+            </span>
+            <span>Print</span>
+          </div>
+        </div>
+      </div>
+
       {/* Main Step Container */}
-      <main className="max-w-xl w-full mx-auto px-4 py-6 flex-1 flex flex-col justify-center">
-        {/* Upload */}
+      <main className="max-w-xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-3 flex-1 flex flex-col justify-center">
+        {/* Step 1: Upload */}
         {step === 1 && (
           <FileUploadStage
             selectedFile={selectedFile}
-            totalPages={totalPages}
+            totalPages={totalDocPages}
+            isAnalyzingPdf={isAnalyzingPdf}
             onFileSelect={handleFileSelect}
             onOpenCropModal={() => setCropModalOpen(true)}
             onProceed={() => setStep(2)}
           />
         )}
 
-        {/* Print Options */}
+        {/* Step 2: Print Options */}
         {step === 2 && (
           <PrintOptionsStage
             shopInfo={shopInfo}
@@ -180,19 +274,27 @@ export default function CustomerKiosk() {
             setIsDuplex={setIsDuplex}
             customerPhone={customerPhone}
             setCustomerPhone={setCustomerPhone}
-            totalPages={totalPages}
+            totalDocPages={totalDocPages}
+            pageRangeMode={pageRangeMode}
+            setPageRangeMode={setPageRangeMode}
+            customRangeStr={customRangeStr}
+            setCustomRangeStr={setCustomRangeStr}
+            selectedPagesCount={selectedPagesCount}
+            setSelectedPagesCount={setSelectedPagesCount}
             totalAmount={totalAmount}
             onBack={() => setStep(1)}
             onProceedToPayment={() => setStep(3)}
           />
         )}
 
-        {/* Payment */}
+        {/* Step 3: Payment */}
         {step === 3 && (
           <PaymentStage
+            shopInfo={shopInfo}
             selectedFile={selectedFile}
-            totalPages={totalPages}
+            selectedPagesCount={selectedPagesCount}
             colorType={colorType}
+            copies={copies}
             totalAmount={totalAmount}
             customerPhone={customerPhone}
             onBack={() => setStep(2)}
@@ -201,17 +303,21 @@ export default function CustomerKiosk() {
           />
         )}
 
-        {/* Real-time Tracking Status */}
+        {/* Step 4: Real-time Tracking Status */}
         {step === 4 && (
           <PrintTrackingStage
             shopInfo={shopInfo}
+            selectedFile={selectedFile}
+            selectedPagesCount={selectedPagesCount}
+            colorType={colorType}
+            copies={copies}
             totalAmount={totalAmount}
             onNewOrder={handleNewOrder}
           />
         )}
       </main>
 
-      {/* In-App Image Cropper Modal (react-easy-crop) */}
+      {/* In-App Image Cropper Modal */}
       <ImageCropModal
         imageFile={selectedFile && selectedFile.type?.startsWith('image/') ? selectedFile : null}
         isOpen={cropModalOpen}
@@ -220,8 +326,11 @@ export default function CustomerKiosk() {
       />
 
       {/* Footer */}
-      <footer className="text-center text-xs font-semibold text-stone-500">
-        Powered by <span className="text-stone-800 font-extrabold">Scan&Print</span> · Smart Self-Service Printing
+      <footer className="text-center text-xs font-semibold text-stone-500 pt-2 flex items-center justify-center gap-1.5">
+        <span>Powered by</span>
+        <img src="/svgs/logo.svg" alt="Scan&Print" className="w-4 h-4 object-contain inline-block" />
+        <span className="text-stone-800 font-extrabold">Scan<span className="text-brand">&Print</span></span>
+        <span>· Smart Self-Service Printing</span>
       </footer>
     </div>
   )

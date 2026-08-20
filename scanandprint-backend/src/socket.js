@@ -71,23 +71,21 @@ export const setupSocket = (io) => {
       })
     })
 
-    // Agent periodic heartbeat event
-    socket.on('AGENT_HEARTBEAT', async (data) => {
+    // Agent periodic heartbeat event (Purely In-Memory - 0 DB write spam)
+    socket.on('AGENT_HEARTBEAT', (data) => {
       const cleanShopCode = String(data?.shopId || socket.shopCode || '').trim().toUpperCase()
-      if (cleanShopCode) {
-        try {
-          const shop = await shopRepository.findByCode(cleanShopCode)
-          if (shop) {
-            await shopRepository.updateById(shop._id, { isOnline: true, lastHeartbeatAt: new Date() })
-          }
-        } catch (e) {}
+      if (cleanShopCode && activeAgentsMap.has(cleanShopCode)) {
+        const record = activeAgentsMap.get(cleanShopCode)
+        record.lastHeartbeat = Date.now()
+        activeAgentsMap.set(cleanShopCode, record)
       }
     })
 
     // Agent Register / Handshake Event (Desktop Agent Connects)
     socket.on('AGENT_REGISTER', async (data) => {
       try {
-        const shop = await agentService.registerAgent(data, socket.id)
+        const remoteIp = socket.handshake?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || socket.handshake?.address
+        const shop = await agentService.registerAgent(data, socket.id, remoteIp)
         const cleanShopCode = String(shop.shopCode).trim().toUpperCase()
 
         socket.shopCode = cleanShopCode

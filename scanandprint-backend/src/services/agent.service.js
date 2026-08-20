@@ -8,8 +8,8 @@ import fs from 'fs'
 export const agentService = {
 
   // Register an agent session when it connects
-  async registerAgent(data, socketId) {
-    const { shopId, secretApiKey, agentVersion, ipAddress } = data || {}
+  async registerAgent(data, socketId, remoteIp) {
+    const { shopId, secretApiKey, agentVersion, ipAddress, osPlatform, osArch, platform } = data || {}
 
     const cleanShopCode = String(shopId || '').trim().toUpperCase()
     const cleanSecret = String(secretApiKey || '').trim()
@@ -21,11 +21,15 @@ export const agentService = {
     if (!shop)
       throw new Error(`Invalid Shop Code (${cleanShopCode}) or Secret Key`)
 
+    const detectedIp = ipAddress && ipAddress !== '127.0.0.1' ? ipAddress : (remoteIp || ipAddress || '127.0.0.1')
+    const detectedPlatform = osPlatform || osArch || (platform === 'win32' ? 'Windows x64' : platform) || 'Windows'
+
     await agentRepository.createSession({
       shopId: shop._id,
       socketId,
-      agentVersion: agentVersion || '1.0.0',
-      ipAddress,
+      agentVersion: agentVersion || '1.0.3',
+      ipAddress: detectedIp,
+      osPlatform: detectedPlatform,
       isConnected: true,
     })
 

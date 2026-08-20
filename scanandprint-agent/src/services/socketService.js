@@ -1,7 +1,23 @@
 import { io } from 'socket.io-client'
+import os from 'os'
 import configStore from '../store/configStore.js'
 import printService from './printService.js'
 import printerManager from './printerManager.js'
+
+// Extract active local network IPv4 address
+function getRealLocalIp() {
+  try {
+    const interfaces = os.networkInterfaces()
+    for (const name of Object.keys(interfaces)) {
+      for (const net of interfaces[name]) {
+        if (net.family === 'IPv4' && !net.internal && net.address !== '127.0.0.1') {
+          return net.address
+        }
+      }
+    }
+  } catch (e) {}
+  return '127.0.0.1'
+}
 
 class SocketService {
   constructor() {
@@ -64,17 +80,21 @@ class SocketService {
         console.error('[SocketService] Failed to detect local printers:', err.message)
       }
 
-      // Detect OS Arch (32-bit / 64-bit) and system info
-      const osArch = `${process.platform} (${process.arch === 'x64' ? '64-bit' : process.arch === 'ia32' ? '32-bit' : process.arch})`
+      // Detect Real OS Info & Live System Telemetry
+      const platformName = process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux'
+      const osPlatform = `${platformName} ${os.release()} (${process.arch}) - ${os.hostname()}`
+      const realLocalIp = getRealLocalIp()
       
-      // Emit handshake with detected printers and system info
+      // Emit handshake with detected printers and real live system info
       this.socket.emit('AGENT_REGISTER', { 
         shopId: shopId.trim(), 
         secretApiKey: secretKey.trim(),
-        agentVersion: '1.0.0',
-        osArch,
+        agentVersion: '1.0.3',
+        osArch: `${process.platform} (${process.arch})`,
         platform: process.platform,
-        ipAddress: '127.0.0.1 (Localhost)',
+        osPlatform,
+        ipAddress: realLocalIp,
+        hostname: os.hostname(),
         printers: availablePrinters,
       })
       

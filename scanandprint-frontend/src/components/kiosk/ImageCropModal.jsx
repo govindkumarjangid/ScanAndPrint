@@ -1,278 +1,535 @@
-import React, { useState, useCallback } from 'react'
-import Cropper from 'react-easy-crop'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Crop,
   X,
   Check,
   RotateCw,
-  ZoomIn,
-  ZoomOut,
+  Plus,
+  Trash2,
   Maximize2,
-  RefreshCw,
+  Sparkles,
+  Layers,
+  Move,
+  Camera,
+  Image as ImageIcon,
+  CheckCircle2,
 } from 'lucide-react'
 
-// Canvas helper to extract cropped area from image
-const getCroppedImgFile = (imageSrc, pixelCrop, rotation = 0, fileName = 'edited_photo.png') => {
-  return new Promise((resolve, reject) => {
-    const image = new Image()
-    image.crossOrigin = 'anonymous'
-    image.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
+export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
+  // Array of items on the A4 page: [{ id, file, url, x, y, width, height, rotation }]
+  const [items, setItems] = useState([])
+  const [selectedId, setSelectedId] = useState(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [activeDrag, setActiveDrag] = useState(null) // { type: 'move' | 'resize', handle?: 'tl'|'tr'|'bl'|'br', startX, startY, origX, origY, origW, origH }
 
-      if (!ctx) {
-        return reject(new Error('Canvas context not available'))
+  const containerRef = useRef(null)
+  const fileInputRef = useRef(null)
+
+  // Initialize with initial image
+  useEffect(() => {
+    if (imageFile) {
+      const url = URL.createObjectURL(imageFile)
+      const img = new Image()
+      img.src = url
+      img.onload = () => {
+        const initialItem = {
+          id: 'img_' + Date.now(),
+          file: imageFile,
+          url,
+          name: imageFile.name || 'Image 1',
+          x: 20,
+          y: 20,
+          width: 60, // percentage of A4 width
+          height: (60 * (img.height / img.width)) / 1.414, // percentage of A4 height
+          rotation: 0,
+          aspectRatio: img.width / img.height,
+        }
+        setItems([initialItem])
+        setSelectedId(initialItem.id)
       }
+    } else {
+      setItems([])
+      setSelectedId(null)
+    }
+  }, [imageFile, isOpen])
 
-      const rotRad = (rotation * Math.PI) / 180
+  // Handle Adding Additional Images (e.g. Back Side of Aadhaar Card)
+  const handleAddAdditionalImage = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-      // Calculate bounding box size of rotated image
-      const bBoxWidth =
-        Math.abs(Math.cos(rotRad) * image.width) + Math.abs(Math.sin(rotRad) * image.height)
-      const bBoxHeight =
-        Math.abs(Math.sin(rotRad) * image.width) + Math.abs(Math.cos(rotRad) * image.height)
-
-      canvas.width = bBoxWidth
-      canvas.height = bBoxHeight
-
-      ctx.save()
-      ctx.translate(bBoxWidth / 2, bBoxHeight / 2)
-      ctx.rotate(rotRad)
-      ctx.drawImage(image, -image.width / 2, -image.height / 2)
-      ctx.restore()
-
-      // Create cropped canvas
-      const croppedCanvas = document.createElement('canvas')
-      const croppedCtx = croppedCanvas.getContext('2d')
-
-      if (!croppedCtx) {
-        return reject(new Error('Cropped canvas context not available'))
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.src = url
+    img.onload = () => {
+      const newItem = {
+        id: 'img_' + Date.now(),
+        file,
+        url,
+        name: file.name || 'Image ' + (items.length + 1),
+        x: 20,
+        y: items.length > 0 ? 55 : 20, // place below first image by default
+        width: 60,
+        height: (60 * (img.height / img.width)) / 1.414,
+        rotation: 0,
+        aspectRatio: img.width / img.height,
       }
+      setItems((prev) => [...prev, newItem])
+      setSelectedId(newItem.id)
+    }
+  }
 
-      croppedCanvas.width = pixelCrop.width
-      croppedCanvas.height = pixelCrop.height
+  // Preset Layout: Aadhaar Card (Top & Bottom)
+  const applyAadhaarPreset = () => {
+    if (items.length < 2) return
+    setItems((prev) => [
+      {
+        ...prev[0],
+        x: 15,
+        y: 10,
+        width: 70,
+        height: (70 / (prev[0].aspectRatio || 1.5)) / 1.414,
+        rotation: 0,
+      },
+      {
+        ...prev[1],
+        x: 15,
+        y: 50,
+        width: 70,
+        height: (70 / (prev[1].aspectRatio || 1.5)) / 1.414,
+        rotation: 0,
+      },
+      ...prev.slice(2),
+    ])
+  }
 
-      croppedCtx.drawImage(
-        canvas,
-        pixelCrop.x,
-        pixelCrop.y,
-        pixelCrop.width,
-        pixelCrop.height,
-        0,
-        0,
-        pixelCrop.width,
-        pixelCrop.height
+  // Preset Layout: Side by Side
+  const applySideBySidePreset = () => {
+    if (items.length < 2) return
+    setItems((prev) => [
+      {
+        ...prev[0],
+        x: 5,
+        y: 25,
+        width: 42,
+        height: (42 / (prev[0].aspectRatio || 1.5)) / 1.414,
+        rotation: 0,
+      },
+      {
+        ...prev[1],
+        x: 53,
+        y: 25,
+        width: 42,
+        height: (42 / (prev[1].aspectRatio || 1.5)) / 1.414,
+        rotation: 0,
+      },
+      ...prev.slice(2),
+    ])
+  }
+
+  // Rotate Selected Item
+  const handleRotateSelected = () => {
+    if (!selectedId) return
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === selectedId
+          ? { ...item, rotation: (item.rotation + 90) % 360 }
+          : item
       )
+    )
+  }
 
-      croppedCanvas.toBlob(
+  // Delete Selected Item
+  const handleDeleteSelected = () => {
+    if (!selectedId) return
+    setItems((prev) => {
+      const filtered = prev.filter((item) => item.id !== selectedId)
+      setSelectedId(filtered[0]?.id || null)
+      return filtered
+    })
+  }
+
+  // Pointer/Touch Down Handler for Moving or Resizing
+  const handlePointerDown = (e, item, actionType, handle) => {
+    e.stopPropagation()
+    setSelectedId(item.id)
+
+    const clientX = e.clientX || e.touches?.[0]?.clientX
+    const clientY = e.clientY || e.touches?.[0]?.clientY
+
+    setActiveDrag({
+      type: actionType,
+      itemId: item.id,
+      handle,
+      startX: clientX,
+      startY: clientY,
+      origX: item.x,
+      origY: item.y,
+      origW: item.width,
+      origH: item.height,
+    })
+  }
+
+  // Pointer/Touch Move Handler
+  const handlePointerMove = useCallback(
+    (e) => {
+      if (!activeDrag || !containerRef.current) return
+
+      const clientX = e.clientX || e.touches?.[0]?.clientX
+      const clientY = e.clientY || e.touches?.[0]?.clientY
+      if (clientX === undefined || clientY === undefined) return
+
+      const rect = containerRef.current.getBoundingClientRect()
+      const deltaXPercent = ((clientX - activeDrag.startX) / rect.width) * 100
+      const deltaYPercent = ((clientY - activeDrag.startY) / rect.height) * 100
+
+      if (activeDrag.type === 'move') {
+        const newX = Math.max(0, Math.min(100 - activeDrag.origW, activeDrag.origX + deltaXPercent))
+        const newY = Math.max(0, Math.min(100 - activeDrag.origH, activeDrag.origY + deltaYPercent))
+
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === activeDrag.itemId ? { ...item, x: newX, y: newY } : item
+          )
+        )
+      } else if (activeDrag.type === 'resize') {
+        setItems((prev) =>
+          prev.map((item) => {
+            if (item.id !== activeDrag.itemId) return item
+
+            let newW = activeDrag.origW
+            let newH = activeDrag.origH
+            let newX = activeDrag.origX
+            let newY = activeDrag.origY
+
+            if (activeDrag.handle === 'br') {
+              newW = Math.max(15, Math.min(100 - item.x, activeDrag.origW + deltaXPercent))
+              newH = (newW / (item.aspectRatio || 1.5)) / 1.414
+            } else if (activeDrag.handle === 'bl') {
+              newW = Math.max(15, activeDrag.origW - deltaXPercent)
+              newX = activeDrag.origX + (activeDrag.origW - newW)
+              newH = (newW / (item.aspectRatio || 1.5)) / 1.414
+            } else if (activeDrag.handle === 'tr') {
+              newW = Math.max(15, Math.min(100 - item.x, activeDrag.origW + deltaXPercent))
+              newH = (newW / (item.aspectRatio || 1.5)) / 1.414
+              newY = activeDrag.origY + (activeDrag.origH - newH)
+            } else if (activeDrag.handle === 'tl') {
+              newW = Math.max(15, activeDrag.origW - deltaXPercent)
+              newX = activeDrag.origX + (activeDrag.origW - newW)
+              newH = (newW / (item.aspectRatio || 1.5)) / 1.414
+              newY = activeDrag.origY + (activeDrag.origH - newH)
+            }
+
+            return {
+              ...item,
+              x: Math.max(0, newX),
+              y: Math.max(0, newY),
+              width: Math.min(100, newW),
+              height: Math.min(100, newH),
+            }
+          })
+        )
+      }
+    },
+    [activeDrag]
+  )
+
+  const handlePointerUp = useCallback(() => {
+    setActiveDrag(null)
+  }, [])
+
+  useEffect(() => {
+    if (activeDrag) {
+      window.addEventListener('pointermove', handlePointerMove)
+      window.addEventListener('pointerup', handlePointerUp)
+      window.addEventListener('touchmove', handlePointerMove)
+      window.addEventListener('touchend', handlePointerUp)
+      return () => {
+        window.removeEventListener('pointermove', handlePointerMove)
+        window.removeEventListener('pointerup', handlePointerUp)
+        window.removeEventListener('touchmove', handlePointerMove)
+        window.removeEventListener('touchend', handlePointerUp)
+      }
+    }
+  }, [activeDrag, handlePointerMove, handlePointerUp])
+
+  // Export Combined Canvas to High-Res Image (300 DPI A4)
+  const handleSaveMergedCanvas = async () => {
+    if (items.length === 0) return
+
+    try {
+      setIsProcessing(true)
+      const A4_WIDTH = 2480 // 300 DPI A4
+      const A4_HEIGHT = 3508
+
+      const canvas = document.createElement('canvas')
+      canvas.width = A4_WIDTH
+      canvas.height = A4_HEIGHT
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('Canvas not supported')
+
+      // White A4 Background
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, A4_WIDTH, A4_HEIGHT)
+
+      // Draw all items in sequence
+      for (const item of items) {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        await new Promise((res, rej) => {
+          img.onload = res
+          img.onerror = rej
+          img.src = item.url
+        })
+
+        const itemPixelX = (item.x / 100) * A4_WIDTH
+        const itemPixelY = (item.y / 100) * A4_HEIGHT
+        const itemPixelW = (item.width / 100) * A4_WIDTH
+        const itemPixelH = (item.height / 100) * A4_HEIGHT
+
+        ctx.save()
+        ctx.translate(itemPixelX + itemPixelW / 2, itemPixelY + itemPixelH / 2)
+        ctx.rotate((item.rotation * Math.PI) / 180)
+        ctx.drawImage(img, -itemPixelW / 2, -itemPixelH / 2, itemPixelW, itemPixelH)
+        ctx.restore()
+      }
+
+      canvas.toBlob(
         (blob) => {
           if (!blob) {
-            return reject(new Error('Canvas is empty'))
+            setIsProcessing(false)
+            return
           }
-          const file = new File([blob], fileName, {
+          const mergedFile = new File([blob], `document_page_${Date.now()}.png`, {
             type: 'image/png',
             lastModified: Date.now(),
           })
-          resolve(file)
+          setIsProcessing(false)
+          onSave(mergedFile)
         },
         'image/png',
         0.95
       )
-    }
-    image.onerror = (err) => reject(err)
-    image.src = imageSrc
-  })
-}
-
-export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
-  const [rotation, setRotation] = useState(0)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
-  const [aspect, setAspect] = useState(null) // null = Free
-  const [isProcessing, setIsProcessing] = useState(false)
-
-  const imageSrc = React.useMemo(() => {
-    return imageFile ? URL.createObjectURL(imageFile) : null
-  }, [imageFile])
-
-  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels)
-  }, [])
-
-  const handleApplyCrop = async () => {
-    if (!imageSrc || !croppedAreaPixels) return
-
-    try {
-      setIsProcessing(true)
-      const croppedFile = await getCroppedImgFile(
-        imageSrc,
-        croppedAreaPixels,
-        rotation,
-        `edited_${imageFile?.name || 'photo.png'}`
-      )
-      onSave(croppedFile)
     } catch (err) {
-      console.error('Failed to crop image:', err)
-    } finally {
+      console.error('Failed to export canvas:', err)
       setIsProcessing(false)
     }
   }
 
-  const handleReset = () => {
-    setCrop({ x: 0, y: 0 })
-    setZoom(1)
-    setRotation(0)
-    setAspect(null)
-  }
-
-  if (!isOpen || !imageSrc) return null
-
-  const aspectPresets = [
-    { label: 'Free', value: null },
-    { label: '1:1 Square', value: 1 / 1 },
-    { label: '4:3 Standard', value: 4 / 3 },
-    { label: '16:9 Wide', value: 16 / 9 },
-    { label: 'A4 Document', value: 1 / 1.414 },
-    { label: 'Passport (3.5x4.5)', value: 3.5 / 4.5 },
-  ]
+  if (!isOpen) return null
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-stone-950/85 backdrop-blur-md select-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-stone-950/90 backdrop-blur-md select-none">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          initial={{ opacity: 0, scale: 0.98, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="bg-white w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[92vh] max-h-200 border border-stone-200"
+          exit={{ opacity: 0, scale: 0.98, y: 10 }}
+          className="bg-white w-full h-full sm:h-[94vh] sm:max-h-215 sm:max-w-4xl sm:rounded-3xl rounded-none overflow-hidden shadow-2xl flex flex-col border-0 sm:border sm:border-stone-200"
         >
           {/* Header */}
-          <div className="px-5 py-3.5 border-b border-stone-200 flex items-center justify-between bg-stone-50 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-brand text-white flex items-center justify-center shadow-md shadow-rose-500/20">
-                <Crop className="w-5 h-5 stroke-[2.2]" />
+          <div className="px-3 sm:px-6 py-2.5 sm:py-3 border-b border-stone-200 flex items-center justify-between bg-stone-50 shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-brand text-white flex items-center justify-center shadow-xs shrink-0">
+                <Crop className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h3 className="font-extrabold text-base text-stone-900 leading-tight">
-                  Image Crop & Orientation
+              <div className="flex flex-col min-w-0">
+                <h3 className="font-extrabold text-xs sm:text-base text-stone-900 leading-tight truncate">
+                  Page Layout & Aadhaar Editor
                 </h3>
-                <span className="text-xs text-stone-500 font-medium">
-                  Adjust crop area, zoom, and orientation before printing
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium truncate">
+                  Drag corner dots to resize · Add Front & Back on 1 sheet
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Hidden Additional File Input */}
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleAddAdditionalImage}
+                className="hidden"
+              />
+
+              {/* Add 2nd Side / Additional Image Button */}
               <button
                 type="button"
-                onClick={handleReset}
-                className="btn btn-ghost btn-sm text-stone-600 hover:text-stone-900 flex items-center gap-1.5"
+                onClick={() => fileInputRef.current?.click()}
+                className="btn py-1.5 px-3 rounded-xl text-xs font-extrabold flex items-center gap-1.5 bg-brand text-white hover:bg-rose-600 active:bg-rose-700 shadow-xs hover:shadow-md transition-all cursor-pointer border-none"
+                title="Add Front or Back Image"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Reset</span>
+                <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+                <span>Add More</span>
               </button>
+
               <button
                 type="button"
                 onClick={onClose}
-                className="btn btn-ghost btn-sm p-2 text-stone-500 hover:bg-stone-200!"
+                className="btn btn-ghost p-1.5 text-stone-400 hover:text-stone-800 rounded-full hover:bg-stone-200/60"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          {/* Center Cropper Stage */}
-          <div className="relative flex-1 min-h-0 bg-stone-950 overflow-hidden">
-            <Cropper
-              image={imageSrc}
-              crop={crop}
-              zoom={zoom}
-              rotation={rotation}
-              aspect={aspect || undefined}
-              onCropChange={setCrop}
-              onCropComplete={onCropComplete}
-              onZoomChange={setZoom}
-              classes={{
-                containerClassName: 'relative w-full h-full',
-              }}
-            />
-          </div>
-
-          {/* Bottom Toolbar & Presets */}
-          <div className="p-4 sm:p-5 bg-white border-t border-stone-200 flex flex-col gap-4 shrink-0">
-            {/* Aspect Presets Row */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-              <span className="text-xs font-bold text-stone-500 shrink-0 mr-1">Aspect:</span>
-              {aspectPresets.map((p) => {
-                const isActive = aspect === p.value
-                return (
-                  <button
-                    key={p.label}
-                    type="button"
-                    onClick={() => setAspect(p.value)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${isActive
-                        ? 'bg-brand text-white shadow-xs'
-                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-200'
-                      }`}
-                  >
-                    {p.label}
-                  </button>
-                )
-              })}
+          {/* Preset Quick Actions Bar */}
+          <div className="px-3 sm:px-4 py-2 bg-stone-100/90 border-b border-stone-200 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-[10px] sm:text-[11px] text-stone-500 uppercase mr-0.5 shrink-0">
+                Presets:
+              </span>
+              <button
+                type="button"
+                onClick={applyAadhaarPreset}
+                disabled={items.length < 2}
+                className="py-1 px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-200 hover:bg-rose-50 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer shadow-2xs shrink-0"
+              >
+                Aadhaar (Top & Bottom)
+              </button>
+              <button
+                type="button"
+                onClick={applySideBySidePreset}
+                disabled={items.length < 2}
+                className="py-1 px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-200 hover:bg-rose-50 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer shadow-2xs shrink-0"
+              >
+                Side by Side
+              </button>
             </div>
 
-            {/* Controls: Zoom & Rotate */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-              {/* Zoom Slider */}
-              <div className="flex items-center gap-3 bg-stone-50 p-2.5 rounded-2xl border border-stone-200">
-                <ZoomOut className="w-4 h-4 text-stone-500 shrink-0" />
-                <input
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={0.1}
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                  className="w-full accent-brand cursor-pointer h-2 bg-stone-200 rounded-lg"
-                />
-                <ZoomIn className="w-4 h-4 text-stone-500 shrink-0" />
-                <span className="text-xs font-mono font-bold text-stone-700 w-10 text-right shrink-0">
-                  {zoom.toFixed(1)}x
-                </span>
-              </div>
-
-              {/* Rotate Button */}
-              <div className="flex items-center justify-between bg-stone-50 p-2.5 rounded-2xl border border-stone-200">
-                <span className="text-xs font-bold text-stone-700">Rotate +90°</span>
+            {selectedId && (
+              <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setRotation((r) => (r + 90) % 360)}
-                  className="btn btn-outline btn-sm py-1 px-3 bg-white text-stone-800 flex items-center gap-1.5"
+                  onClick={handleRotateSelected}
+                  className="py-1 px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-200 hover:bg-stone-50 flex items-center gap-1 cursor-pointer shadow-2xs"
                 >
                   <RotateCw className="w-3.5 h-3.5 text-brand" />
                   <span>Rotate</span>
                 </button>
+                {items.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelected}
+                    className="py-1 px-2 rounded-lg font-bold bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 flex items-center gap-1 cursor-pointer shadow-2xs"
+                    title="Remove selected image"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Save & Cancel Footer */}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-stone-100">
+          {/* Interactive A4 Sheet Canvas Area */}
+          <div className="relative flex-1 min-h-0 bg-stone-950 flex items-center justify-center p-2 sm:p-6 overflow-hidden">
+            {/* A4 Sheet Container (1 : 1.414 aspect ratio) */}
+            <div
+              ref={containerRef}
+              onClick={() => setSelectedId(null)}
+              className="relative bg-white shadow-2xl rounded-xs overflow-hidden border border-stone-300 transition-all"
+              style={{
+                aspectRatio: '1 / 1.414',
+                height: '100%',
+                maxHeight: '100%',
+              }}
+            >
+              {/* Subtle A4 Print Margins */}
+              <div className="absolute inset-1 sm:inset-2 border border-dashed border-stone-200 pointer-events-none rounded-xs" />
+
+              {/* Rendered Items with Always-Visible Corner Scaling Handles */}
+              {items.map((item) => {
+                const isSelected = selectedId === item.id
+
+                return (
+                  <div
+                    key={item.id}
+                    onPointerDown={(e) => handlePointerDown(e, item, 'move')}
+                    className={`absolute cursor-move select-none touch-none ${isSelected ? 'ring-2 ring-brand ring-offset-1 z-20' : 'hover:ring-1 hover:ring-stone-400 z-10'
+                      }`}
+                    style={{
+                      left: `${item.x}%`,
+                      top: `${item.y}%`,
+                      width: `${item.width}%`,
+                      height: `${item.height}%`,
+                      transform: `rotate(${item.rotation}deg)`,
+                      transformOrigin: 'center center',
+                    }}
+                  >
+                    <img
+                      src={item.url}
+                      alt={item.name}
+                      className="w-full h-full object-contain pointer-events-none rounded-xs shadow-xs"
+                      draggable={false}
+                    />
+
+                    {/* Corner Resize Handles (Dots) - ALWAYS VISIBLE */}
+                    <div
+                      onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'tl')}
+                      className={`absolute -top-3 -left-3 sm:-top-2.5 sm:-left-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 ${isSelected ? 'border-brand scale-115 shadow-md ring-2 ring-brand/40' : 'border-stone-700 shadow-xs'
+                        } rounded-full cursor-nwse-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none`}
+                      title="Drag to resize"
+                    >
+                      <div className={`w-2 h-2 sm:w-1.5 sm:h-1.5 ${isSelected ? 'bg-brand' : 'bg-stone-700'} rounded-full`} />
+                    </div>
+
+                    <div
+                      onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'tr')}
+                      className={`absolute -top-3 -right-3 sm:-top-2.5 sm:-right-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 ${isSelected ? 'border-brand scale-115 shadow-md ring-2 ring-brand/40' : 'border-stone-700 shadow-xs'
+                        } rounded-full cursor-nesw-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none`}
+                      title="Drag to resize"
+                    >
+                      <div className={`w-2 h-2 sm:w-1.5 sm:h-1.5 ${isSelected ? 'bg-brand' : 'bg-stone-700'} rounded-full`} />
+                    </div>
+
+                    <div
+                      onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'bl')}
+                      className={`absolute -bottom-3 -left-3 sm:-bottom-2.5 sm:-left-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 ${isSelected ? 'border-brand scale-115 shadow-md ring-2 ring-brand/40' : 'border-stone-700 shadow-xs'
+                        } rounded-full cursor-nesw-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none`}
+                      title="Drag to resize"
+                    >
+                      <div className={`w-2 h-2 sm:w-1.5 sm:h-1.5 ${isSelected ? 'bg-brand' : 'bg-stone-700'} rounded-full`} />
+                    </div>
+
+                    <div
+                      onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'br')}
+                      className={`absolute -bottom-3 -right-3 sm:-bottom-2.5 sm:-right-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 ${isSelected ? 'border-brand scale-115 shadow-md ring-2 ring-brand/40' : 'border-stone-700 shadow-xs'
+                        } rounded-full cursor-nwse-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none`}
+                      title="Drag to resize"
+                    >
+                      <div className={`w-2 h-2 sm:w-1.5 sm:h-1.5 ${isSelected ? 'bg-brand' : 'bg-stone-700'} rounded-full`} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Bottom Save & Cancel Bar */}
+          <div className="px-3 sm:px-6 py-2.5 sm:py-3 bg-white border-t border-stone-200 flex items-center justify-between gap-2 shrink-0">
+            <span className="text-[11px] sm:text-xs text-stone-500 font-medium hidden sm:inline">
+              {items.length} {items.length === 1 ? 'image' : 'images'} on A4 page · 300 DPI high resolution
+            </span>
+
+            <div className="flex items-center gap-2 ml-auto w-full sm:w-auto justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="btn btn-outline px-5 py-2.5 text-xs font-bold"
+                className="btn btn-outline px-3 sm:px-4 py-2 text-xs font-bold"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={handleApplyCrop}
-                disabled={isProcessing}
-                className="btn btn-primary px-6 py-2.5 shadow-md flex items-center gap-2 text-xs font-bold"
+                onClick={handleSaveMergedCanvas}
+                disabled={isProcessing || items.length === 0}
+                className="btn btn-primary px-5 sm:px-6 py-2.5 shadow-md flex items-center gap-1.5 text-xs font-bold cursor-pointer"
               >
                 <Check className="w-4 h-4" />
-                <span>{isProcessing ? 'Processing Image...' : 'Crop & Save Edits'}</span>
+                <span>{isProcessing ? 'Rendering...' : 'Save & Print 1 Page'}</span>
               </button>
             </div>
           </div>

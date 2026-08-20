@@ -6,17 +6,17 @@ const printAgentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Shop',
       required: true,
+      unique: true,
       index: true,
     },
     socketId: {
       type: String,
       required: true,
-      unique: true,
       index: true,
     },
     agentVersion: {
       type: String,
-      default: '1.0.0',
+      default: '1.0.3',
     },
     ipAddress: {
       type: String,
@@ -24,7 +24,7 @@ const printAgentSchema = new mongoose.Schema(
     },
     osPlatform: {
       type: String,
-      default: 'win32',
+      default: 'Windows',
     },
     isConnected: {
       type: Boolean,
