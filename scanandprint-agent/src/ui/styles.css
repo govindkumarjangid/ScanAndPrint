@@ -36,6 +36,10 @@
   padding: 0;
 }
 
+html, body {
+  touch-action: pan-y;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-main);
@@ -52,15 +56,15 @@ body {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
   background: #27272a;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
@@ -386,7 +390,7 @@ body {
 .card-sub {
   font-size: 11px;
   color: var(--text-secondary);
-  margin-top: -6px;
+  margin-top: 2px;
   line-height: 1.4;
 }
 

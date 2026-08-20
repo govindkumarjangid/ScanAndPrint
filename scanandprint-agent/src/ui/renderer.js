@@ -48,13 +48,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   let config = {
     shopId: '',
     secretKey: '',
-    serverUrl: 'https://scanandprint.onrender.com',
+    serverUrl: 'http://localhost:5000',
     defaultBwPrinter: '',
     defaultColorPrinter: '',
     autoStartOnBoot: true,
   }
 
   const isElectron = window.electronAPI && typeof window.electronAPI.getConfig === 'function'
+
+  // Disable Ctrl + Wheel Zoom & Ctrl + +/-/0 Zoom Shortcuts so scrolling works naturally
+  window.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault()
+    }
+  }, { passive: false })
+
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && ['+', '-', '=', '_', '0', 'NumpadAdd', 'NumpadSubtract'].includes(e.key)) {
+      e.preventDefault()
+    }
+  })
 
   // Toast / Alert Notification Helper
   function showToast(msg, type = 'success') {
@@ -135,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Populate Input Fields
   shopIdInput.value = config.shopId || ''
   secretKeyInput.value = config.secretKey || ''
-  serverUrlInput.value = config.serverUrl || 'https://scanandprint.onrender.com'
+  serverUrlInput.value = config.serverUrl || 'http://localhost:5000'
   if (autoStartToggle) autoStartToggle.checked = config.autoStartOnBoot !== false
   if (displayShopCode) displayShopCode.textContent = config.shopId || 'UNSET'
 
@@ -374,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault()
     const cleanShopCode = shopIdInput.value.trim().toUpperCase()
     const cleanSecret = secretKeyInput.value.trim()
-    const cleanServerUrl = serverUrlInput.value.trim() || 'https://scanandprint.onrender.com'
+    const cleanServerUrl = serverUrlInput.value.trim() || 'http://localhost:5000'
 
     if (!cleanShopCode || !cleanSecret) {
       showToast('Please enter both Shop ID and Secret API Key', 'error')

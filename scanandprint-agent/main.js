@@ -101,6 +101,18 @@ function createMainWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src/ui/index.html'))
 
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.setZoomFactor(1)
+    mainWindow.webContents.setVisualZoomLevelLimits(1, 1)
+  })
+
+  // Prevent zoom shortcuts (Ctrl + +, Ctrl + -, Ctrl + 0, Ctrl + Wheel)
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.control && ['+', '-', '=', '_', '0', 'NumpadAdd', 'NumpadSubtract'].includes(input.key)) {
+      event.preventDefault()
+    }
+  })
+
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
     mainWindow.focus()
