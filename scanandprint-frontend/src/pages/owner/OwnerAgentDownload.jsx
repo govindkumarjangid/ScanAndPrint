@@ -38,7 +38,7 @@ export default function OwnerAgentDownload() {
 
   const downloadUrl =
     import.meta.env.VITE_AGENT_DOWNLOAD_URL ||
-    'https://github.com/govindkumarjangid/PrintPe/releases/latest/download/Scan.Print.Agent.Setup.1.0.3.exe'
+    'https://github.com/govindkumarjangid/ScanAndPrint/releases/download/v1.0.3/Scan.Print.Agent.Setup.1.0.3.exe'
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
