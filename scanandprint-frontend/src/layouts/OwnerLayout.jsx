@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, AlertCircle, ownerNavItems } from '../assets/assets'
-import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check } from 'lucide-react'
+import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check, Rocket } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
 import { useAuthStore } from '../store/useAuthStore'
@@ -18,6 +18,8 @@ export default function OwnerLayout() {
   const [isAgentConnected, setIsAgentConnected] = useState(false)
   const [isRenewing, setIsRenewing] = useState(false)
   const [selectedRenewPlan, setSelectedRenewPlan] = useState('MONTHLY_299')
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [selectedUpgradePlan, setSelectedUpgradePlan] = useState('YEARLY_799')
 
   const navigate = useNavigate()
   const {
@@ -68,9 +70,9 @@ export default function OwnerLayout() {
     }
   }, [currentShop?.shopCode, currentShop?._id])
 
-  // Subscription Plan Status & Expiry Calculations
   const isDemo = Boolean(currentShop?.isDemoAccount)
   const isYearly = currentShop?.planType === 'YEARLY_799'
+  const isDemoEnded = isDemo && (!currentShop?.demoExpiresAt || new Date(currentShop.demoExpiresAt).getTime() <= Date.now())
 
   const expiryFormatted = currentShop?.subscriptionExpiresAt
     ? new Date(currentShop.subscriptionExpiresAt).toLocaleDateString('en-IN', {
@@ -90,7 +92,11 @@ export default function OwnerLayout() {
   let daysLeft = null
   let isPlanExpired = false
 
-  if (!isDemo) {
+  if (isDemo) {
+    if (isDemoEnded || isDemoExpired) {
+      isPlanExpired = true
+    }
+  } else {
     if (currentShop?.subscriptionExpiresAt) {
       const diffMs = new Date(currentShop.subscriptionExpiresAt).getTime() - Date.now()
       daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
@@ -196,7 +202,7 @@ export default function OwnerLayout() {
         return
       }
 
-      const orderData = await createSubscriptionOrder(planType || selectedRenewPlan)
+      const orderData = await createSubscriptionOrder(planType || selectedRenewPlan, currentShop?._id)
 
       const options = {
         key: orderData.keyId,
@@ -325,11 +331,11 @@ export default function OwnerLayout() {
               </span>
             </div>
             <button
-              onClick={() => handleRenewSubscription('MONTHLY_299')}
-              className="hidden sm:inline-flex items-center gap-1 bg-stone-950 text-white px-3 py-1 rounded-xl text-[11px] font-extrabold hover:bg-black transition-colors cursor-pointer"
+              onClick={() => setShowUpgradeModal(true)}
+              className="hidden sm:inline-flex items-center gap-1.5 bg-stone-950 text-white px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold hover:bg-black transition-colors cursor-pointer shadow-xs"
             >
-              <span>Upgrade Plan (₹{monthlyPrice})</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>Upgrade Plan 🚀</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -344,12 +350,12 @@ export default function OwnerLayout() {
               </span>
             </div>
             <button
-              onClick={() => handleRenewSubscription('MONTHLY_299')}
+              onClick={() => setShowUpgradeModal(true)}
               disabled={isRenewing}
-              className="hidden sm:inline-flex items-center gap-1.5 bg-white text-brand px-3.5 py-1 rounded-xl text-[11px] font-extrabold hover:bg-rose-50 shadow-sm transition-colors cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 bg-white text-brand px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold hover:bg-rose-50 shadow-sm transition-colors cursor-pointer"
             >
-              {isRenewing ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-              <span>Renew Now (₹{monthlyPrice})</span>
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Renew / Upgrade Plan</span>
             </button>
           </div>
         )}
@@ -632,6 +638,139 @@ export default function OwnerLayout() {
                 >
                   Sign Out
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 2. VOLUNTARY UPGRADE / RENEWAL PLAN SELECTION MODAL (MONTHLY VS YEARLY) */}
+      <AnimatePresence>
+        {showUpgradeModal && !isDashboardLocked && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/70 backdrop-blur-xs">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-stone-200 flex flex-col gap-5 relative"
+            >
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setShowUpgradeModal(false)}
+                className="absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex flex-col gap-1 text-center pr-6">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-brand bg-rose-50 border border-rose-200 px-3 py-0.5 rounded-full w-max mx-auto">
+                  Upgrade Subscription
+                </span>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 font-heading mt-1 flex items-center justify-center gap-4 ">
+                  Choose Your Plan <Rocket className="w-5 h-5 fill-brand text-brand" />
+                </h3>
+                <p className="text-xs text-stone-500 leading-relaxed">
+                  Select between Monthly or Yearly access to continue uninterrupted printing after your demo.
+                </p>
+              </div>
+
+              {/* Plan Choice Cards */}
+              <div className="w-full flex flex-col gap-3 text-left">
+                {/* 1. Monthly Option */}
+                <div
+                  onClick={() => setSelectedUpgradePlan('MONTHLY_299')}
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${selectedUpgradePlan === 'MONTHLY_299'
+                      ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
+                      : 'border-stone-200 bg-white hover:border-stone-300'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedUpgradePlan === 'MONTHLY_299'
+                          ? 'border-emerald-600 bg-emerald-600 text-white'
+                          : 'border-stone-300'
+                        }`}
+                    >
+                      {selectedUpgradePlan === 'MONTHLY_299' && <Check className="w-3 h-3 stroke-3" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-extrabold text-stone-900">Monthly Plan</span>
+                        <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Renews monthly</span>
+                      </div>
+                      <p className="text-[11px] text-stone-500 font-medium mt-0.5">Full owner dashboard, live kiosk & print agent</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-extrabold text-stone-900">₹{monthlyPrice}</div>
+                    <div className="text-[10px] text-stone-500 font-semibold">/ 30 days</div>
+                  </div>
+                </div>
+
+                {/* 2. Yearly Option */}
+                <div
+                  onClick={() => setSelectedUpgradePlan('YEARLY_799')}
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${selectedUpgradePlan === 'YEARLY_799'
+                      ? 'border-brand bg-rose-50/70 shadow-sm'
+                      : 'border-stone-200 bg-white hover:border-stone-300'
+                    }`}
+                >
+                  <div className="absolute top-0 right-0 bg-brand text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-bl-lg">
+                    Best Value · Save 78%
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedUpgradePlan === 'YEARLY_799'
+                          ? 'border-brand bg-brand text-white'
+                          : 'border-stone-300'
+                        }`}
+                    >
+                      {selectedUpgradePlan === 'YEARLY_799' && <Check className="w-3 h-3 stroke-3" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-extrabold text-stone-900">Yearly Plan</span>
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                      </div>
+                      <p className="text-[11px] text-stone-500 font-medium mt-0.5">365 Days access — priority setup & poster</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-extrabold text-stone-900">₹{yearlyPrice}</div>
+                    <div className="text-[10px] text-emerald-600 font-bold">1 Year</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pay Button */}
+              <div className="w-full flex flex-col gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await handleRenewSubscription(selectedUpgradePlan)
+                    setShowUpgradeModal(false)
+                  }}
+                  disabled={isRenewing}
+                  className="btn btn-primary w-full py-3.5 shadow-lg flex items-center justify-center gap-2 text-sm font-bold cursor-pointer"
+                >
+                  {isRenewing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Opening Razorpay Gateway...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Pay ₹{selectedUpgradePlan === 'YEARLY_799' ? yearlyPrice : monthlyPrice} & Upgrade ({selectedUpgradePlan === 'YEARLY_799' ? 'Yearly' : 'Monthly'}) 💳</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+                <div className="flex items-center justify-center gap-1.5 text-[11px] text-stone-500">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Secured by 256-bit encrypted Razorpay Payment Gateway</span>
+                </div>
               </div>
             </motion.div>
           </div>

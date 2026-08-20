@@ -170,8 +170,9 @@ export const useAuthStore = create((set, get) => ({
       const res = await api.post('/auth/register-init', registerPayload)
       if (res.data.success) {
         const data = res.data.data
-        if (data.isFreeTrial && data.token) {
-          localStorage.setItem('shopToken', data.token)
+        if (data.isFreeTrial && (data.token || data.accessToken)) {
+          const token = data.token || data.accessToken
+          localStorage.setItem('shopToken', token)
           if (data.shop) localStorage.setItem('shopData', JSON.stringify(data.shop))
           set({ currentShop: data.shop, isAuthenticated: true })
         }
@@ -214,10 +215,14 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // 3. Create Subscription Order for Renewal / Upgrade
-  createSubscriptionOrder: async (planType = 'MONTHLY_299') => {
+  createSubscriptionOrder: async (planType = 'MONTHLY_299', shopId) => {
     try {
       set({ isLoading: true, error: null })
-      const res = await api.post('/auth/create-subscription-order', { planType })
+      const currentShopId = shopId || get().currentShop?._id
+      const res = await api.post('/auth/create-subscription-order', {
+        planType,
+        shopId: currentShopId,
+      })
       if (res.data.success) {
         return res.data.data
       }

@@ -47,7 +47,7 @@ export const authService = {
     const monthlyPrice = settings?.monthlyPrice || 299
     const yearlyPrice = settings?.yearlyPrice || 799
 
-    // 3. Handle Free Trial (Demo) Immediate Activation
+    // 3. Handle Free Trial (Demo) Immediate Activation (2 Hours full access)
     if (planType === 'FREE_TRIAL') {
       const demoExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000)
       const newShop = await shopRepository.create({
@@ -65,6 +65,7 @@ export const authService = {
         isSubscriptionActive: true,
         isDemoAccount: true,
         demoExpiresAt,
+        subscriptionExpiresAt: demoExpiresAt,
       })
 
       const tokens = this._generateAuthTokens(newShop)
@@ -340,6 +341,7 @@ export const authService = {
       isSubscriptionActive: true,
       isDemoAccount: true,
       demoExpiresAt,
+      subscriptionExpiresAt: demoExpiresAt,
       bwRate: 5.0,
       colorRate: 10.0,
       isOnline: true,
@@ -348,13 +350,31 @@ export const authService = {
     return this._generateAuthTokens(newShop)
   },
 
-  // Login a shop account and generate auth tokens
+  // Login a shop account and generate auth tokens (Supports Email OR Mobile Number)
   async login({ email, password }) {
-    const shop = await shopRepository.findByEmail(email, { includePassword: true })
-    if (!shop) throw new Error('Invalid email or password credentials')
+    const cleanIdentifier = String(email || '').trim().toLowerCase()
+    let shop = await shopRepository.findByEmail(cleanIdentifier, { includePassword: true })
+    if (!shop) {
+      shop = await shopRepository.findByPhoneOrEmail(cleanIdentifier, cleanIdentifier, { includePassword: true })
+    }
+    if (!shop) throw new Error('Invalid email, mobile number, or password credentials')
 
     const isPasswordValid = await comparePassword(password, shop.passwordHash)
-    if (!isPasswordValid) throw new Error('Invalid email or password credentials')
+    if (!isPasswordValid) throw new Error('Invalid email, mobile number, or password credentials')
+
+    // Synchronize demo / subscription expiration status on login
+    const now = new Date()
+    if (shop.isDemoAccount && shop.demoExpiresAt) {
+      if (now > new Date(shop.demoExpiresAt)) {
+        shop.subscriptionStatus = 'EXPIRED'
+        shop.isSubscriptionActive = false
+        await shop.save()
+      } else {
+        shop.subscriptionStatus = 'ACTIVE'
+        shop.isSubscriptionActive = true
+        await shop.save()
+      }
+    }
 
     return this._generateAuthTokens(shop)
   },

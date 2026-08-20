@@ -25,27 +25,29 @@ export const authenticateShop = async (req, res, next) => {
       return sendError(res, 401, 'Unauthorized: Shop account not found')
 
     // Check if subscription or demo period has expired
+    const now = new Date()
     let isExpired = false
-    if (shop.isDemoAccount && shop.demoExpiresAt) {
-      if (new Date() > new Date(shop.demoExpiresAt)) {
+
+    if (shop.isDemoAccount) {
+      if (!shop.demoExpiresAt || now > new Date(shop.demoExpiresAt)) {
         isExpired = true
       }
     } else if (shop.subscriptionExpiresAt) {
-      if (new Date() > new Date(shop.subscriptionExpiresAt)) {
+      if (now > new Date(shop.subscriptionExpiresAt)) {
         isExpired = true
       }
-    } else if (shop.subscriptionStatus === 'PENDING_PAYMENT') {
+    } else if (shop.subscriptionStatus === 'PENDING_PAYMENT' || !shop.isSubscriptionActive) {
       isExpired = true
     }
 
-    if (isExpired && shop.subscriptionStatus !== 'EXPIRED' && !shop.isDemoAccount) {
+    if (isExpired && shop.subscriptionStatus !== 'EXPIRED') {
       shop.subscriptionStatus = 'EXPIRED'
       shop.isSubscriptionActive = false
       await shop.save()
     }
 
     req.shop = shop.toObject ? shop.toObject() : shop
-    req.isSubscriptionActive = !isExpired && (shop.isSubscriptionActive || (shop.isDemoAccount && new Date() < new Date(shop.demoExpiresAt)))
+    req.isSubscriptionActive = !isExpired
 
     // Allowed endpoints even when expired (for renewing and viewing status)
     const openExpiredPaths = [

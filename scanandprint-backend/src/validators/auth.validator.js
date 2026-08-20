@@ -12,10 +12,13 @@ export const registerSchema = z.object({
   printerBrand: z.string().optional(),
   bwRate: z.coerce.number().min(0.5).optional(),
   colorRate: z.coerce.number().min(1).optional(),
+  planType: z.enum(['FREE_TRIAL', 'MONTHLY_299', 'YEARLY_799']).optional(),
+  hardwareReady: z.boolean().optional(),
+  printType: z.string().optional(),
 })
 
 export const loginSchema = z.object({
-  email: z.string().email('Valid email is required'),
+  email: z.string().min(1, 'Email or Mobile Number is required'),
   password: z.string().min(1, 'Password is required'),
 })
 
