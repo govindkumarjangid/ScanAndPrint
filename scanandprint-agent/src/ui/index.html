@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,7 +16,7 @@
   <!-- Incoming Job Real-Time Floating Banner -->
   <div id="jobBanner" class="job-banner">
     <div style="display: flex; align-items: center; gap: 12px;">
-      <div style="width: 38px; height: 38px; background: var(--brand-gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; box-shadow: 0 0 12px var(--brand-glow);">⚡</div>
+      <div style="width: 38px; height: 38px; background: var(--brand-gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; box-shadow: 0 0 12px var(--brand-glow);"><i class='bx bxs-zap'></i></div>
       <div>
         <div style="font-size: 13px; font-weight: 800; color: #ffffff;" id="bannerJobTitle">Incoming Print Order</div>
         <div style="font-size: 11px; color: #a1a1aa;" id="bannerJobSubtitle">Auto-spooling to printer...</div>
@@ -37,10 +38,10 @@
         </div>
       </div>
       <div class="header-actions">
-        <button id="reconnectBtn" class="icon-btn" title="Reconnect Cloud Socket">🔄</button>
-        <button id="openLogsBtn" class="icon-btn" title="Open Agent Logs Folder">📁</button>
-        <button id="minimizeBtn" class="icon-btn" title="Minimize to System Tray">➖</button>
-        <button id="exitBtn" class="icon-btn danger" title="Quit Agent">❌</button>
+        <button id="reconnectBtn" class="icon-btn" title="Reconnect Cloud Socket"><i class='bx bx-refresh'></i></button>
+        <button id="openLogsBtn" class="icon-btn" title="Open Agent Logs Folder"><i class='bx bx-folder'></i></button>
+        <button id="minimizeBtn" class="icon-btn" title="Minimize to System Tray"><i class='bx bx-minus'></i></button>
+        <button id="exitBtn" class="icon-btn danger" title="Quit Agent"><i class='bx bx-x'></i></button>
       </div>
     </header>
 
@@ -54,7 +55,7 @@
         <div class="shop-code-pill" id="shopCodePill">
           <span>Shop:</span>
           <span id="displayShopCode" style="color: var(--brand);">UNSET</span>
-          <button id="copyShopCodeBtn" class="copy-mini-btn" title="Copy Shop ID">📋</button>
+          <button id="copyShopCodeBtn" class="copy-mini-btn" title="Copy Shop ID"><i class='bx bx-copy'></i></button>
         </div>
       </div>
 
@@ -65,7 +66,7 @@
         </div>
         <div class="metric-box">
           <span class="metric-label">Zero-Click Mode</span>
-          <span class="metric-val" style="color: var(--emerald);">Active ⚡</span>
+          <span class="metric-val" style="color: var(--emerald);">Active <i class='bx bxs-zap'></i></span>
         </div>
         <div class="metric-box">
           <span class="metric-label">Jobs Processed</span>
@@ -78,14 +79,14 @@
     <div class="card">
       <div class="card-title-row">
         <div class="card-title-group">
-          <div class="card-title-icon">🖨️</div>
+          <div class="card-title-icon"><i class='bx bx-printer'></i></div>
           <div>
             <h3>Hardware Printer Assignment</h3>
             <div class="card-sub">Select local Windows printers to handle automated orders</div>
           </div>
         </div>
         <button id="refreshPrintersBtn" class="btn btn-outline" style="height: 30px; padding: 0 10px; font-size: 11px;">
-          <span>Refresh</span> 🔄
+          <span>Refresh</span> <i class='bx bx-refresh'></i>
         </button>
       </div>
 
@@ -106,10 +107,10 @@
 
       <div class="btn-row">
         <button type="button" id="testBwPrintBtn" class="btn btn-secondary">
-          <span>Test B&W Print</span> 📄
+          <span>Test B&W Print</span> <i class='bx bx-file-blank'></i>
         </button>
         <button type="button" id="testColorPrintBtn" class="btn btn-secondary">
-          <span>Test Color Print</span> 🎨
+          <span>Test Color Print</span> <i class='bx bx-palette'></i>
         </button>
       </div>
     </div>
@@ -118,7 +119,7 @@
     <div class="card">
       <div class="card-title-row">
         <div class="card-title-group">
-          <div class="card-title-icon">🔑</div>
+          <div class="card-title-icon"><i class='bx bx-key'></i></div>
           <div>
             <h3>Shop Pairing Credentials</h3>
             <div class="card-sub">Copy credentials from your Shop Owner Dashboard</div>
@@ -136,21 +137,21 @@
             <label for="secretKey">Secret API Key *</label>
             <div class="input-wrap">
               <input type="password" id="secretKey" placeholder="Paste Secret API Key..." required autocomplete="off">
-              <button type="button" id="toggleSecretBtn" class="input-icon-btn" title="Show / Hide Key">👁️</button>
+              <button type="button" id="toggleSecretBtn" class="input-icon-btn" title="Show / Hide Key"><i class='bx bx-show'></i></button>
             </div>
           </div>
         </div>
 
         <!-- Advanced Server URL (Collapsible) -->
         <details style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-          <summary style="cursor: pointer; font-weight: 700; color: var(--text-secondary);">⚙️ Advanced Cloud Server URL (Default: Render Cloud)</summary>
+          <summary style="cursor: pointer; font-weight: 700; color: var(--text-secondary);"><i class='bx bx-cog'></i> Advanced Cloud Server URL (Default: Render Cloud)</summary>
           <div class="form-group" style="margin-top: 8px;">
             <input type="url" id="serverUrl" class="mono-font" placeholder="https://scanandprint.onrender.com" value="https://scanandprint.onrender.com">
           </div>
         </details>
 
         <button type="submit" id="saveBtn" class="btn btn-primary">
-          <span>Save Credentials & Connect 🚀</span>
+          <span>Save Credentials & Connect <i class='bx bx-rocket'></i></span>
         </button>
       </form>
     </div>
@@ -159,7 +160,7 @@
     <div class="card">
       <div class="card-title-row">
         <div class="card-title-group">
-          <div class="card-title-icon">🖥️</div>
+          <div class="card-title-icon"><i class='bx bx-desktop'></i></div>
           <div>
             <h3>Windows Desktop Integration</h3>
             <div class="card-sub">Create permanent desktop icon and auto-start controls</div>
@@ -170,7 +171,7 @@
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <!-- Create Desktop Shortcut Button -->
         <button type="button" id="createShortcutBtn" class="btn btn-shortcut">
-          <span>Create Desktop Shortcut Icon 📌</span>
+          <span>Create Desktop Shortcut Icon <i class='bx bxs-pin'></i></span>
         </button>
 
         <!-- Auto Start on Boot Switch -->
@@ -191,7 +192,7 @@
     <div class="card">
       <div class="card-title-row">
         <div class="card-title-group">
-          <div class="card-title-icon">⚡</div>
+          <div class="card-title-icon"><i class='bx bxs-zap'></i></div>
           <div>
             <h3>Live Activity & Spooler Console</h3>
             <div class="card-sub">Real-time status updates and incoming print telemetry</div>

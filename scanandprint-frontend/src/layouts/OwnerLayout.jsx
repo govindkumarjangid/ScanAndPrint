@@ -58,7 +58,7 @@ export default function OwnerLayout() {
     socket.on('connect', joinRoom)
 
     const handleAgentStatus = (data) => {
-      if (data?.shopCode && data.shopCode !== shopCode) return
+      if (data?.shopCode && String(data.shopCode).toUpperCase() !== String(shopCode).toUpperCase()) return
       setIsAgentConnected(Boolean(data?.isOnline))
     }
 

@@ -5,15 +5,6 @@ function getUserDataPath() {
   let baseDir = ''
   if (process.env.APPDATA) {
     baseDir = path.join(process.env.APPDATA, 'scanandprint-agent')
-    // Legacy migration check
-    const legacyPath = path.join(process.env.APPDATA, 'print-pe-agent', 'config.json')
-    const currentPath = path.join(baseDir, 'config.json')
-    if (fs.existsSync(legacyPath) && !fs.existsSync(currentPath)) {
-      try {
-        if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true })
-        fs.copyFileSync(legacyPath, currentPath)
-      } catch (e) {}
-    }
     return baseDir
   }
   if (process.platform === 'darwin') {

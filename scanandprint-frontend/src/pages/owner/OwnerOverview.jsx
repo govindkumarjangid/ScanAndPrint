@@ -50,7 +50,7 @@ export default function OwnerOverview() {
     socket.on('connect', joinRoom)
 
     const handleStatus = (data) => {
-      if (data?.shopCode && data.shopCode !== shopCode) return
+      if (data?.shopCode && String(data.shopCode).toUpperCase() !== String(shopCode).toUpperCase()) return
       setIsAgentOnline(Boolean(data?.isOnline))
       setLivePrinters(data?.printers || [])
     }

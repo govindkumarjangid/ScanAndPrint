@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     toggleSecretBtn.addEventListener('click', () => {
       isPasswordVisible = !isPasswordVisible
       secretKeyInput.type = isPasswordVisible ? 'text' : 'password'
-      toggleSecretBtn.textContent = isPasswordVisible ? '🙈' : '👁️'
+      toggleSecretBtn.innerHTML = isPasswordVisible ? '<i class="bx bx-hide"></i>' : '<i class="bx bx-show"></i>'
     })
   }
 
@@ -218,10 +218,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (isElectron && typeof window.electronAPI.createDesktopShortcut === 'function') {
         try {
           createShortcutBtn.disabled = true
-          createShortcutBtn.innerHTML = '<span>Creating Shortcut...</span> ⏳'
+          createShortcutBtn.innerHTML = '<span>Creating Shortcut...</span> <i class="bx bx-loader-alt bx-spin"></i>'
           const result = await window.electronAPI.createDesktopShortcut()
           if (result && result.success) {
-            showToast('✅ Shortcut created on your Windows Desktop!', 'success')
+            showToast(' Shortcut created on your Windows Desktop!', 'success')
             logActivity('SYSTEM', 'Desktop icon created at: ' + (result.path || 'Desktop'), 'ready')
           } else {
             showToast(result?.message || 'Could not create shortcut', 'error')
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           showToast('Error creating desktop shortcut', 'error')
         } finally {
           createShortcutBtn.disabled = false
-          createShortcutBtn.innerHTML = '<span>Create Desktop Shortcut Icon 📌</span>'
+          createShortcutBtn.innerHTML = '<span>Create Desktop Shortcut Icon <i class="bx bxs-pin"></i></span>'
         }
       } else {
         showToast('Desktop shortcuts are supported in the Windows app', 'info')
@@ -322,10 +322,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (refreshPrintersBtn) {
     refreshPrintersBtn.addEventListener('click', async () => {
       refreshPrintersBtn.disabled = true
-      refreshPrintersBtn.innerHTML = '<span>Refreshing...</span> ⏳'
+      refreshPrintersBtn.innerHTML = '<span>Refreshing...</span> <i class="bx bx-loader-alt bx-spin"></i>'
       await loadPrinters()
       refreshPrintersBtn.disabled = false
-      refreshPrintersBtn.innerHTML = '<span>Refresh</span> 🔄'
+      refreshPrintersBtn.innerHTML = '<span>Refresh</span> <i class="bx bx-refresh"></i>'
       showToast('Printers list updated', 'success')
     })
   }
@@ -344,14 +344,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const result = await window.electronAPI.testPrint(printerName)
         if (result && result.success) {
-          showToast(`✅ Test print sent successfully to ${printerName}!`, 'success')
+          showToast(` Test print sent successfully to ${printerName}!`, 'success')
           logActivity('PRINT', `✓ Test page spool completed on ${printerName}`, 'online')
         } else {
-          showToast(`❌ Test print failed: ${result?.error || 'Unknown error'}`, 'error')
+          showToast(` Test print failed: ${result?.error || 'Unknown error'}`, 'error')
           logActivity('ERROR', `Test print failed: ${result?.error || 'Unknown error'}`, 'error')
         }
       } catch (err) {
-        showToast(`❌ Spooler error: ${err.message}`, 'error')
+        showToast(` Spooler error: ${err.message}`, 'error')
         logActivity('ERROR', `Spooler error: ${err.message}`, 'error')
       }
     }
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     saveBtn.disabled = true
-    saveBtn.innerHTML = '<span>Saving & Connecting...</span> ⏳'
+    saveBtn.innerHTML = '<span>Saving & Connecting...</span> <i class="bx bx-loader-alt bx-spin"></i>'
 
     if (isElectron) {
       const saved = await window.electronAPI.saveConfig(newConfig)
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast('✓ Credentials saved! Connecting to cloud...', 'success')
         logActivity('CONFIG', `Credentials saved for ${cleanShopCode}. Reconnecting...`, 'ready')
       } else {
-        showToast('❌ Failed to save configuration', 'error')
+        showToast(' Failed to save configuration', 'error')
       }
     } else {
       localStorage.setItem('scanandprint_agent_config', JSON.stringify(newConfig))
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     saveBtn.disabled = false
-    saveBtn.innerHTML = '<span>Save Credentials & Connect 🚀</span>'
+    saveBtn.innerHTML = '<span>Save Credentials & Connect <i class="bx bx-rocket"></i></span>'
   })
 
   // Status Change Listener from Electron Main Process
@@ -420,18 +420,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     statusPill.className = 'status-pill ' + status.toLowerCase()
 
     if (status === 'CONNECTED') {
-      statusText.textContent = 'Connected & Listening ⚡'
+      statusText.innerHTML = 'Connected & Listening <i class="bx bxs-zap"></i>'
       statusDot.className = 'status-dot pulse-animation'
       if (displayShopCode && details.shopId) displayShopCode.textContent = details.shopId
-      logActivity('ONLINE', `🟢 Connected to Cloud Server (Shop: ${details.shopId || config.shopId})`, 'online')
+      logActivity('ONLINE', ` Connected to Cloud Server (Shop: ${details.shopId || config.shopId})`, 'online')
     } else if (status === 'DISCONNECTED') {
       statusText.textContent = 'Disconnected (Retrying...)'
       statusDot.className = 'status-dot'
-      logActivity('OFFLINE', '🔴 Connection to Cloud Server lost. Retrying...', 'error')
+      logActivity('OFFLINE', ' Connection to Cloud Server lost. Retrying...', 'error')
     } else if (status === 'UNCONFIGURED') {
       statusText.textContent = 'Awaiting Shop Setup'
       statusDot.className = 'status-dot'
-      logActivity('SETUP', '🟡 Shop ID or Secret Key missing. Please pair your shop.', 'job')
+      logActivity('SETUP', ' Shop ID or Secret Key missing. Please pair your shop.', 'job')
     }
   }
 
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       totalJobsProcessed++
       if (jobsCountVal) jobsCountVal.textContent = totalJobsProcessed.toString()
       flashIncomingJobBanner(job)
-      logActivity('JOB', `⚡ Received Job #${job.jobId || 'NEW'} (${job.pages || 1}p, ${job.colorMode || 'B&W'}) → Spooling to printer`, 'job')
+      logActivity('JOB', `<i class='bx bxs-zap'></i> Received Job #${job.jobId || 'NEW'} (${job.pages || 1}p, ${job.colorMode || 'B&W'}) → Spooling to printer`, 'job')
     })
   }
 

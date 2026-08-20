@@ -324,6 +324,9 @@ body {
   text-transform: uppercase;
   color: var(--text-muted);
   letter-spacing: 0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .metric-val {
@@ -558,6 +561,8 @@ select option {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  padding-right: 16px;
 }
 
 .toggle-title {

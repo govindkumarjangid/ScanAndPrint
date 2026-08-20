@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "electron .",
+    "prebuild:win": "powershell -Command \"Get-Process | Where-Object { $_.ProcessName -like '*Scan&Print*' -or $_.ProcessName -like '*electron*' } | Stop-Process -Force -ErrorAction SilentlyContinue; exit 0\"",
     "build:win": "electron-builder --win nsis",
     "test:print": "node src/test-print.js"
   },
