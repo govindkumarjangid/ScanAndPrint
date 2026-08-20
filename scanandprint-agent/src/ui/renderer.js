@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let config = {
     shopId: '',
     secretKey: '',
-    serverUrl: 'http://localhost:5000',
+    serverUrl: 'https://scanandprint.onrender.com',
     defaultBwPrinter: '',
     defaultColorPrinter: '',
     autoStartOnBoot: true,
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Populate Input Fields
   shopIdInput.value = config.shopId || ''
   secretKeyInput.value = config.secretKey || ''
-  serverUrlInput.value = config.serverUrl || 'http://localhost:5000'
+  serverUrlInput.value = config.serverUrl || 'https://scanandprint.onrender.com'
   if (autoStartToggle) autoStartToggle.checked = config.autoStartOnBoot !== false
   if (displayShopCode) displayShopCode.textContent = config.shopId || 'UNSET'
 
@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault()
     const cleanShopCode = shopIdInput.value.trim().toUpperCase()
     const cleanSecret = secretKeyInput.value.trim()
-    const cleanServerUrl = serverUrlInput.value.trim() || 'http://localhost:5000'
+    const cleanServerUrl = serverUrlInput.value.trim() || 'https://scanandprint.onrender.com'
 
     if (!cleanShopCode || !cleanSecret) {
       showToast('Please enter both Shop ID and Secret API Key', 'error')

@@ -4,7 +4,7 @@ let socket = null
 
 export const getSocket = () => {
   if (!socket) {
-    const rawUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000'
+    const rawUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'https://scanandprint.onrender.com'
     const socketUrl = rawUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '')
 
     socket = io(socketUrl, {

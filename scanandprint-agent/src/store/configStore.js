@@ -36,7 +36,7 @@ class ConfigStore {
     return {
       shopId: '',
       secretKey: '',
-      serverUrl: 'http://localhost:5000',
+      serverUrl: 'https://scanandprint.onrender.com',
       defaultBwPrinter: '',
       defaultColorPrinter: '',
       autoStartOnBoot: true,

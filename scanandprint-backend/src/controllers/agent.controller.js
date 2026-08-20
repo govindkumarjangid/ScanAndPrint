@@ -103,9 +103,9 @@ export const executeLocalPrint = asyncHandler(async (req, res, next) => {
       downloadedBuffer = Buffer.from(base64Data, 'base64')
     } else if (fileUrl || downloadUrl) {
       const candidateUrls = [
-        downloadUrl ? `http://localhost:5000${downloadUrl}` : null,
+        downloadUrl ? `https://scanandprint.onrender.com${downloadUrl}` : null,
         fileUrl,
-        `http://localhost:5000/api/kiosk/download/${jobId}`,
+        `https://scanandprint.onrender.com/api/kiosk/download/${jobId}`,
       ].filter(Boolean)
 
       for (const u of candidateUrls) {

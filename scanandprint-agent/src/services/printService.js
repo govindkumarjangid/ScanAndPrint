@@ -51,16 +51,14 @@ class PrintService {
             candidateUrls.push(downloadUrl)
           } else {
             candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
-            candidateUrls.push(`http://localhost:5000${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
-            candidateUrls.push(`http://127.0.0.1:5000${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
+            candidateUrls.push(`https://scanandprint.onrender.com${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
           }
         }
         if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://'))) {
           candidateUrls.push(fileUrl)
         }
         candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}/api/kiosk/download/${jobId}`)
-        candidateUrls.push(`http://localhost:5000/api/kiosk/download/${jobId}`)
-        candidateUrls.push(`http://127.0.0.1:5000/api/kiosk/download/${jobId}`)
+        candidateUrls.push(`https://scanandprint.onrender.com/api/kiosk/download/${jobId}`)
 
         for (const targetUrl of candidateUrls) {
           try {
