@@ -43,7 +43,7 @@ export default function AdminOverview() {
           </div>
           <div>
             <h3 className="text-3xl font-extrabold text-white font-heading">
-              {stats.totalRevenue ? stats.totalRevenue.toLocaleString('en-IN') : 0}
+              ₹{stats.totalRevenue ? stats.totalRevenue.toLocaleString('en-IN') : '0'}
             </h3>
             <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-1">
               <TrendingUp className="w-3.5 h-3.5" /> Live Data

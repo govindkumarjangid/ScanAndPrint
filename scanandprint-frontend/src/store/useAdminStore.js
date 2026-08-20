@@ -6,10 +6,10 @@ export const useAdminStore = create((set, get) => ({
   // States
   overviewLoading: false,
   overviewData: {
-    totalRevenue: 248500,
-    totalShops: 128,
-    totalPrints: 14290,
-    totalAgents: 114,
+    totalRevenue: 0,
+    totalShops: 0,
+    totalPrints: 0,
+    totalAgents: 0,
   },
   recentShops: [],
   
