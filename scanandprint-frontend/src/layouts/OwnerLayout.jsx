@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, AlertCircle, ownerNavItems } from '../assets/assets'
-import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, RefreshCw, Check } from 'lucide-react'
+import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
 import { useAuthStore } from '../store/useAuthStore'
@@ -17,7 +17,7 @@ export default function OwnerLayout() {
   const [isDemoExpired, setIsDemoExpired] = useState(false)
   const [isAgentConnected, setIsAgentConnected] = useState(false)
   const [isRenewing, setIsRenewing] = useState(false)
-  const [selectedRenewPlan, setSelectedRenewPlan] = useState('MONTHLY_399')
+  const [selectedRenewPlan, setSelectedRenewPlan] = useState('MONTHLY_299')
 
   const navigate = useNavigate()
   const {
@@ -36,8 +36,8 @@ export default function OwnerLayout() {
     fetchPublicSettings()
   }, [fetchProfile, fetchPublicSettings])
 
-  const monthlyPrice = publicSettings?.monthlyPrice || 399
-  const lifetimePrice = publicSettings?.lifetimePrice || 599
+  const monthlyPrice = publicSettings?.monthlyPrice || 299
+  const yearlyPrice = publicSettings?.yearlyPrice || 799
 
   // Real-time Agent Socket Connection (Pure Socket.IO - 0 API Polling Overhead)
   useEffect(() => {
@@ -68,44 +68,29 @@ export default function OwnerLayout() {
     }
   }, [currentShop?.shopCode, currentShop?._id])
 
-  // Live 2-Hour Demo Countdown Timer Calculation
-  useEffect(() => {
-    if (!currentShop?.isDemoAccount || !currentShop?.demoExpiresAt) {
-      setIsDemoExpired(false)
-      return
-    }
-
-    const updateTimer = () => {
-      const expiryTime = new Date(currentShop.demoExpiresAt).getTime()
-      const now = Date.now()
-      const diffMs = expiryTime - now
-
-      if (diffMs <= 0) {
-        setDemoTimeLeft('00:00:00')
-        setIsDemoExpired(true)
-      } else {
-        const hours = Math.floor(diffMs / (1000 * 60 * 60))
-        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000)
-
-        const formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-        setDemoTimeLeft(formatted)
-        setIsDemoExpired(false)
-      }
-    }
-
-    updateTimer()
-    const interval = setInterval(updateTimer, 1000)
-    return () => clearInterval(interval)
-  }, [currentShop])
-
   // Subscription Plan Status & Expiry Calculations
   const isDemo = Boolean(currentShop?.isDemoAccount)
-  const isLifetime = currentShop?.planType === 'LIFETIME_599'
+  const isYearly = currentShop?.planType === 'YEARLY_799'
+
+  const expiryFormatted = currentShop?.subscriptionExpiresAt
+    ? new Date(currentShop.subscriptionExpiresAt).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    : null
+
+  const expiryShort = currentShop?.subscriptionExpiresAt
+    ? new Date(currentShop.subscriptionExpiresAt).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+    })
+    : null
+
   let daysLeft = null
   let isPlanExpired = false
 
-  if (!isDemo && !isLifetime) {
+  if (!isDemo) {
     if (currentShop?.subscriptionExpiresAt) {
       const diffMs = new Date(currentShop.subscriptionExpiresAt).getTime() - Date.now()
       daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
@@ -120,6 +105,83 @@ export default function OwnerLayout() {
       isPlanExpired = true
     }
   }
+
+  const [liveCountdown, setLiveCountdown] = useState(null)
+
+  // Live Real-Time Countdown Timer (Hours, Minutes, Seconds) for Demo & Active Monthly/Yearly Subscriptions
+  useEffect(() => {
+    if (!currentShop) {
+      setLiveCountdown(null)
+      setIsDemoExpired(false)
+      return
+    }
+
+    const updateTimer = () => {
+      const targetExpiry = currentShop?.isDemoAccount
+        ? currentShop?.demoExpiresAt
+        : currentShop?.subscriptionExpiresAt
+
+      if (!targetExpiry) {
+        setLiveCountdown(null)
+        return
+      }
+
+      const expiryTime = new Date(targetExpiry).getTime()
+      const now = Date.now()
+      const diffMs = expiryTime - now
+
+      if (diffMs <= 0) {
+        setLiveCountdown({
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          formattedDesktop: '00h 00m 00s',
+          formattedMobile: '00:00:00',
+        })
+        if (currentShop?.isDemoAccount) {
+          setIsDemoExpired(true)
+          setDemoTimeLeft('00:00:00')
+        }
+      } else {
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000)
+
+        const pad = (n) => String(n).padStart(2, '0')
+
+        let formattedDesktop = ''
+        let formattedMobile = ''
+
+        if (currentShop?.isDemoAccount) {
+          formattedDesktop = `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
+          formattedMobile = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+          setDemoTimeLeft(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`)
+          setIsDemoExpired(false)
+        } else if (days > 0) {
+          formattedDesktop = `${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
+          formattedMobile = `${days}d ${pad(hours)}h`
+        } else {
+          formattedDesktop = `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
+          formattedMobile = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+        }
+
+        setLiveCountdown({
+          days,
+          hours,
+          minutes,
+          seconds,
+          formattedDesktop,
+          formattedMobile,
+        })
+      }
+    }
+
+    updateTimer()
+    const interval = setInterval(updateTimer, 1000)
+    return () => clearInterval(interval)
+  }, [currentShop])
 
   const isDashboardLocked = isDemoExpired || isPlanExpired
 
@@ -141,7 +203,7 @@ export default function OwnerLayout() {
         amount: orderData.amountPaise,
         currency: orderData.currency || 'INR',
         name: 'Scan&Print',
-        description: `Renew ${planType === 'LIFETIME_599' ? 'Lifetime' : 'Monthly'} Subscription`,
+        description: `Renew ${planType === 'YEARLY_799' ? 'Yearly' : 'Monthly'} Subscription`,
         order_id: orderData.orderId,
         prefill: {
           name: currentShop?.ownerName || currentShop?.shopName,
@@ -206,12 +268,12 @@ export default function OwnerLayout() {
       <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-stone-200/80 sticky top-0 h-screen justify-between z-30 shadow-xs">
         <div>
           {/* Logo */}
-          <div className="p-6 border-b border-stone-100 flex items-center justify-between">
+          <div className="pl-5 py-3.5 border-b border-stone-100 flex items-center justify-between">
             <OwnerLogo />
           </div>
 
           {/* Navigation tabs */}
-          <nav className="px-4 space-y-1 mt-2">
+          <nav className="px-4 space-y-1 mt-4">
             {ownerNavItems.map((item) => {
               const Icon = item.icon
               return (
@@ -219,10 +281,9 @@ export default function OwnerLayout() {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 ${
-                      isActive
-                        ? 'bg-brand text-white shadow-md shadow-rose-500/20'
-                        : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                    `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 ${isActive
+                      ? 'bg-brand text-white shadow-md shadow-rose-500/20'
+                      : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
                     }`
                   }
                 >
@@ -239,7 +300,7 @@ export default function OwnerLayout() {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="btn btn-outline w-full !text-rose-600 !border-rose-200 hover:!bg-rose-50 flex items-center justify-center gap-2 text-xs font-bold"
+            className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center justify-center gap-2 text-xs font-bold"
           >
             {isLoggingOut ? (
               <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
@@ -264,7 +325,7 @@ export default function OwnerLayout() {
               </span>
             </div>
             <button
-              onClick={() => handleRenewSubscription('MONTHLY_399')}
+              onClick={() => handleRenewSubscription('MONTHLY_299')}
               className="hidden sm:inline-flex items-center gap-1 bg-stone-950 text-white px-3 py-1 rounded-xl text-[11px] font-extrabold hover:bg-black transition-colors cursor-pointer"
             >
               <span>Upgrade Plan (₹{monthlyPrice})</span>
@@ -274,16 +335,16 @@ export default function OwnerLayout() {
         )}
 
         {/* 2. Advance Expiry Warning Banner (When 1-3 days left) */}
-        {!isDemo && !isLifetime && daysLeft !== null && daysLeft > 0 && daysLeft <= 3 && !isPlanExpired && (
+        {!isDemo && daysLeft !== null && daysLeft > 0 && daysLeft <= 3 && !isPlanExpired && (
           <div className="bg-linear-to-r from-amber-500 via-rose-500 to-rose-600 text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-md z-30">
             <div className="flex items-center gap-2 mx-auto sm:mx-0">
               <Clock className="w-4 h-4 text-white animate-bounce" />
               <span>
-                ⚠️ Your Monthly Plan expires in <strong>{daysLeft} day{daysLeft > 1 ? 's' : ''}</strong>. Renew now to avoid any printing interruption!
+                ⚠️ Your {isYearly ? 'Yearly' : 'Monthly'} Plan expires in <strong>{daysLeft} day{daysLeft > 1 ? 's' : ''}</strong>. Renew now to avoid any printing interruption!
               </span>
             </div>
             <button
-              onClick={() => handleRenewSubscription('MONTHLY_399')}
+              onClick={() => handleRenewSubscription('MONTHLY_299')}
               disabled={isRenewing}
               className="hidden sm:inline-flex items-center gap-1.5 bg-white text-brand px-3.5 py-1 rounded-xl text-[11px] font-extrabold hover:bg-rose-50 shadow-sm transition-colors cursor-pointer"
             >
@@ -294,51 +355,88 @@ export default function OwnerLayout() {
         )}
 
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-stone-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 shadow-2xs">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-full text-stone-700 hover:bg-stone-100 cursor-pointer"
+              className="lg:hidden p-1.5 sm:p-2 rounded-xl text-stone-700 hover:bg-stone-100 cursor-pointer shrink-0 transition-colors"
+              aria-label="Toggle Navigation Menu"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
-            <div className="flex flex-col">
-              <h2 className="font-extrabold text-lg text-stone-900 leading-snug">{shopName}</h2>
-              <span className="text-xs text-stone-500 font-medium">Cyber Café & Automated Printing</span>
+            <div className="flex flex-col min-w-0">
+              <h2 className="font-extrabold text-sm sm:text-lg text-stone-900 leading-tight truncate max-w-32.5 xs:max-w-[190px] sm:max-w-none">
+                {shopName}
+              </h2>
+              <span className="text-[11px] sm:text-xs text-stone-500 font-medium hidden sm:block truncate">
+                Cyber Café & Automated Printing
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Subscription Badge */}
-            {isLifetime ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                <span>Lifetime Plan</span>
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* Subscription Badge with Expiry Date & Remaining Time */}
+            {isDemo ? (
+              <span
+                title={`2-Hour Demo Free Trial · ${liveCountdown?.formattedDesktop || demoTimeLeft || '00:00:00'} remaining`}
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs shrink-0 font-mono"
+              >
+                <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-700 shrink-0" />
+                <span className="hidden sm:inline">Demo: {liveCountdown?.formattedDesktop || demoTimeLeft || '00:00:00'}</span>
+                <span className="sm:hidden">{liveCountdown?.formattedMobile || demoTimeLeft || '00:00:00'}</span>
               </span>
-            ) : isDemo ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300">
-                <Clock className="w-3.5 h-3.5 text-amber-700" />
-                <span>2-Hour Trial</span>
+            ) : isPlanExpired ? (
+              <span
+                title={`Subscription expired on ${expiryFormatted || 'N/A'}`}
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs shrink-0"
+              >
+                <ShieldAlert className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-600 shrink-0" />
+                <span className="hidden sm:inline">Expired {expiryFormatted ? `(${expiryFormatted})` : ''}</span>
+                <span className="sm:hidden">Expired</span>
+              </span>
+            ) : isYearly ? (
+              <span
+                title={`Yearly Active Subscription (₹799/yr) · Valid till ${expiryFormatted || 'N/A'}`}
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-amber-50 text-amber-900 border border-amber-300/80 shadow-2xs shrink-0"
+              >
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 fill-amber-400 shrink-0" />
+                <span className="hidden sm:inline">
+                  Yearly · Till {expiryFormatted} · <span className="font-mono">{liveCountdown?.formattedDesktop || `${daysLeft}d left`}</span>
+                </span>
+                <span className="sm:hidden font-mono">
+                  {liveCountdown?.formattedMobile || `Till ${expiryShort || `${daysLeft}d`}`}
+                </span>
               </span>
             ) : (
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold ${
-                isPlanExpired ? 'bg-rose-100 text-rose-800' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
-              }`}>
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{isPlanExpired ? 'Plan Expired' : 'Monthly Active'}</span>
+              <span
+                title={`Monthly Active Subscription (₹299/mo) · Valid till ${expiryFormatted || 'N/A'}`}
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs shrink-0"
+              >
+                <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
+                <span className="hidden sm:inline">
+                  Monthly · Till {expiryFormatted} · <span className="font-mono">{liveCountdown?.formattedDesktop || `${daysLeft}d left`}</span>
+                </span>
+                <span className="sm:hidden font-mono">
+                  {liveCountdown?.formattedMobile || `Till ${expiryShort || `${daysLeft}d`}`}
+                </span>
               </span>
             )}
 
             {/* Desktop Agent Live Status Badge */}
-            <div className="flex items-center gap-2 bg-stone-50 border border-stone-200/80 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-extrabold">
+            <div
+              title={isAgentConnected ? 'Desktop Print Agent is online' : 'Desktop Print Agent is offline'}
+              className="flex items-center gap-1.5 sm:gap-2 bg-stone-50 border border-stone-200/80 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-extrabold shrink-0"
+            >
               <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isAgentConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
-                }`}
+                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${isAgentConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                  }`}
               />
-              <span className={isAgentConnected ? 'text-emerald-700' : 'text-stone-500'}>
+              <span className={`hidden sm:inline ${isAgentConnected ? 'text-emerald-700' : 'text-stone-500'}`}>
                 {isAgentConnected ? 'Agent Live' : 'Agent Offline'}
+              </span>
+              <span className={`sm:hidden ${isAgentConnected ? 'text-emerald-700' : 'text-stone-500'}`}>
+                {isAgentConnected ? 'Live' : 'Off'}
               </span>
             </div>
           </div>
@@ -369,11 +467,11 @@ export default function OwnerLayout() {
               className="fixed inset-y-0 left-0 w-72 bg-white border-r border-stone-200 p-6 flex flex-col justify-between z-50 lg:hidden shadow-2xl"
             >
               <div>
-                <div className="flex items-center justify-between pb-6 border-b border-stone-100 mb-6">
+                <div className="flex items-center justify-between pb-2 border-b border-stone-100 mb-6">
                   <OwnerLogo />
                   <button
                     onClick={() => setSidebarOpen(false)}
-                    className="p-2 text-stone-400 hover:text-stone-700"
+                    className="p-2 text-stone-400 hover:text-stone-700 cursor-pointer transition-colors rounded-xl hover:bg-stone-200"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -388,10 +486,9 @@ export default function OwnerLayout() {
                         to={item.path}
                         onClick={() => setSidebarOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
-                            isActive
-                              ? 'bg-brand text-white shadow-md'
-                              : 'text-stone-700 hover:bg-stone-100'
+                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
+                            ? 'bg-brand text-white shadow-md'
+                            : 'text-stone-700 hover:bg-stone-100'
                           }`
                         }
                       >
@@ -406,7 +503,7 @@ export default function OwnerLayout() {
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="btn btn-outline w-full !text-rose-600 !border-rose-200 hover:!bg-rose-50 flex items-center justify-center gap-2 text-xs font-bold"
+                className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center justify-center gap-2 text-xs font-bold"
               >
                 {isLoggingOut ? (
                   <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
@@ -451,18 +548,16 @@ export default function OwnerLayout() {
               <div className="w-full flex flex-col gap-2.5 text-left">
                 {/* Monthly Renewal Option */}
                 <div
-                  onClick={() => setSelectedRenewPlan('MONTHLY_399')}
-                  className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                    selectedRenewPlan === 'MONTHLY_399'
-                      ? 'border-brand bg-rose-50/70 shadow-sm'
-                      : 'border-stone-200 bg-white hover:border-stone-300'
-                  }`}
+                  onClick={() => setSelectedRenewPlan('MONTHLY_299')}
+                  className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${selectedRenewPlan === 'MONTHLY_299'
+                    ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
+                    : 'border-stone-200 bg-white hover:border-stone-300'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      selectedRenewPlan === 'MONTHLY_399' ? 'border-brand bg-brand text-white' : 'border-stone-300'
-                    }`}>
-                      {selectedRenewPlan === 'MONTHLY_399' && <Check className="w-3 h-3 stroke-3" />}
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedRenewPlan === 'MONTHLY_299' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-stone-300'
+                      }`}>
+                      {selectedRenewPlan === 'MONTHLY_299' && <Check className="w-3 h-3 stroke-3" />}
                     </div>
                     <div>
                       <div className="text-xs font-extrabold text-stone-900">Monthly Renewal</div>
@@ -475,35 +570,33 @@ export default function OwnerLayout() {
                   </div>
                 </div>
 
-                {/* Lifetime Upgrade Option */}
+                {/* Yearly Upgrade Option */}
                 <div
-                  onClick={() => setSelectedRenewPlan('LIFETIME_599')}
-                  className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
-                    selectedRenewPlan === 'LIFETIME_599'
-                      ? 'border-brand bg-rose-50/70 shadow-sm'
-                      : 'border-stone-200 bg-white hover:border-stone-300'
-                  }`}
+                  onClick={() => setSelectedRenewPlan('YEARLY_799')}
+                  className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${selectedRenewPlan === 'YEARLY_799'
+                    ? 'border-brand bg-rose-50/70 shadow-sm'
+                    : 'border-stone-200 bg-white hover:border-stone-300'
+                    }`}
                 >
                   <div className="absolute top-0 right-0 bg-brand text-white text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-bl-lg">
-                    Best Value
+                    Best Value · Save 78%
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      selectedRenewPlan === 'LIFETIME_599' ? 'border-brand bg-brand text-white' : 'border-stone-300'
-                    }`}>
-                      {selectedRenewPlan === 'LIFETIME_599' && <Check className="w-3 h-3 stroke-3" />}
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedRenewPlan === 'YEARLY_799' ? 'border-brand bg-brand text-white' : 'border-stone-300'
+                      }`}>
+                      {selectedRenewPlan === 'YEARLY_799' && <Check className="w-3 h-3 stroke-3" />}
                     </div>
                     <div>
                       <div className="text-xs font-extrabold text-stone-900 flex items-center gap-1">
-                        <span>Lifetime Access</span>
+                        <span>Yearly Plan (1 Year)</span>
                         <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400" />
                       </div>
-                      <div className="text-[11px] text-stone-500">Pay Once, Never Expire</div>
+                      <div className="text-[11px] text-stone-500">365 Days Access & Priority Help</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-extrabold text-stone-900">₹{lifetimePrice}</div>
-                    <div className="text-[10px] text-emerald-600 font-bold">One-time</div>
+                    <div className="text-sm font-extrabold text-stone-900">₹{yearlyPrice}</div>
+                    <div className="text-[10px] text-emerald-600 font-bold">1 Year</div>
                   </div>
                 </div>
               </div>
@@ -522,7 +615,7 @@ export default function OwnerLayout() {
                     </>
                   ) : (
                     <>
-                      <span>Pay ₹{selectedRenewPlan === 'LIFETIME_599' ? lifetimePrice : monthlyPrice} & Unlock Dashboard 💳</span>
+                      <span>Pay ₹{selectedRenewPlan === 'YEARLY_799' ? yearlyPrice : monthlyPrice} & Unlock Dashboard 💳</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}

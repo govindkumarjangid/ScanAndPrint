@@ -11,7 +11,11 @@ export default function Pricing() {
   const { publicSettings, fetchPublicSettings } = useAuthStore()
   
   // Set fallback pricing if store data hasn't loaded
-  const pricing = publicSettings || { monthlyPrice: 399, lifetimePrice: 599 }
+  const pricing = {
+    monthlyPrice: publicSettings?.monthlyPrice || 299,
+    yearlyPrice: publicSettings?.yearlyPrice || 799,
+    demoMode: publicSettings?.demoMode ?? true,
+  }
 
   useEffect(() => {
     fetchPublicSettings()
@@ -24,20 +28,19 @@ export default function Pricing() {
         <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">
           Simple & Transparent Pricing
         </span>
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 leading-tight font-heading">
-          Choose the <span className="marker-highlight text-stone-900">Best Plan</span> for Your Shop
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-stone-900 tracking-tight font-heading">
+          Choose the Perfect Plan for <span className="marker-highlight text-stone-900">Your Shop</span>
         </h1>
-        <p className="text-stone-600 text-base sm:text-lg">
-          No hidden fees. Unlimited printing support. Soft pricing built specifically for Indian shop owners.
+        <p className="text-stone-500 text-base sm:text-lg max-w-2xl mx-auto">
+          Start with our 100% Free 2-Hour Demo, or choose our Monthly / Yearly plan for uninterrupted automated printing.
         </p>
       </div>
 
-      {/* Column Plan Cards Grid */}
-      <div className={`grid grid-cols-1 gap-6 sm:gap-8 w-full items-stretch ${pricing.demoMode ? 'lg:grid-cols-3' : 'md:grid-cols-2 max-w-4xl mx-auto'}`}>
+      {/* 3-Column Plan Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 w-full items-stretch max-w-6xl mx-auto">
 
-        {/* 2-HOUR FREE DEMO TRIAL CARD (Conditional) */}
-        {pricing.demoMode && (
-          <motion.div
+        {/* 1. 2-HOUR FREE DEMO TRIAL CARD */}
+        <motion.div
           whileHover={{ y: -4 }}
           className="bg-white rounded-3xl p-7 border-2 border-amber-400 shadow-amber-100 shadow-md flex flex-col justify-between relative bg-linear-to-b from-amber-50/40 to-white overflow-hidden"
         >
@@ -54,12 +57,12 @@ export default function Pricing() {
             </div>
 
             <p className="text-stone-500 text-xs sm:text-sm mb-6">
-              "Experience full owner dashboard, live kiosk & print agent for 2 hours free"
+              "Experience full owner dashboard, live kiosk & print agent for 2 hours completely free"
             </p>
 
             <div className="flex items-baseline gap-1.5 mb-6">
               <span className="text-4xl font-extrabold text-stone-900">₹0</span>
-              <span className="text-stone-500 font-semibold text-xs">/ 2 hours access</span>
+              <span className="text-stone-500 font-semibold text-xs">/ 2 hours full access</span>
             </div>
 
             <div className="space-y-3 mb-6 border-t border-stone-100 pt-5 text-xs font-medium text-stone-700">
@@ -91,23 +94,23 @@ export default function Pricing() {
                 <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 stroke-3" />
                 </div>
-                <span>Zero Upfront Card Needed</span>
+                <span>Zero Payment Required</span>
               </div>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setDemoModalOpen(true)}
-            className="btn btn-outline w-full py-3.5 bg-amber-400! hover:bg-amber-500! text-white! font-bold text-xs flex items-center justify-center gap-2 mt-2"
-          >
-            <Zap className="w-4 h-4 text-amber-100 fill-amber-100" />
-            <span className="text-shadow-xs" >Start 2-Hour Demo (₹0)</span>
-          </button>
+          <Link to="/register?plan=demo" className="flex justify-center mt-2 w-full">
+            <button
+              type="button"
+              className="btn btn-outline w-full py-3.5 bg-amber-400! hover:bg-amber-500! text-white! font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Zap className="w-4 h-4 text-amber-100 fill-amber-100" />
+              <span className="text-shadow-xs">Start 2-Hour Demo (₹0)</span>
+            </button>
+          </Link>
         </motion.div>
-        )}
 
-        {/* MONTHLY PLAN CARD */}
+        {/* 2. MONTHLY PLAN CARD */}
         <motion.div
           whileHover={{ y: -4 }}
           className="bg-white rounded-3xl p-7 border-2 border-emerald-600 shadow-emerald-100 shadow-md flex flex-col justify-between relative overflow-hidden bg-linear-to-b from-emerald-50/25 to-white"
@@ -119,13 +122,13 @@ export default function Pricing() {
           <div>
             <div className="flex justify-between items-start mb-4">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-stone-500">Plan 1</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-500">Plan 1 · Monthly</span>
                 <h3 className="text-2xl font-extrabold text-stone-900 font-heading">Monthly Plan</h3>
               </div>
             </div>
 
             <p className="text-stone-500 text-xs sm:text-sm mb-6">
-              "Pay monthly on time to keep your automated printing active"
+              "Pay monthly on time to keep your automated shop printing active"
             </p>
 
             <div className="flex items-baseline gap-1 mb-6">
@@ -174,7 +177,7 @@ export default function Pricing() {
           </Link>
         </motion.div>
 
-        {/* ONE-TIME LIFETIME PLAN CARD (BEST VALUE) */}
+        {/* 3. YEARLY PLAN CARD (BEST VALUE) */}
         <motion.div
           whileHover={{ y: -4 }}
           className="bg-white rounded-3xl p-7 border-2 border-brand shadow-brand/10 shadow-xl flex flex-col justify-between relative overflow-hidden bg-linear-to-b from-rose-50/30 to-white"
@@ -186,20 +189,20 @@ export default function Pricing() {
           <div>
             <div className="flex justify-between items-start mb-4">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-brand">Plan 2 · Lifetime</span>
-                <h3 className="text-2xl font-extrabold text-stone-900 font-heading">One-Time Plan</h3>
+                <span className="text-xs font-bold uppercase tracking-wider text-brand">Plan 2 · 1 Year</span>
+                <h3 className="text-2xl font-extrabold text-stone-900 font-heading">Yearly Plan</h3>
               </div>
             </div>
 
             <p className="text-stone-500 text-xs sm:text-sm mb-6">
-              "One-time payment — Lifetime Access & Updates — Zero renewal fees ever"
+              "1 full year access with priority support — save 78% compared to monthly"
             </p>
 
             <div className="flex items-baseline gap-2 mb-6">
-              <span className="text-stone-400 line-through text-base font-bold">₹3,999</span>
-              <span className="text-4xl font-extrabold text-brand">₹{pricing.lifetimePrice}</span>
+              <span className="text-stone-400 line-through text-base font-bold">₹3,588</span>
+              <span className="text-4xl font-extrabold text-brand">₹{pricing.yearlyPrice}</span>
               <span className="bg-amber-100 text-amber-900 font-extrabold text-[10px] px-2 py-0.5 rounded-md border border-amber-300">
-                Lifetime Free
+                1 Year / ₹{pricing.yearlyPrice}
               </span>
             </div>
 
@@ -208,7 +211,7 @@ export default function Pricing() {
                 <div className="w-4.5 h-4.5 rounded-full bg-brand text-white flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 stroke-3" />
                 </div>
-                <span>Auto Print Software (Lifetime)</span>
+                <span>Auto Print Software (1 Full Year)</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <div className="w-4.5 h-4.5 rounded-full bg-brand text-white flex items-center justify-center shrink-0">
@@ -235,14 +238,12 @@ export default function Pricing() {
             </div>
           </div>
 
-          <Link to="/register?plan=onetime" className="flex justify-center mt-2 w-full">
+          <Link to="/register?plan=yearly" className="flex justify-center mt-2 w-full">
             <button className="btn btn-primary w-full py-3.5 shadow-lg flex items-center justify-center gap-2 text-xs font-bold cursor-pointer">
-              <span className="text-shadow-xs" >Get Lifetime Plan (₹{pricing.lifetimePrice})</span>
-              <ArrowRight className="w-4 h-4" />
+              <span className="text-shadow-xs">Get Yearly Plan (₹{pricing.yearlyPrice})</span>
             </button>
           </Link>
         </motion.div>
-
       </div>
 
       {/* PRICING FAQ SECTION */}
@@ -251,7 +252,7 @@ export default function Pricing() {
           <h2 className="text-3xl font-extrabold text-stone-900 font-heading">
             Pricing & Subscription <span className="marker-highlight text-stone-900">FAQ</span>
           </h2>
-          <p className="text-stone-500 text-sm mt-1">Everything you need to know about billing, renewals, and lifetime updates</p>
+          <p className="text-stone-500 text-sm mt-1">Everything you need to know about billing, renewals, and features</p>
         </div>
 
         <Accordion items={pricingFaqItems} />

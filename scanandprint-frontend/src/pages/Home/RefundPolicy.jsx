@@ -53,17 +53,17 @@ export default function RefundPolicy() {
           {/* Section 1 */}
           <section className="flex flex-col gap-2">
             <h2 className="text-xl font-extrabold text-stone-900 flex items-center gap-2">
-              <span className="text-brand font-mono">1.</span> Shop Owner Subscription Refunds (Monthly & Lifetime)
+              <span className="text-brand font-mono">1.</span> Shop Owner Subscription Refunds (Monthly & Yearly)
             </h2>
             <p className="text-stone-600">
-              We stand behind the reliability of Scan&Print software. If you register your shop under either the <strong>Monthly (₹399)</strong> or <strong>One-Time Lifetime (₹599)</strong> plan:
+              We stand behind the reliability of Scan&Print software. If you register your shop under either the <strong>Monthly (₹299)</strong> or <strong>Yearly (₹799)</strong> plan:
             </p>
             <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mt-1">
               <li>
                 <strong>Full Refund Eligibility:</strong> If the Print Agent software is incompatible with your Windows PC or fails to auto-print after remote setup assistance within <strong>7 days</strong> of purchase, you are eligible for a 100% full refund.
               </li>
               <li>
-                <strong>No Renewal Lock-in:</strong> Monthly subscriptions (₹399/mo) can be cancelled at any time from your Shop Dashboard without cancellation penalties.
+                <strong>No Renewal Lock-in:</strong> Monthly subscriptions (₹299/mo) can be cancelled at any time from your Shop Dashboard without cancellation penalties.
               </li>
             </ul>
           </section>

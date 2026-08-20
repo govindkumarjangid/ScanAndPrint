@@ -68,7 +68,7 @@ export default function PrivacyPolicy() {
             <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mt-1">
               <li>To route online print jobs directly from customer mobile devices to the local shop printer agent.</li>
               <li>To issue customized counter QR codes containing unique Shop IDs.</li>
-              <li>To process shop owner subscription renewals (Monthly ₹399 / Lifetime ₹599).</li>
+              <li>To process shop owner subscription renewals (Monthly ₹299 / Yearly ₹799).</li>
               <li>To provide 1-on-1 technical assistance via WhatsApp and AnyDesk remote support.</li>
             </ul>
           </section>

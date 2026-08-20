@@ -5,95 +5,155 @@ import sharp from 'sharp'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const assetsDir = path.resolve(__dirname, '../assets')
+const buildDir = path.resolve(__dirname, '../build')
 
-// Base logo SVG path
-const logoSvgPath = path.join(assetsDir, 'icon.svg')
-const logoContent = fs.readFileSync(logoSvgPath, 'utf8')
-
-// Function to generate tray SVG with status dot
-const getTraySvg = (statusColor) => `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Rounded Base Background for Tray visibility on light/dark Windows Taskbar -->
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
-  
-  <!-- Embedded Official Logo -->
-  <svg x="6" y="6" width="52" height="52" viewBox="205 200 837 861">
-    ${logoContent.replace(/<\/?svg[^>]*>/g, '')}
-  </svg>
-
-  <!-- Status Indicator Badge (Bottom Right) -->
-  <circle cx="50" cy="50" r="9" fill="#0F172A" stroke="#FFFFFF" stroke-width="2"/>
-  <circle cx="50" cy="50" r="6.5" fill="${statusColor}"/>
-</svg>`
-
-const getAppIconSvg = () => `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#FFF1F4"/>
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#F0245C" flood-opacity="0.15"/>
-    </filter>
-  </defs>
-
-  <!-- High-DPI App Icon Rounded Card -->
-  <rect x="24" y="24" width="464" height="464" rx="100" fill="url(#bgGrad)" stroke="#F0245C" stroke-width="8" filter="url(#shadow)"/>
-
-  <!-- Official Logo Graphic -->
-  <svg x="56" y="56" width="400" height="400" viewBox="205 200 837 861">
-    ${logoContent.replace(/<\/?svg[^>]*>/g, '')}
-  </svg>
-</svg>`
+const uploadedIconPath = 'C:/Users/a/.gemini/antigravity/brain/8ddf50be-4852-4652-bd76-90d1dddab213/.user_uploaded/media_1787221757765.png'
 
 async function generateAll() {
-  console.log('Rendering official Scan&Print SVG assets to pixel-perfect PNGs via Sharp...')
+  console.log('Generating official Scan&Print app icons from exact uploaded design...')
 
-  // 1. App Icon (512x512 PNG)
-  const appIconSvg = getAppIconSvg()
-  fs.writeFileSync(path.join(assetsDir, 'icon-full.svg'), appIconSvg)
-  await sharp(Buffer.from(appIconSvg))
-    .resize(512, 512)
+  if (!fs.existsSync(assetsDir)) fs.mkdirSync(assetsDir, { recursive: true })
+  if (!fs.existsSync(buildDir)) fs.mkdirSync(buildDir, { recursive: true })
+
+  // 1. High-DPI App Icon (512x512 PNG with subtle luxury rounded border for desktop)
+  const baseImg = sharp(uploadedIconPath)
+
+  const icon512 = await sharp({
+    create: {
+      width: 512,
+      height: 512,
+      channels: 4,
+      background: { r: 255, g: 255, b: 255, alpha: 0 },
+    },
+  })
+    .composite([
+      {
+        input: await sharp(uploadedIconPath)
+          .resize(460, 460, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+          .png()
+          .toBuffer(),
+        top: 26,
+        left: 26,
+      },
+    ])
     .png()
-    .toFile(path.join(assetsDir, 'icon.png'))
-  console.log('✅ assets/icon.png created (512x512 PNG from official logo.svg)')
+    .toBuffer()
 
-  // 2. Tray Connected (64x64 PNG)
-  const connectedSvg = getTraySvg('#10B981')
-  fs.writeFileSync(path.join(assetsDir, 'tray-connected.svg'), connectedSvg)
-  await sharp(Buffer.from(connectedSvg))
-    .resize(64, 64)
+  fs.writeFileSync(path.join(assetsDir, 'icon.png'), icon512)
+  console.log('✅ assets/icon.png created (512x512 PNG)')
+
+  // 2. Generate Multi-Resolution Windows ICO (256, 128, 64, 48, 32, 16)
+  const sizes = [256, 128, 64, 48, 32, 16]
+  const pngBuffers = []
+
+  for (const size of sizes) {
+    const pad = Math.max(1, Math.round(size * 0.06))
+    const innerSize = size - pad * 2
+
+    const innerBuf = await sharp(uploadedIconPath)
+      .resize(innerSize, innerSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toBuffer()
+
+    const buf = await sharp({
+      create: {
+        width: size,
+        height: size,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      },
+    })
+      .composite([{ input: innerBuf, top: pad, left: pad }])
+      .png()
+      .toBuffer()
+
+    pngBuffers.push({ size, buf })
+  }
+
+  // Construct Standard Windows ICO Binary Format
+  const count = pngBuffers.length
+  const header = Buffer.alloc(6)
+  header.writeUInt16LE(0, 0)
+  header.writeUInt16LE(1, 2) // Type: 1 = Icon
+  header.writeUInt16LE(count, 4)
+
+  const dirEntries = []
+  let offset = 6 + 16 * count
+
+  for (const item of pngBuffers) {
+    const entry = Buffer.alloc(16)
+    entry.writeUInt8(item.size === 256 ? 0 : item.size, 0) // Width (0 = 256)
+    entry.writeUInt8(item.size === 256 ? 0 : item.size, 1) // Height (0 = 256)
+    entry.writeUInt8(0, 2) // Color count
+    entry.writeUInt8(0, 3) // Reserved
+    entry.writeUInt16LE(1, 4) // Color planes
+    entry.writeUInt16LE(32, 6) // Bits per pixel (32-bit RGBA)
+    entry.writeUInt32LE(item.buf.length, 8) // Data size
+    entry.writeUInt32LE(offset, 12) // Data offset
+    dirEntries.push(entry)
+    offset += item.buf.length
+  }
+
+  const icoBuffer = Buffer.concat([header, ...dirEntries, ...pngBuffers.map((p) => p.buf)])
+
+  fs.writeFileSync(path.join(assetsDir, 'icon.ico'), icoBuffer)
+  fs.writeFileSync(path.join(buildDir, 'icon.ico'), icoBuffer)
+  console.log('✅ assets/icon.ico & build/icon.ico created (' + icoBuffer.length + ' bytes)')
+
+  // 3. Tray Icons (32x32) with high contrast background & status dots
+  const trayBase = await sharp(uploadedIconPath)
+    .resize(24, 24, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
-    .toFile(path.join(assetsDir, 'tray-connected.png'))
-  console.log('✅ assets/tray-connected.png created (64x64 PNG)')
+    .toBuffer()
 
-  // 3. Tray Disconnected (64x64 PNG)
-  const disconnectedSvg = getTraySvg('#F43F5E')
-  fs.writeFileSync(path.join(assetsDir, 'tray-disconnected.svg'), disconnectedSvg)
-  await sharp(Buffer.from(disconnectedSvg))
-    .resize(64, 64)
+  async function makeTrayIcon(statusColor, filename) {
+    const dotSvg = Buffer.from(`
+      <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="25" cy="25" r="5.5" fill="#09090b" />
+        <circle cx="25" cy="25" r="4" fill="${statusColor}" />
+      </svg>
+    `)
+
+    const canvas = await sharp({
+      create: {
+        width: 32,
+        height: 32,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      },
+    })
+      .composite([
+        { input: trayBase, top: 4, left: 4 },
+        { input: dotSvg, top: 0, left: 0 },
+      ])
+      .png()
+      .toBuffer()
+
+    fs.writeFileSync(path.join(assetsDir, filename), canvas)
+    console.log(`✅ assets/${filename} created (32x32 PNG)`)
+  }
+
+  await makeTrayIcon('#10B981', 'tray-connected.png')
+  await makeTrayIcon('#EF4444', 'tray-disconnected.png')
+  await makeTrayIcon('#F59E0B', 'tray-unconfigured.png')
+
+  // Clean tray-icon.png
+  const plainTray = await sharp({
+    create: {
+      width: 32,
+      height: 32,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{ input: trayBase, top: 4, left: 4 }])
     .png()
-    .toFile(path.join(assetsDir, 'tray-disconnected.png'))
-  console.log('✅ assets/tray-disconnected.png created (64x64 PNG)')
+    .toBuffer()
+  fs.writeFileSync(path.join(assetsDir, 'tray-icon.png'), plainTray)
 
-  // 4. Tray Unconfigured (64x64 PNG)
-  const unconfiguredSvg = getTraySvg('#F59E0B')
-  fs.writeFileSync(path.join(assetsDir, 'tray-unconfigured.svg'), unconfiguredSvg)
-  await sharp(Buffer.from(unconfiguredSvg))
-    .resize(64, 64)
-    .png()
-    .toFile(path.join(assetsDir, 'tray-unconfigured.png'))
-  console.log('✅ assets/tray-unconfigured.png created (64x64 PNG)')
-
-  // 5. Default tray-icon.png
-  await sharp(Buffer.from(connectedSvg))
-    .resize(64, 64)
-    .png()
-    .toFile(path.join(assetsDir, 'tray-icon.png'))
-
-  console.log('🎉 All official Scan&Print icons successfully generated!')
+  console.log('🎉 All Scan&Print desktop and tray icons successfully generated!')
 }
 
 generateAll().catch(console.error)
+
 

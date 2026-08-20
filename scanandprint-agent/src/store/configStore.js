@@ -2,13 +2,24 @@ import path from 'path'
 import fs from 'fs'
 
 function getUserDataPath() {
+  let baseDir = ''
   if (process.env.APPDATA) {
-    return path.join(process.env.APPDATA, 'print-pe-agent')
+    baseDir = path.join(process.env.APPDATA, 'scanandprint-agent')
+    // Legacy migration check
+    const legacyPath = path.join(process.env.APPDATA, 'print-pe-agent', 'config.json')
+    const currentPath = path.join(baseDir, 'config.json')
+    if (fs.existsSync(legacyPath) && !fs.existsSync(currentPath)) {
+      try {
+        if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true })
+        fs.copyFileSync(legacyPath, currentPath)
+      } catch (e) {}
+    }
+    return baseDir
   }
   if (process.platform === 'darwin') {
-    return path.join(process.env.HOME || '', 'Library', 'Application Support', 'print-pe-agent')
+    return path.join(process.env.HOME || '', 'Library', 'Application Support', 'scanandprint-agent')
   }
-  return path.join(process.env.HOME || process.cwd(), '.config', 'print-pe-agent')
+  return path.join(process.env.HOME || process.cwd(), '.config', 'scanandprint-agent')
 }
 
 // Custom lightweight JSON store for reliability across Electron versions
@@ -31,13 +42,12 @@ class ConfigStore {
       console.error('Error reading config file:', err)
     }
     
-    // Default testing credentials for development & verification
     return {
-      shopId: 'SHOP_TEST_999',
-      secretKey: 'sec_test_secret_123456',
+      shopId: '',
+      secretKey: '',
       serverUrl: 'https://scanandprint.onrender.com',
-      defaultBwPrinter: 'Microsoft Print to PDF',
-      defaultColorPrinter: 'Microsoft Print to PDF',
+      defaultBwPrinter: '',
+      defaultColorPrinter: '',
       autoStartOnBoot: true,
     }
   }

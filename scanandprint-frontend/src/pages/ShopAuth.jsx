@@ -56,7 +56,7 @@ export default function ShopAuth() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState('MONTHLY_399')
+  const [selectedPlan, setSelectedPlan] = useState('MONTHLY_299')
   const [showFailedModal, setShowFailedModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [paymentError, setPaymentError] = useState('')
@@ -66,8 +66,8 @@ export default function ShopAuth() {
     fetchPublicSettings()
   }, [fetchPublicSettings])
 
-  const monthlyPrice = publicSettings?.monthlyPrice || 399
-  const lifetimePrice = publicSettings?.lifetimePrice || 599
+  const monthlyPrice = publicSettings?.monthlyPrice || 299
+  const yearlyPrice = publicSettings?.yearlyPrice || 799
   const isDemoAvailable = publicSettings?.demoMode ?? true
 
   // Sync route path and plan query param with Zustand activeTab on load / URL change
@@ -80,12 +80,12 @@ export default function ShopAuth() {
 
     const params = new URLSearchParams(location.search)
     const planParam = params.get('plan')
-    if (planParam === 'lifetime') {
-      setSelectedPlan('LIFETIME_599')
-      updateRegisterData({ planType: 'LIFETIME_599' })
+    if (planParam === 'yearly') {
+      setSelectedPlan('YEARLY_799')
+      updateRegisterData({ planType: 'YEARLY_799' })
     } else if (planParam === 'monthly') {
-      setSelectedPlan('MONTHLY_399')
-      updateRegisterData({ planType: 'MONTHLY_399' })
+      setSelectedPlan('MONTHLY_299')
+      updateRegisterData({ planType: 'MONTHLY_299' })
     } else if (planParam === 'demo') {
       setSelectedPlan('FREE_TRIAL')
       updateRegisterData({ planType: 'FREE_TRIAL' })
@@ -149,12 +149,12 @@ export default function ShopAuth() {
 
   // Trigger Razorpay Payment & Activation Flow
   const triggerRazorpayCheckout = async (planTypeToUse) => {
-    const targetPlan = planTypeToUse || selectedPlan || 'MONTHLY_399'
+    const targetPlan = planTypeToUse || selectedPlan || 'MONTHLY_299'
 
     try {
       setIsSubmitting(true)
 
-      // 1. If 2-Hour Demo Free Trial is selected
+      // 1. If 2-Hour Demo Free Trial is selected (Instant Zero-Payment Access)
       if (targetPlan === 'FREE_TRIAL') {
         const orderData = await registerInit({
           fullName: registerData.fullName,
@@ -209,7 +209,7 @@ export default function ShopAuth() {
         amount: orderData.amountPaise,
         currency: orderData.currency || 'INR',
         name: 'Scan&Print',
-        description: `${orderData.planType === 'LIFETIME_599' ? 'Lifetime' : 'Monthly'} Subscription Plan`,
+        description: `${orderData.planType === 'YEARLY_799' ? 'Yearly' : 'Monthly'} Subscription Plan`,
         order_id: orderData.orderId,
         prefill: {
           name: orderData.ownerName || registerData.fullName,
@@ -763,74 +763,7 @@ export default function ShopAuth() {
 
                   {/* Plan Cards Grid */}
                   <div className="flex flex-col gap-3">
-                    {/* Monthly Plan */}
-                    <div
-                      onClick={() => {
-                        setSelectedPlan('MONTHLY_399')
-                        updateRegisterData({ planType: 'MONTHLY_399' })
-                      }}
-                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                        selectedPlan === 'MONTHLY_399'
-                          ? 'border-brand bg-rose-50/70 shadow-sm'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPlan === 'MONTHLY_399' ? 'border-brand bg-brand text-white' : 'border-stone-300'
-                        }`}>
-                          {selectedPlan === 'MONTHLY_399' && <Check className="w-3 h-3 stroke-3" />}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-extrabold text-stone-900">Monthly Plan</span>
-                            <span className="text-[10px] font-bold uppercase bg-stone-200 text-stone-700 px-2 py-0.5 rounded-full">Renews monthly</span>
-                          </div>
-                          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Full owner dashboard, live kiosk & print agent</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-base font-extrabold text-stone-900">₹{monthlyPrice}</div>
-                        <div className="text-[10px] text-stone-500 font-semibold">/ 30 days</div>
-                      </div>
-                    </div>
-
-                    {/* Lifetime Plan */}
-                    <div
-                      onClick={() => {
-                        setSelectedPlan('LIFETIME_599')
-                        updateRegisterData({ planType: 'LIFETIME_599' })
-                      }}
-                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
-                        selectedPlan === 'LIFETIME_599'
-                          ? 'border-brand bg-rose-50/70 shadow-sm'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="absolute top-0 right-0 bg-brand text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-bl-lg">
-                        Best Value
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPlan === 'LIFETIME_599' ? 'border-brand bg-brand text-white' : 'border-stone-300'
-                        }`}>
-                          {selectedPlan === 'LIFETIME_599' && <Check className="w-3 h-3 stroke-3" />}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-extrabold text-stone-900">Lifetime Access</span>
-                            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                          </div>
-                          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Pay once, permanent access forever</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-base font-extrabold text-stone-900">₹{lifetimePrice}</div>
-                        <div className="text-[10px] text-emerald-600 font-bold">One-time</div>
-                      </div>
-                    </div>
-
-                    {/* Free Trial Demo (if enabled) */}
+                    {/* 1. Free Trial Demo */}
                     {isDemoAvailable && (
                       <div
                         onClick={() => {
@@ -839,7 +772,7 @@ export default function ShopAuth() {
                         }}
                         className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                           selectedPlan === 'FREE_TRIAL'
-                            ? 'border-amber-500 bg-amber-50/60 shadow-sm'
+                            ? 'border-amber-500 bg-amber-50/70 shadow-sm'
                             : 'border-stone-200 bg-white hover:border-stone-300'
                         }`}
                       >
@@ -854,15 +787,82 @@ export default function ShopAuth() {
                               <span className="text-sm font-extrabold text-stone-900">2-Hour Free Demo</span>
                               <span className="text-[10px] font-bold uppercase bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">Free Trial</span>
                             </div>
-                            <p className="text-[11px] text-stone-500 font-medium mt-0.5">Test full live workflow for 2 hours</p>
+                            <p className="text-[11px] text-stone-500 font-medium mt-0.5">Test full live printing & agent for 2 hours free</p>
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-base font-extrabold text-stone-900">₹0</div>
-                          <div className="text-[10px] text-stone-500 font-semibold">2 Hours</div>
+                          <div className="text-[10px] text-amber-700 font-bold">2 Hours</div>
                         </div>
                       </div>
                     )}
+
+                    {/* 2. Monthly Plan */}
+                    <div
+                      onClick={() => {
+                        setSelectedPlan('MONTHLY_299')
+                        updateRegisterData({ planType: 'MONTHLY_299' })
+                      }}
+                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                        selectedPlan === 'MONTHLY_299'
+                          ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
+                          : 'border-stone-200 bg-white hover:border-stone-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedPlan === 'MONTHLY_299' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-stone-300'
+                        }`}>
+                          {selectedPlan === 'MONTHLY_299' && <Check className="w-3 h-3 stroke-3" />}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-extrabold text-stone-900">Monthly Plan</span>
+                            <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Renews monthly</span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Full owner dashboard, live kiosk & print agent</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-extrabold text-stone-900">₹{monthlyPrice}</div>
+                        <div className="text-[10px] text-stone-500 font-semibold">/ 30 days</div>
+                      </div>
+                    </div>
+
+                    {/* 3. Yearly Plan */}
+                    <div
+                      onClick={() => {
+                        setSelectedPlan('YEARLY_799')
+                        updateRegisterData({ planType: 'YEARLY_799' })
+                      }}
+                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
+                        selectedPlan === 'YEARLY_799'
+                          ? 'border-brand bg-rose-50/70 shadow-sm'
+                          : 'border-stone-200 bg-white hover:border-stone-300'
+                      }`}
+                    >
+                      <div className="absolute top-0 right-0 bg-brand text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-bl-lg">
+                        Best Value · Save 78%
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedPlan === 'YEARLY_799' ? 'border-brand bg-brand text-white' : 'border-stone-300'
+                        }`}>
+                          {selectedPlan === 'YEARLY_799' && <Check className="w-3 h-3 stroke-3" />}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-extrabold text-stone-900">Yearly Plan</span>
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                          </div>
+                          <p className="text-[11px] text-stone-500 font-medium mt-0.5">1 Full Year access — priority setup & poster</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-extrabold text-stone-900">₹{yearlyPrice}</div>
+                        <div className="text-[10px] text-emerald-600 font-bold">1 Year</div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Security Note */}
@@ -895,9 +895,11 @@ export default function ShopAuth() {
                           <span>{isVerifying ? 'Verifying...' : 'Processing...'}</span>
                         </>
                       ) : selectedPlan === 'FREE_TRIAL' ? (
-                        <span>Activate Trial ✨</span>
+                        <span>Activate Free Demo ✨</span>
+                      ) : selectedPlan === 'YEARLY_799' ? (
+                        <span>Pay ₹{yearlyPrice} & Activate 💳</span>
                       ) : (
-                        <span>Pay ₹{selectedPlan === 'LIFETIME_599' ? lifetimePrice : monthlyPrice} & Activate 💳</span>
+                        <span>Pay ₹{monthlyPrice} & Activate 💳</span>
                       )}
                     </button>
                   </div>
@@ -947,7 +949,7 @@ export default function ShopAuth() {
                 className="btn btn-primary w-full py-3 flex items-center justify-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>Retry Payment (₹{selectedPlan === 'LIFETIME_599' ? lifetimePrice : monthlyPrice})</span>
+                <span>Retry Payment (₹{selectedPlan === 'YEARLY_799' ? yearlyPrice : monthlyPrice})</span>
               </button>
               <button
                 type="button"

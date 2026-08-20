@@ -116,7 +116,7 @@ export default function OwnerOverview() {
               ₹{Number(todayRevenue).toLocaleString('en-IN')}
             </h3>
             <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5" /> ₹{Number(totalRevenue).toLocaleString('en-IN')} Lifetime Earnings
+              <TrendingUp className="w-3.5 h-3.5" /> ₹{Number(totalRevenue).toLocaleString('en-IN')} Total Earnings
             </span>
           </div>
         </motion.div>

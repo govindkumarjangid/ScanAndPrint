@@ -3,741 +3,215 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scan&Print - Desktop Agent</title>
+  <title>Scan&Print — Desktop Print Agent</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      background-color: #0c0a09;
-      color: #f5f5f4;
-      padding: 24px 16px;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      user-select: none;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 560px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      position: relative;
-    }
-
-    /* Header */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 14px;
-      border-bottom: 1px solid #292524;
-    }
-
-    .logo-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-icon {
-      width: 44px;
-      height: 44px;
-      background: #ffffff;
-      border: 1.5px solid rgba(240, 36, 92, 0.4);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 5px;
-      box-shadow: 0 4px 16px rgba(240, 36, 92, 0.25);
-    }
-    .logo-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    h1 {
-      font-size: 19px;
-      font-weight: 800;
-      color: #ffffff;
-      letter-spacing: -0.3px;
-    }
-
-    .subtitle {
-      font-size: 11px;
-      color: #a8a29e;
-      font-weight: 600;
-      margin-top: 1px;
-    }
-
-    /* Status Badge */
-    .status-badge {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 14px;
-      border-radius: 24px;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-      transition: all 0.3s ease;
-    }
-
-    .status-connected {
-      background-color: rgba(16, 185, 129, 0.15);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
-    }
-
-    .status-disconnected {
-      background-color: rgba(239, 68, 68, 0.15);
-      color: #ef4444;
-      border: 1px solid rgba(239, 68, 68, 0.4);
-    }
-
-    .status-unconfigured {
-      background-color: rgba(245, 158, 11, 0.15);
-      color: #f59e0b;
-      border: 1px solid rgba(245, 158, 11, 0.4);
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: currentColor;
-    }
-
-    .pulse-dot {
-      animation: pulseAnim 1.5s infinite;
-    }
-
-    @keyframes pulseAnim {
-      0% { transform: scale(0.9); opacity: 0.7; }
-      50% { transform: scale(1.3); opacity: 1; }
-      100% { transform: scale(0.9); opacity: 0.7; }
-    }
-
-    /* Live Connection Banner */
-    .live-banner {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 78, 59, 0.2));
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      border-radius: 18px;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    .live-banner-content {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .live-icon {
-      width: 36px;
-      height: 36px;
-      background-color: #064e3b;
-      border: 1px solid #059669;
-      color: #34d399;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-
-    .live-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: #34d399;
-    }
-
-    .live-sub {
-      font-size: 11px;
-      color: #a7f3d0;
-      font-family: 'JetBrains Mono', monospace;
-      margin-top: 1px;
-    }
-
-    /* Cards */
-    .card {
-      background-color: #1c1917;
-      border: 1px solid #292524;
-      border-radius: 20px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card h3 {
-      font-size: 15px;
-      font-weight: 800;
-      color: #ffffff;
-    }
-
-    .card-sub {
-      font-size: 12px;
-      color: #a8a29e;
-      margin-top: -6px;
-      line-height: 1.4;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    label {
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: #d6d3d1;
-    }
-
-    input, select {
-      height: 44px;
-      padding: 0 14px;
-      background-color: #0c0a09;
-      border: 1px solid #44403c;
-      border-radius: 12px;
-      color: #ffffff;
-      font-size: 13px;
-      font-weight: 600;
-      outline: none;
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    input[type="password"], input#shopId {
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    input:focus, select:focus {
-      border-color: #F0245C;
-      box-shadow: 0 0 0 3px rgba(240, 36, 92, 0.25);
-      background-color: #141210;
-    }
-
-    /* Buttons */
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 4px;
-    }
-
-    .btn {
-      height: 44px;
-      padding: 0 18px;
-      border-radius: 14px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-family: inherit;
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #F0245C, #e11d48);
-      color: #ffffff;
-      width: 100%;
-      height: 48px;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(240, 36, 92, 0.4);
-    }
-
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #d81b4e, #be123c);
-      box-shadow: 0 6px 20px rgba(240, 36, 92, 0.5);
-    }
-
-    .btn-secondary {
-      background-color: #292524;
-      color: #f5f5f4;
-      border: 1px solid #44403c;
-      flex: 1;
-    }
-
-    .btn-secondary:hover {
-      background-color: #44403c;
-    }
-
-    /* Approve & Reject Specific Buttons */
-    .btn-approve {
-      background: linear-gradient(135deg, #059669, #10b981);
-      color: #ffffff;
-      flex: 1;
-      height: 48px;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
-      font-size: 14px;
-    }
-
-    .btn-approve:hover {
-      background: linear-gradient(135deg, #047857, #059669);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-    }
-
-    .btn-reject {
-      background-color: #292524;
-      color: #f87171;
-      border: 1px solid #7f1d1d;
-      flex: 1;
-      height: 48px;
-      border-radius: 16px;
-      font-size: 14px;
-    }
-
-    .btn-reject:hover {
-      background-color: #450a0a;
-      border-color: #dc2626;
-      color: #fca5a5;
-    }
-
-    /* Activity Console Log Card */
-    .log-card {
-      background-color: #0c0a09;
-      border: 1px solid #292524;
-      border-radius: 16px;
-      padding: 12px 14px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: #a8a29e;
-      max-height: 120px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .log-entry {
-      line-height: 1.4;
-    }
-    .log-time { color: #78716c; margin-right: 6px; }
-    .log-info { color: #38bdf8; }
-    .log-success { color: #34d399; font-weight: 700; }
-    .log-error { color: #f87171; font-weight: 700; }
-
-    /* Footer */
-    .footer {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .alert-message {
-      font-size: 13px;
-      font-weight: 700;
-      min-height: 20px;
-      transition: all 0.3s;
-    }
-
-    .alert-success { color: #34d399; }
-    .alert-error { color: #f87171; }
-    .footer-note { font-size: 11px; color: #78716c; font-weight: 600; }
-
-    /* Modal Popups (Generic) */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background-color: rgba(0, 0, 0, 0.82);
-      backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 9999;
-      animation: fadeIn 0.25s ease;
-    }
-
-    .modal-card {
-      background-color: #1c1917;
-      border: 1px solid #059669;
-      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
-      border-radius: 24px;
-      max-width: 440px;
-      width: 100%;
-      padding: 28px 24px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      animation: popIn 0.3s ease;
-    }
-
-    .modal-icon-badge {
-      width: 64px;
-      height: 64px;
-      border-radius: 20px;
-      background-color: #064e3b;
-      border: 2px solid #10b981;
-      color: #34d399;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-    }
-
-    .modal-card h2 {
-      font-size: 20px;
-      font-weight: 800;
-      color: #ffffff;
-    }
-
-    .modal-card p {
-      font-size: 13px;
-      color: #a8a29e;
-      line-height: 1.5;
-    }
-
-    .modal-info-grid {
-      width: 100%;
-      background-color: #0c0a09;
-      border: 1px solid #292524;
-      border-radius: 16px;
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      text-align: left;
-      font-size: 12px;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .info-label { color: #a8a29e; font-weight: 700; }
-    .info-val { color: #f5f5f4; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-
-    /* Incoming Print Job Modal Card Specific */
-    .job-modal-card {
-      background-color: #1c1917;
-      border: 1px solid #e11d48;
-      box-shadow: 0 10px 45px rgba(240, 36, 92, 0.35);
-      border-radius: 26px;
-      max-width: 480px;
-      width: 100%;
-      padding: 26px 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      animation: popIn 0.3s ease;
-    }
-
-    .job-modal-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .job-pulse-icon {
-      width: 48px;
-      height: 48px;
-      background: linear-gradient(135deg, #F0245C, #e11d48);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 0 20px rgba(240, 36, 92, 0.5);
-      flex-shrink: 0;
-      animation: pulseAnim 1.5s infinite;
-    }
-
-    .badge-color {
-      background-color: rgba(244, 63, 94, 0.2);
-      color: #fb7185;
-      border: 1px solid rgba(244, 63, 94, 0.4);
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .badge-bw {
-      background-color: rgba(168, 162, 158, 0.2);
-      color: #e7e5e4;
-      border: 1px solid rgba(168, 162, 158, 0.4);
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .amount-highlight {
-      color: #34d399;
-      font-size: 15px;
-      font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .hidden { display: none !important; }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="ambient-glow"></div>
+
+  <!-- Incoming Job Real-Time Floating Banner -->
+  <div id="jobBanner" class="job-banner">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 38px; height: 38px; background: var(--brand-gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; box-shadow: 0 0 12px var(--brand-glow);">⚡</div>
+      <div>
+        <div style="font-size: 13px; font-weight: 800; color: #ffffff;" id="bannerJobTitle">Incoming Print Order</div>
+        <div style="font-size: 11px; color: #a1a1aa;" id="bannerJobSubtitle">Auto-spooling to printer...</div>
+      </div>
+    </div>
+    <div style="font-size: 11px; font-weight: 800; background: var(--emerald-bg); color: var(--emerald); border: 1px solid var(--emerald-border); padding: 4px 8px; border-radius: 6px;">AUTO-PRINTING</div>
+  </div>
+
   <div class="container">
     <!-- Header -->
     <header class="header">
       <div class="logo-group">
-        <div class="logo-icon">
-          <img src="../../assets/icon.svg" alt="Scan&Print Logo" />
+        <div class="logo-icon-wrap">
+          <img src="../../assets/icon.png" alt="Scan&Print Logo" onerror="this.src='../../assets/icon.svg'">
         </div>
-        <div>
-          <h1>Scan&Print Agent</h1>
-          <p class="subtitle">Production Desktop Agent v1.0.0</p>
+        <div class="header-text">
+          <h1>Scan&Print <span class="version-pill" id="appVersion">v1.0.3</span></h1>
+          <div class="subtitle">Official Windows Automated Desktop Print Agent</div>
         </div>
       </div>
-      <div id="statusBadge" class="status-badge status-disconnected">
-        <span class="dot"></span>
-        <span id="statusText">Disconnected</span>
+      <div class="header-actions">
+        <button id="reconnectBtn" class="icon-btn" title="Reconnect Cloud Socket">🔄</button>
+        <button id="openLogsBtn" class="icon-btn" title="Open Agent Logs Folder">📁</button>
+        <button id="minimizeBtn" class="icon-btn" title="Minimize to System Tray">➖</button>
+        <button id="exitBtn" class="icon-btn danger" title="Quit Agent">❌</button>
       </div>
     </header>
 
-    <!-- Live Connection Banner (Visible when agent is online) -->
-    <div id="liveConnectionBanner" class="live-banner hidden">
-      <div class="live-banner-content">
-        <div class="live-icon">
-          <span class="dot pulse-dot"></span>
+    <!-- Live Cloud Health Card -->
+    <div id="statusCard" class="status-card unconfigured">
+      <div class="status-header-row">
+        <div id="statusPill" class="status-pill unconfigured">
+          <span id="statusDot" class="status-dot"></span>
+          <span id="statusText">Awaiting Shop Setup</span>
         </div>
-        <div>
-          <div class="live-title">🟢 Agent Online & Ready to Print</div>
-          <div class="live-sub" id="bannerDetails">Shop: JANGIDCY_1830 · Hardware: Active</div>
+        <div class="shop-code-pill" id="shopCodePill">
+          <span>Shop:</span>
+          <span id="displayShopCode" style="color: var(--brand);">UNSET</span>
+          <button id="copyShopCodeBtn" class="copy-mini-btn" title="Copy Shop ID">📋</button>
         </div>
       </div>
-      <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 10px; font-weight: 800; padding: 5px 9px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); text-transform: uppercase;">
-        Live Spooler
-      </span>
+
+      <div class="metrics-row">
+        <div class="metric-box">
+          <span class="metric-label">Spooler Devices</span>
+          <span class="metric-val" id="printersCountVal">0 Detected</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Zero-Click Mode</span>
+          <span class="metric-val" style="color: var(--emerald);">Active ⚡</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Jobs Processed</span>
+          <span class="metric-val" id="jobsCountVal">0</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Form Section -->
-    <form id="settingsForm">
-      
-      <!-- Section 1: Shop Credentials -->
-      <div class="card">
-        <div class="card-header">
-          <h3>🔑 Shop Credentials</h3>
+    <!-- Section 1: Active Local Printers -->
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title-group">
+          <div class="card-title-icon">🖨️</div>
+          <div>
+            <h3>Hardware Printer Assignment</h3>
+            <div class="card-sub">Select local Windows printers to handle automated orders</div>
+          </div>
         </div>
-        <p class="card-sub">Copy Shop ID and Secret API Key from your Shop Owner Dashboard</p>
-
-        <div class="form-group">
-          <label for="shopId">SHOP ID CODE *</label>
-          <input type="text" id="shopId" placeholder="e.g. JANGIDCY_1830" required autocomplete="off" />
-        </div>
-
-        <div class="form-group">
-          <label for="secretKey">SECRET API KEY *</label>
-          <input type="password" id="secretKey" placeholder="sec_live_••••••••••••••••" required autocomplete="off" />
-        </div>
-
-        <div class="form-group" style="display: none !important;">
-          <label for="serverUrl">CLOUD BACKEND SERVER URL</label>
-          <input type="url" id="serverUrl" value="https://scanandprint.onrender.com" placeholder="https://scanandprint.onrender.com" />
-        </div>
+        <button id="refreshPrintersBtn" class="btn btn-outline" style="height: 30px; padding: 0 10px; font-size: 11px;">
+          <span>Refresh</span> 🔄
+        </button>
       </div>
 
-      <!-- Section 2: Printer Configuration -->
-      <div class="card">
-        <div class="card-header">
-          <h3>🖨️ Printer Hardware Setup</h3>
-        </div>
-        <p class="card-sub">Select default printers for automatic document routing</p>
-
+      <div class="form-grid">
         <div class="form-group">
-          <label for="bwPrinter">BLACK & WHITE DEFAULT PRINTER</label>
+          <label for="bwPrinter">Black & White (B&W) Printer</label>
           <select id="bwPrinter">
-            <option value="">-- Loading Windows Printers... --</option>
+            <option value="">-- Scanning Local Printers... --</option>
           </select>
         </div>
-
         <div class="form-group">
-          <label for="colorPrinter">COLOR DEFAULT PRINTER</label>
+          <label for="colorPrinter">Color Printer</label>
           <select id="colorPrinter">
-            <option value="">-- Loading Windows Printers... --</option>
+            <option value="">-- Scanning Local Printers... --</option>
           </select>
         </div>
+      </div>
 
-        <div class="btn-row">
-          <button type="button" id="refreshPrintersBtn" class="btn btn-secondary">
-            🔄 Refresh Printers
-          </button>
-          <button type="button" id="testPrintBtn" class="btn btn-secondary">
-            📄 Test Print Page
-          </button>
+      <div class="btn-row">
+        <button type="button" id="testBwPrintBtn" class="btn btn-secondary">
+          <span>Test B&W Print</span> 📄
+        </button>
+        <button type="button" id="testColorPrintBtn" class="btn btn-secondary">
+          <span>Test Color Print</span> 🎨
+        </button>
+      </div>
+    </div>
+
+    <!-- Section 2: Shop Pairing Credentials -->
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title-group">
+          <div class="card-title-icon">🔑</div>
+          <div>
+            <h3>Shop Pairing Credentials</h3>
+            <div class="card-sub">Copy credentials from your Shop Owner Dashboard</div>
+          </div>
         </div>
       </div>
 
-      <!-- Submit / Save Actions -->
-      <div class="actions">
+      <form id="settingsForm" style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="shopId">Shop ID Code *</label>
+            <input type="text" id="shopId" class="mono-font" placeholder="e.g. SHOP_A89F2" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="secretKey">Secret API Key *</label>
+            <div class="input-wrap">
+              <input type="password" id="secretKey" placeholder="Paste Secret API Key..." required autocomplete="off">
+              <button type="button" id="toggleSecretBtn" class="input-icon-btn" title="Show / Hide Key">👁️</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Server URL (Collapsible) -->
+        <details style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+          <summary style="cursor: pointer; font-weight: 700; color: var(--text-secondary);">⚙️ Advanced Cloud Server URL (Default: Render Cloud)</summary>
+          <div class="form-group" style="margin-top: 8px;">
+            <input type="url" id="serverUrl" class="mono-font" placeholder="https://scanandprint.onrender.com" value="https://scanandprint.onrender.com">
+          </div>
+        </details>
+
         <button type="submit" id="saveBtn" class="btn btn-primary">
-          💾 Save & Connect Agent
+          <span>Save Credentials & Connect 🚀</span>
         </button>
-      </div>
-    </form>
+      </form>
+    </div>
 
-    <!-- Activity Console Log -->
-    <div class="card" style="padding: 14px 18px;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 11px; font-weight: 800; color: #a8a29e; text-transform: uppercase;">📡 Socket Activity Log</span>
-        <button type="button" id="clearLogBtn" style="background: none; border: none; color: #78716c; font-size: 10px; font-weight: 700; cursor: pointer;">Clear</button>
+    <!-- Section 3: Windows Desktop & Startup Settings (Fixing user pain point) -->
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title-group">
+          <div class="card-title-icon">🖥️</div>
+          <div>
+            <h3>Windows Desktop Integration</h3>
+            <div class="card-sub">Create permanent desktop icon and auto-start controls</div>
+          </div>
+        </div>
       </div>
-      <div id="activityLog" class="log-card">
-        <div class="log-entry"><span class="log-time">--:--:--</span><span class="log-info">Agent UI initialized</span></div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Create Desktop Shortcut Button -->
+        <button type="button" id="createShortcutBtn" class="btn btn-shortcut">
+          <span>Create Desktop Shortcut Icon 📌</span>
+        </button>
+
+        <!-- Auto Start on Boot Switch -->
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <span class="toggle-title">Auto-Start with Windows Boot</span>
+            <span class="toggle-desc">Launches silently in Windows system tray when computer turns on</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="autoStartToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
     </div>
 
-    <!-- Footer Alert / Info -->
-    <footer class="footer">
-      <p id="alertMessage" class="alert-message"></p>
-      <p class="footer-note">Desktop Agent connects securely to your Scan&Print backend.</p>
-    </footer>
-  </div>
-
-  <!-- 1. Connection Success Popup Modal -->
-  <div id="connectionSuccessModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <div class="modal-icon-badge">✅</div>
-      <h2>Agent Connected Successfully!</h2>
-      <p>Your Desktop Agent is paired with shop <strong style="color: #ffffff;"><span id="modalShopCode">SHOP_CODE</span></strong> and is now actively listening for customer print jobs.</p>
-      
-      <div class="modal-info-grid">
-        <div class="info-row">
-          <span class="info-label">Shop Code:</span>
-          <span class="info-val" id="modalShopCodeVal">-</span>
+    <!-- Section 4: Live Activity Console -->
+    <div class="card">
+      <div class="card-title-row">
+        <div class="card-title-group">
+          <div class="card-title-icon">⚡</div>
+          <div>
+            <h3>Live Activity & Spooler Console</h3>
+            <div class="card-sub">Real-time status updates and incoming print telemetry</div>
+          </div>
         </div>
-        <div class="info-row">
-          <span class="info-label">Socket ID:</span>
-          <span class="info-val" style="color: #34d399;" id="modalSocketIdVal">Live Active</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Hardware Routing:</span>
-          <span class="info-val" style="color: #67e8f9;">Auto-Spooler Ready</span>
+        <div class="btn-row">
+          <button id="clearLogBtn" class="btn btn-outline" style="height: 28px; padding: 0 8px; font-size: 10px;">Clear</button>
+          <button id="openLogFileBtn" class="btn btn-outline" style="height: 28px; padding: 0 8px; font-size: 10px;">View Logs</button>
         </div>
       </div>
 
-      <button type="button" id="closeModalBtn" class="btn btn-primary">
-        🚀 Got It, Keep Agent Running
-      </button>
+      <div id="activityLog" class="log-box">
+        <div class="log-entry"><span class="log-time">[SYSTEM]</span><span class="log-tag-ready">Scan&Print Agent Engine initialized.</span></div>
+      </div>
     </div>
+
+    <!-- Footer Toast / Alerts -->
+    <div id="toastMessage" class="toast-msg"></div>
   </div>
 
-  <!-- 2. INCOMING PRINT JOB APPROVE / REJECT MODAL POPUP -->
-  <div id="incomingJobModal" class="modal-overlay hidden">
-    <div class="job-modal-card">
-      
-      <!-- Job Header -->
-      <div class="job-modal-header">
-        <div class="job-pulse-icon">🖨️</div>
-        <div>
-          <h2 style="font-size: 18px; font-weight: 800; color: #ffffff;">New Print Order Received!</h2>
-          <p style="font-size: 12px; color: #a8a29e; margin-top: 2px;">Review details and approve hardware spooling</p>
-        </div>
-      </div>
-
-      <!-- Job Details Grid -->
-      <div class="modal-info-grid">
-        <div class="info-row">
-          <span class="info-label">Order Job ID:</span>
-          <span class="info-val" id="jobModalId" style="color: #67e8f9;">JOB_123456</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Document File:</span>
-          <span class="info-val" id="jobModalFileName" style="color: #fde047; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">document.pdf</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Print Configuration:</span>
-          <span class="info-val" id="jobModalPages">1 Page × 1 Copy</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Color Mode:</span>
-          <span id="jobModalColorBadge" class="badge-bw">BLACK & WHITE</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Amount Paid:</span>
-          <span class="amount-highlight" id="jobModalAmount">₹5.00 (UPI Paid)</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Order Time:</span>
-          <span class="info-val" id="jobModalTime" style="color: #a8a29e;">13 Aug, 1:05 PM</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Target Hardware:</span>
-          <span class="info-val" id="jobModalPrinter" style="color: #38bdf8;">Default Windows Spooler</span>
-        </div>
-      </div>
-
-      <!-- Only 2 Buttons: Approve & Print OR Reject -->
-      <div class="btn-row" style="margin-top: 6px;">
-        <button type="button" id="rejectJobBtn" class="btn btn-reject">
-          ❌ Reject
-        </button>
-        <button type="button" id="approvePrintBtn" class="btn btn-approve">
-          🖨️ Approve & Print
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Socket.io Script: only needed for browser-mode fallback (not used when running
-       inside Electron, since Electron uses its own socket.io-client in the main process
-       and talks to the renderer over IPC). Loading it under file:// always 404s, so skip
-       it entirely when we detect we're running as a packaged Electron app. -->
-  <script>
-    if (window.location.protocol !== 'file:') {
-      document.write('<script src="/socket.io/socket.io.js"><\/script>');
-    }
-  </script>
-  <script>
-    if (typeof io === 'undefined' && window.location.protocol !== 'file:') {
-      document.write('<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"><\/script>');
-    }
-  </script>
-  <script src="renderer.js?v=2.6"></script>
+  <script src="renderer.js"></script>
 </body>
 </html>

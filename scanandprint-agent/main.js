@@ -27,17 +27,71 @@ app.on('second-instance', () => {
   }
 })
 
+function createDesktopShortcut() {
+  if (process.platform !== 'win32') {
+    return { success: false, message: 'Only Windows is supported for desktop shortcuts.' }
+  }
+
+  try {
+    const desktopPath = app.getPath('desktop')
+    const targetExe = process.execPath
+    const icoPath = path.join(__dirname, 'assets/icon.ico')
+    const iconLocation = fs.existsSync(icoPath) ? icoPath : targetExe
+    const shortcutPath = path.join(desktopPath, 'Scan&Print Agent.lnk')
+
+    const operation = fs.existsSync(shortcutPath) ? 'replace' : 'create'
+    const success = shell.writeShortcutLink(shortcutPath, operation, {
+      target: targetExe,
+      cwd: path.dirname(targetExe),
+      description: 'Scan&Print Automated Desktop Print Agent',
+      icon: iconLocation,
+      iconIndex: 0,
+      appUserModelId: 'com.scanandprint.agent',
+    })
+
+    // Also ensure Start Menu Programs shortcut
+    try {
+      const startMenuPath = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs')
+      if (fs.existsSync(startMenuPath)) {
+        const startMenuShortcut = path.join(startMenuPath, 'Scan&Print Agent.lnk')
+        const smOp = fs.existsSync(startMenuShortcut) ? 'replace' : 'create'
+        shell.writeShortcutLink(startMenuShortcut, smOp, {
+          target: targetExe,
+          cwd: path.dirname(targetExe),
+          description: 'Scan&Print Automated Desktop Print Agent',
+          icon: iconLocation,
+          iconIndex: 0,
+          appUserModelId: 'com.scanandprint.agent',
+        })
+      }
+    } catch (smErr) {
+      console.warn('Start menu shortcut note:', smErr.message)
+    }
+
+    console.log('✅ Desktop shortcut ensured with icon at:', shortcutPath)
+    return { success, path: shortcutPath }
+  } catch (err) {
+    console.error('Desktop shortcut creation error:', err)
+    return { success: false, message: err.message }
+  }
+}
+
 function createMainWindow() {
-  const iconPath = path.join(__dirname, 'assets/icon.png')
+  const icoPath = path.join(__dirname, 'assets/icon.ico')
+  const pngPath = path.join(__dirname, 'assets/icon.png')
+  const iconPath = fs.existsSync(icoPath) ? icoPath : pngPath
 
   mainWindow = new BrowserWindow({
-    width: 580,
-    height: 680,
-    resizable: false,
+    width: 620,
+    height: 780,
+    minWidth: 560,
+    minHeight: 640,
+    resizable: true,
     autoHideMenuBar: true,
-    show: true,
-    title: 'Scan&Print Agent Settings',
+    show: false,
+    title: 'Scan&Print — Desktop Print Agent',
     icon: iconPath,
+    backgroundColor: '#0c0a09',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
@@ -86,16 +140,22 @@ function updateTrayMenu() {
   else if (status === 'UNCONFIGURED') statusText = 'Unconfigured'
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: `🖨️ Scan&Print Agent`, enabled: false },
+    { label: `🖨️ Scan&Print Agent v1.0.3`, enabled: false },
     { label: `Status: ${statusText}`, enabled: false },
     { type: 'separator' },
     {
-      label: '⚙️ Settings & Configuration',
+      label: '⚙️ Open Settings & Dashboard',
       click: () => {
         if (mainWindow) {
           mainWindow.show()
           mainWindow.focus()
         }
+      },
+    },
+    {
+      label: '📌 Create Desktop Shortcut',
+      click: () => {
+        createDesktopShortcut()
       },
     },
     {
@@ -114,7 +174,11 @@ function updateTrayMenu() {
     {
       label: '📁 Open Logs Folder',
       click: () => {
-        shell.openPath(path.join(app.getPath('userData'), 'logs'))
+        const logsDir = path.join(app.getPath('userData'), 'logs')
+        if (!fs.existsSync(logsDir)) {
+          fs.mkdirSync(logsDir, { recursive: true })
+        }
+        shell.openPath(logsDir)
       },
     },
     { type: 'separator' },
@@ -158,6 +222,7 @@ function setupIpcHandlers() {
         app.setLoginItemSettings({
           openAtLogin: newConfig.autoStartOnBoot,
           openAsHidden: true,
+          path: process.execPath,
         })
       }
     }
@@ -171,12 +236,48 @@ function setupIpcHandlers() {
   ipcMain.handle('test-print', async (event, printerName) => {
     return await printerManager.testPrint(printerName)
   })
+
+  ipcMain.handle('create-desktop-shortcut', () => {
+    return createDesktopShortcut()
+  })
+
+  ipcMain.handle('open-logs-folder', () => {
+    const logsDir = path.join(app.getPath('userData'), 'logs')
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true })
+    }
+    shell.openPath(logsDir)
+    return true
+  })
+
+  ipcMain.handle('reconnect-socket', () => {
+    socketService.reconnect()
+    return true
+  })
+
+  ipcMain.handle('minimize-window', () => {
+    if (mainWindow) mainWindow.hide()
+    return true
+  })
+
+  ipcMain.handle('exit-app', () => {
+    app.isQuitting = true
+    socketService.disconnect()
+    app.quit()
+  })
+
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion() || '1.0.3'
+  })
 }
 
 app.whenReady().then(() => {
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.scanandprint.agent')
+    // Automatically create / guarantee Windows desktop icon on every startup
+    createDesktopShortcut()
   }
+
   setupIpcHandlers()
   createMainWindow()
   setupTray()
@@ -185,7 +286,8 @@ app.whenReady().then(() => {
   const { autoStartOnBoot } = configStore.getAll()
   app.setLoginItemSettings({
     openAtLogin: autoStartOnBoot !== false,
-    openAsHidden: true, // start minimized to tray, don't pop up the settings window
+    openAsHidden: true,
+    path: process.execPath,
   })
 
   socketService.onStatusChange((status, details) => {

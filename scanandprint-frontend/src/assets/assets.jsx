@@ -322,28 +322,28 @@ export const faqItems = [
   },
   {
     category: 'Subscription & Plans',
-    question: 'Are there any hidden costs or renewal charges on the One-Time plan?',
+    question: 'Are there any hidden costs or commissions on customer print jobs?',
     answer:
-      'None at all! The ₹599 One-Time plan gives you lifetime access with zero monthly renewal fees, free lifetime software updates, and dedicated customer support.',
+      'None at all! Scan&Print charges 0% platform commission on printouts. 100% of customer payments go directly to your personal UPI QR / bank account without any deductions.',
   },
 ]
 
 // Pricing & Billing Specific FAQs (Used on Pricing Page)
 export const pricingFaqItems = [
   {
-    question: 'What is the exact difference between the Monthly ₹399 and One-Time ₹599 plans?',
+    question: 'What is the difference between the 2-Hour Demo, Monthly ₹299, and Yearly ₹799 plans?',
     answer:
-      'The Monthly plan requires a ₹399 renewal every month. The One-Time ₹599 plan gives you full lifetime access to Scan&Print with zero future renewal charges, free updates forever, and dedicated priority support.',
+      'The 2-Hour Demo gives you instant 100% free access to test live printing without entering any payment info. The Monthly Plan (₹299/mo) offers affordable 30-day renewals. The Yearly Plan (₹799/yr) gives 365 days of unlimited access with a 78% discount and priority WhatsApp support.',
   },
   {
-    question: 'Are there any hidden transaction cuts, commissions, or extra renewal fees on the ₹599 plan?',
+    question: 'Are there any hidden transaction cuts or commission fees on print earnings?',
     answer:
-      'Zero hidden charges and 0% platform commission! 100% of customer payments go directly to your personal UPI QR / bank account without any deductions.',
+      'Zero hidden charges and 0% platform commission! 100% of customer payments go directly to your shop UPI QR / bank account without any deductions.',
   },
   {
-    question: 'Can I start on the Monthly plan and upgrade to the One-Time Lifetime plan later?',
+    question: 'Can I start on the Free Demo and upgrade to Monthly or Yearly plan later?',
     answer:
-      'Yes, you can upgrade your shop account to the One-Time lifetime plan anytime directly from your Shop Owner dashboard.',
+      'Yes, you can test everything on the 2-Hour Free Demo and upgrade to Monthly (₹299) or Yearly (₹799) anytime directly from your Shop Owner dashboard.',
   },
   {
     question: 'How do customers pay, and how do I receive my printing earnings?',
@@ -509,7 +509,7 @@ export const featuresList = [
     icon: RefreshCw,
     title: 'Regular Updates & Enhancements',
     desc: 'Receive automated software updates with new features, speed optimizations, and security patches.',
-    highlight: 'Lifetime Updates',
+    highlight: 'Free Updates',
   },
 ]
 

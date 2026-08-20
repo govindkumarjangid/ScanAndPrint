@@ -51,18 +51,18 @@ export default function AdminSettings() {
             <label className="text-xs font-bold text-stone-300">Monthly Plan Price (₹ / mo)</label>
             <input
               type="number"
-              value={settingsData.monthlyPrice}
+              value={settingsData.monthlyPrice ?? 299}
               onChange={(e) => updateSetting('monthlyPrice', Number(e.target.value))}
               className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-stone-300">Lifetime Plan Price (₹ one-time)</label>
+            <label className="text-xs font-bold text-stone-300">Yearly Plan Price (₹ / year)</label>
             <input
               type="number"
-              value={settingsData.lifetimePrice}
-              onChange={(e) => updateSetting('lifetimePrice', Number(e.target.value))}
+              value={settingsData.yearlyPrice ?? 799}
+              onChange={(e) => updateSetting('yearlyPrice', Number(e.target.value))}
               className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
             />
           </div>

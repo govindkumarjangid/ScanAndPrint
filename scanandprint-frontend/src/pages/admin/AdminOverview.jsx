@@ -176,7 +176,11 @@ export default function AdminOverview() {
                     </td>
                     <td className="py-4 px-4">
                       <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-950 text-rose-300 border border-rose-900/60">
-                        {s.plan === 'MONTHLY_399' ? '₹399 / Mo' : s.plan === 'LIFETIME_599' ? '₹599 Lifetime' : s.plan || 'Standard'}
+                        {s.plan === 'FREE_TRIAL'
+                          ? 'Free Demo (2-Hr)'
+                          : s.plan === 'YEARLY_799'
+                          ? '₹799 / Yr (Yearly)'
+                          : '₹299 / Mo (Monthly)'}
                       </span>
                     </td>
                     <td className="py-4 px-4">

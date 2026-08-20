@@ -50,7 +50,7 @@ export default function TermsConditions() {
             </h2>
             <ul className="list-disc pl-6 space-y-1.5 text-stone-600">
               <li>
-                <strong>License Grant:</strong> Upon purchasing a Monthly (₹399) or One-Time Lifetime (₹599) plan, shop owners receive a non-exclusive, non-transferable license to run the Print Agent software on connected Windows computers.
+                <strong>License Grant:</strong> Upon purchasing a Monthly (₹299) or Yearly (₹799) plan, shop owners receive a non-exclusive, non-transferable license to run the Print Agent software on connected Windows computers.
               </li>
               <li>
                 <strong>Account Credentials:</strong> Shop owners are responsible for maintaining confidentiality of their Shop ID, email, and password.

@@ -19,11 +19,11 @@ const adminSettingsSchema = new mongoose.Schema({
   },
   monthlyPrice: {
     type: Number,
-    default: 399
+    default: 299
   },
-  lifetimePrice: {
+  yearlyPrice: {
     type: Number,
-    default: 599
+    default: 799
   },
   supportEmail: {
     type: String,

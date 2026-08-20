@@ -47,7 +47,7 @@ export default function OwnerJobs() {
 
   const handleRefresh = async () => {
     if (cooldown > 0) {
-      toast(`Queue is already up to date! Wait ${cooldown >= 60 ? Math.ceil(cooldown / 60) + ' min' : cooldown + 's'}`, {
+      toast(`Queue is already up to date! Wait ${cooldown}s`, {
         id: 'cooldown-toast',
         icon: '⏳',
       })
@@ -149,7 +149,7 @@ export default function OwnerJobs() {
             {isRefreshing
               ? 'Refreshing...'
               : cooldown > 0
-                ? `Refresh in ${cooldown >= 60 ? `${Math.floor(cooldown / 60)}m ${cooldown % 60 ? (cooldown % 60) + 's' : ''}` : `${cooldown}s`}`
+                ? `Refresh in ${cooldown}s`
                 : 'Refresh Queue'}
           </span>
         </button>

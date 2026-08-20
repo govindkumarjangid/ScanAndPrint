@@ -95,8 +95,8 @@ const shopSchema = new mongoose.Schema(
     ],
     planType: {
       type: String,
-      enum: ['FREE_TRIAL', 'MONTHLY_399', 'LIFETIME_599'],
-      default: 'MONTHLY_399',
+      enum: ['FREE_TRIAL', 'MONTHLY_299', 'YEARLY_799'],
+      default: 'MONTHLY_299',
     },
     subscriptionStatus: {
       type: String,

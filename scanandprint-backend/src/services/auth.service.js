@@ -20,7 +20,7 @@ export const authService = {
       mobile,
       fullName,
       shopAddress,
-      planType = 'MONTHLY_399',
+      planType = 'MONTHLY_299',
       ...rest
     } = data
 
@@ -44,8 +44,8 @@ export const authService = {
 
     // 2. Fetch active platform pricing
     const settings = await AdminSettings.findOne().lean()
-    const monthlyPrice = settings?.monthlyPrice || 399
-    const lifetimePrice = settings?.lifetimePrice || 599
+    const monthlyPrice = settings?.monthlyPrice || 299
+    const yearlyPrice = settings?.yearlyPrice || 799
 
     // 3. Handle Free Trial (Demo) Immediate Activation
     if (planType === 'FREE_TRIAL') {
@@ -74,8 +74,9 @@ export const authService = {
       }
     }
 
-    // Determine Paid Plan Amount
-    const planAmount = planType === 'LIFETIME_699' ? lifetimePrice : monthlyPrice
+    // Determine Paid Plan Amount (Monthly ₹299 vs Yearly ₹799)
+    const isYearly = planType === 'YEARLY_799'
+    const planAmount = isYearly ? yearlyPrice : monthlyPrice
 
     // Create Shop in PENDING_PAYMENT state
     const newShop = await shopRepository.create({
@@ -182,18 +183,22 @@ export const authService = {
     }
 
     // Determine target plan and expiration date
-    const finalPlanType = planType || shop.planType || 'MONTHLY_399'
+    const finalPlanType = planType === 'YEARLY_799' ? 'YEARLY_799' : 'MONTHLY_299'
     let subscriptionExpiresAt = null
 
-    if (finalPlanType === 'MONTHLY_399') {
+    if (finalPlanType === 'MONTHLY_299') {
       // If existing active subscription has days left, extend from current expiry, else from now
       const baseDate =
         shop.subscriptionExpiresAt && new Date(shop.subscriptionExpiresAt) > new Date()
           ? new Date(shop.subscriptionExpiresAt)
           : new Date()
       subscriptionExpiresAt = new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000) // +30 days
-    } else if (finalPlanType === 'LIFETIME_599') {
-      subscriptionExpiresAt = null // Permanent lifetime
+    } else if (finalPlanType === 'YEARLY_799') {
+      const baseDate =
+        shop.subscriptionExpiresAt && new Date(shop.subscriptionExpiresAt) > new Date()
+          ? new Date(shop.subscriptionExpiresAt)
+          : new Date()
+      subscriptionExpiresAt = new Date(baseDate.getTime() + 365 * 24 * 60 * 60 * 1000) // +365 days (1 Year)
     }
 
     // Activate Shop in database
@@ -225,14 +230,14 @@ export const authService = {
   },
 
   // Create Razorpay Order for Renewal or Plan Upgrade (Existing Shops)
-  async createRenewalOrder(shopId, planType = 'MONTHLY_399') {
+  async createRenewalOrder(shopId, planType = 'MONTHLY_299') {
     const shop = await shopRepository.findById(shopId)
     if (!shop) throw new Error('Shop not found')
 
     const settings = await AdminSettings.findOne().lean()
-    const monthlyPrice = settings?.monthlyPrice || 399
-    const lifetimePrice = settings?.lifetimePrice || 599
-    const planAmount = planType === 'LIFETIME_599' ? lifetimePrice : monthlyPrice
+    const monthlyPrice = settings?.monthlyPrice || 299
+    const yearlyPrice = settings?.yearlyPrice || 799
+    const planAmount = planType === 'YEARLY_799' ? yearlyPrice : monthlyPrice
 
     if (!envConfig.razorpayKeyId || !envConfig.razorpayKeySecret) {
       throw new Error('Razorpay Gateway credentials are not configured on server')
@@ -331,6 +336,8 @@ export const authService = {
       shopCode,
       secretApiKey,
       planType: 'FREE_TRIAL',
+      subscriptionStatus: 'ACTIVE',
+      isSubscriptionActive: true,
       isDemoAccount: true,
       demoExpiresAt,
       bwRate: 5.0,

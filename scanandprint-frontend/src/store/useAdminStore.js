@@ -25,8 +25,8 @@ export const useAdminStore = create((set, get) => ({
   settingsLoading: false,
   isSavingSettings: false,
   settingsData: {
-    monthlyPrice: 399,
-    lifetimePrice: 599,
+    monthlyPrice: 299,
+    yearlyPrice: 799,
     maintenanceMode: false,
     demoMode: false,
   },

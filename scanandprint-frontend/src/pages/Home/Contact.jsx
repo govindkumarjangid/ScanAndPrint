@@ -143,7 +143,7 @@ export default function Contact() {
                   >
                     <option value="General Inquiry">General Inquiry / Demo</option>
                     <option value="Shop Setup Assistance">Printer Setup Assistance</option>
-                    <option value="Billing & Pricing">Billing & Pricing Plan (₹599 / ₹399)</option>
+                    <option value="Billing & Pricing">Billing & Pricing Plan (₹299 / ₹799)</option>
                     <option value="Business Partnership">Business & Regional Franchise</option>
                   </select>
                 </div>

@@ -36,8 +36,8 @@ export const useAuthStore = create((set, get) => ({
 
   // Public Platform Settings (Pricing, Demo limits etc)
   publicSettings: {
-    monthlyPrice: 399,
-    lifetimePrice: 599,
+    monthlyPrice: 299,
+    yearlyPrice: 799,
     demoMode: false,
   },
   isFetchingSettings: false,
@@ -63,6 +63,7 @@ export const useAuthStore = create((set, get) => ({
     bwRate: 5,
     colorRate: 10,
     hardwareReady: true,
+    planType: 'MONTHLY_299',
   },
 
   // Actions
@@ -74,8 +75,8 @@ export const useAuthStore = create((set, get) => ({
       if (res.data.success && res.data.data) {
         set({
           publicSettings: {
-            monthlyPrice: res.data.data.monthlyPrice || 399,
-            lifetimePrice: res.data.data.lifetimePrice || 699,
+            monthlyPrice: res.data.data.monthlyPrice || 299,
+            yearlyPrice: res.data.data.yearlyPrice || 799,
             demoMode: res.data.data.demoMode || false,
           }
         })
@@ -133,7 +134,7 @@ export const useAuthStore = create((set, get) => ({
         bwRate: 5,
         colorRate: 10,
         hardwareReady: true,
-        planType: 'MONTHLY_399',
+        planType: 'MONTHLY_299',
       },
     }),
 
@@ -213,7 +214,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // 3. Create Subscription Order for Renewal / Upgrade
-  createSubscriptionOrder: async (planType = 'MONTHLY_399') => {
+  createSubscriptionOrder: async (planType = 'MONTHLY_299') => {
     try {
       set({ isLoading: true, error: null })
       const res = await api.post('/auth/create-subscription-order', { planType })

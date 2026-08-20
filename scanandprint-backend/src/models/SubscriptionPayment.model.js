@@ -16,7 +16,7 @@ const subscriptionPaymentSchema = new mongoose.Schema(
     },
     planType: {
       type: String,
-      enum: ['FREE_TRIAL', 'MONTHLY_399', 'LIFETIME_599'],
+      enum: ['FREE_TRIAL', 'MONTHLY_299', 'YEARLY_799'],
       required: true,
     },
     amount: {

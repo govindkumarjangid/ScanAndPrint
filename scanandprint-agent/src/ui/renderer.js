@@ -1,55 +1,81 @@
-// Client-side UI Controller for Print Agent Settings & Live Socket Handshake
+// Client-side UI Controller for Scan&Print Desktop Agent
 document.addEventListener('DOMContentLoaded', async () => {
   const shopIdInput = document.getElementById('shopId')
   const secretKeyInput = document.getElementById('secretKey')
   const serverUrlInput = document.getElementById('serverUrl')
+  const toggleSecretBtn = document.getElementById('toggleSecretBtn')
   const bwPrinterSelect = document.getElementById('bwPrinter')
   const colorPrinterSelect = document.getElementById('colorPrinter')
 
   const refreshPrintersBtn = document.getElementById('refreshPrintersBtn')
-  const testPrintBtn = document.getElementById('testPrintBtn')
-  const settingsForm = document.getElementById('settingsForm')
-  const alertMessage = document.getElementById('alertMessage')
-  const saveBtn = document.getElementById('saveBtn')
+  const testBwPrintBtn = document.getElementById('testBwPrintBtn')
+  const testColorPrintBtn = document.getElementById('testColorPrintBtn')
+  const createShortcutBtn = document.getElementById('createShortcutBtn')
+  const autoStartToggle = document.getElementById('autoStartToggle')
 
-  const statusBadge = document.getElementById('statusBadge')
+  const settingsForm = document.getElementById('settingsForm')
+  const saveBtn = document.getElementById('saveBtn')
+  const toastMessage = document.getElementById('toastMessage')
+
+  const statusCard = document.getElementById('statusCard')
+  const statusPill = document.getElementById('statusPill')
+  const statusDot = document.getElementById('statusDot')
   const statusText = document.getElementById('statusText')
+  const displayShopCode = document.getElementById('displayShopCode')
+  const copyShopCodeBtn = document.getElementById('copyShopCodeBtn')
+
+  const printersCountVal = document.getElementById('printersCountVal')
+  const jobsCountVal = document.getElementById('jobsCountVal')
+  const appVersionSpan = document.getElementById('appVersion')
+
   const activityLog = document.getElementById('activityLog')
   const clearLogBtn = document.getElementById('clearLogBtn')
+  const openLogFileBtn = document.getElementById('openLogFileBtn')
 
-  const liveConnectionBanner = document.getElementById('liveConnectionBanner')
-  const bannerDetails = document.getElementById('bannerDetails')
-  const connectionSuccessModal = document.getElementById('connectionSuccessModal')
-  const modalShopCode = document.getElementById('modalShopCode')
-  const modalShopCodeVal = document.getElementById('modalShopCodeVal')
-  const modalSocketIdVal = document.getElementById('modalSocketIdVal')
-  const closeModalBtn = document.getElementById('closeModalBtn')
+  const reconnectBtn = document.getElementById('reconnectBtn')
+  const openLogsBtn = document.getElementById('openLogsBtn')
+  const minimizeBtn = document.getElementById('minimizeBtn')
+  const exitBtn = document.getElementById('exitBtn')
 
-  // Incoming Job Modal Elements
-  const incomingJobModal = document.getElementById('incomingJobModal')
-  const jobModalId = document.getElementById('jobModalId')
-  const jobModalFileName = document.getElementById('jobModalFileName')
-  const jobModalPages = document.getElementById('jobModalPages')
-  const jobModalColorBadge = document.getElementById('jobModalColorBadge')
-  const jobModalAmount = document.getElementById('jobModalAmount')
-  const jobModalTime = document.getElementById('jobModalTime')
-  const jobModalPrinter = document.getElementById('jobModalPrinter')
-  const approvePrintBtn = document.getElementById('approvePrintBtn')
-  const rejectJobBtn = document.getElementById('rejectJobBtn')
+  const jobBanner = document.getElementById('jobBanner')
+  const bannerJobTitle = document.getElementById('bannerJobTitle')
+  const bannerJobSubtitle = document.getElementById('bannerJobSubtitle')
 
   let detectedPrinters = []
-  let currentPendingJob = null
+  let totalJobsProcessed = 0
+  let isPasswordVisible = false
 
   let config = {
     shopId: '',
     secretKey: '',
-    serverUrl: window.location.origin && window.location.origin.startsWith('http') ? window.location.origin : 'https://scanandprint.onrender.com',
+    serverUrl: 'https://scanandprint.onrender.com',
     defaultBwPrinter: '',
     defaultColorPrinter: '',
+    autoStartOnBoot: true,
   }
 
   const isElectron = window.electronAPI && typeof window.electronAPI.getConfig === 'function'
-  let browserSocket = null
+
+  // Toast / Alert Notification Helper
+  function showToast(msg, type = 'success') {
+    if (!toastMessage) return
+    toastMessage.textContent = msg
+    toastMessage.className = `toast-msg toast-${type}`
+    setTimeout(() => {
+      if (toastMessage.textContent === msg) toastMessage.textContent = ''
+    }, 4000)
+  }
+
+  // Activity Logger Helper
+  function logActivity(tag, text, type = 'info') {
+    if (!activityLog) return
+    const time = new Date().toLocaleTimeString('en-IN', { hour12: false })
+    const entry = document.createElement('div')
+    entry.className = 'log-entry'
+    entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-tag-${type}">[${tag}]</span> <span style="color: var(--text-primary);">${text}</span>`
+    activityLog.appendChild(entry)
+    activityLog.scrollTop = activityLog.scrollHeight
+  }
 
   // Play an audible sound chime when a print order arrives
   function playNotificationChime() {
@@ -66,44 +92,43 @@ document.addEventListener('DOMContentLoaded', async () => {
       gain.connect(audioCtx.destination)
       osc.start()
       osc.stop(audioCtx.currentTime + 0.42)
-    } catch (e) {
-      console.warn('Audio chime note:', e.message)
-    }
+    } catch (e) {}
   }
 
-  // Activity Logger Helper
-  function logActivity(text, type = 'info') {
-    if (!activityLog) return
-    const time = new Date().toLocaleTimeString('en-IN', { hour12: false })
-    const entry = document.createElement('div')
-    entry.className = 'log-entry'
-    entry.innerHTML = `<span class="log-time">${time}</span><span class="log-${type}">${text}</span>`
-    activityLog.appendChild(entry)
-    activityLog.scrollTop = activityLog.scrollHeight
+  // Show incoming print job banner briefly
+  function flashIncomingJobBanner(job) {
+    if (!jobBanner) return
+    playNotificationChime()
+    bannerJobTitle.textContent = `Order #${job.jobId || 'NEW'} (${job.colorMode === 'COLOR' ? 'Color' : 'B&W'})`
+    bannerJobSubtitle.textContent = `${job.fileName || 'document.pdf'} · ${job.pages || 1} page(s) → Spooling`
+    jobBanner.style.display = 'flex'
+    setTimeout(() => {
+      jobBanner.style.display = 'none'
+    }, 4500)
   }
 
-  if (clearLogBtn) {
-    clearLogBtn.addEventListener('click', () => {
-      if (activityLog) activityLog.innerHTML = ''
-    })
+  // Load App Version
+  if (isElectron && typeof window.electronAPI.getAppVersion === 'function') {
+    try {
+      const ver = await window.electronAPI.getAppVersion()
+      if (ver && appVersionSpan) appVersionSpan.textContent = `v${ver}`
+    } catch (e) {}
   }
 
   // Load Saved Configuration
   if (isElectron) {
     try {
-      const savedConfig = await window.electronAPI.getConfig()
-      if (savedConfig && savedConfig.shopId) {
-        config = { ...config, ...savedConfig }
+      const saved = await window.electronAPI.getConfig()
+      if (saved) {
+        config = { ...config, ...saved }
       }
     } catch (e) {
-      console.log('Using default config')
+      console.warn('Error loading config:', e)
     }
   } else {
     try {
-      const cached = localStorage.getItem('agent_config')
-      if (cached) {
-        config = { ...config, ...JSON.parse(cached) }
-      }
+      const cached = localStorage.getItem('scanandprint_agent_config')
+      if (cached) config = { ...config, ...JSON.parse(cached) }
     } catch (e) {}
   }
 
@@ -111,32 +136,133 @@ document.addEventListener('DOMContentLoaded', async () => {
   shopIdInput.value = config.shopId || ''
   secretKeyInput.value = config.secretKey || ''
   serverUrlInput.value = config.serverUrl || 'https://scanandprint.onrender.com'
+  if (autoStartToggle) autoStartToggle.checked = config.autoStartOnBoot !== false
+  if (displayShopCode) displayShopCode.textContent = config.shopId || 'UNSET'
 
-  // Query and Populate REAL Installed OS Printers Dynamically
+  // Toggle Password Mask
+  if (toggleSecretBtn) {
+    toggleSecretBtn.addEventListener('click', () => {
+      isPasswordVisible = !isPasswordVisible
+      secretKeyInput.type = isPasswordVisible ? 'text' : 'password'
+      toggleSecretBtn.textContent = isPasswordVisible ? '🙈' : '👁️'
+    })
+  }
+
+  // Copy Shop ID Code
+  if (copyShopCodeBtn) {
+    copyShopCodeBtn.addEventListener('click', () => {
+      if (!config.shopId) {
+        showToast('Please set your Shop ID Code first', 'error')
+        return
+      }
+      navigator.clipboard.writeText(config.shopId)
+      showToast('Shop ID copied to clipboard!', 'success')
+      logActivity('CLIPBOARD', `Copied Shop ID: ${config.shopId}`, 'info')
+    })
+  }
+
+  // Header Actions
+  if (reconnectBtn) {
+    reconnectBtn.addEventListener('click', async () => {
+      logActivity('SOCKET', 'Reconnecting to Cloud Server...', 'info')
+      showToast('Reconnecting to server...', 'success')
+      if (isElectron && typeof window.electronAPI.reconnectSocket === 'function') {
+        await window.electronAPI.reconnectSocket()
+      }
+    })
+  }
+
+  if (openLogsBtn) {
+    openLogsBtn.addEventListener('click', async () => {
+      if (isElectron && typeof window.electronAPI.openLogsFolder === 'function') {
+        await window.electronAPI.openLogsFolder()
+      }
+    })
+  }
+
+  if (openLogFileBtn) {
+    openLogFileBtn.addEventListener('click', async () => {
+      if (isElectron && typeof window.electronAPI.openLogsFolder === 'function') {
+        await window.electronAPI.openLogsFolder()
+      }
+    })
+  }
+
+  if (minimizeBtn) {
+    minimizeBtn.addEventListener('click', async () => {
+      if (isElectron && typeof window.electronAPI.minimizeWindow === 'function') {
+        await window.electronAPI.minimizeWindow()
+      }
+    })
+  }
+
+  if (exitBtn) {
+    exitBtn.addEventListener('click', async () => {
+      if (isElectron && typeof window.electronAPI.exitApp === 'function') {
+        await window.electronAPI.exitApp()
+      }
+    })
+  }
+
+  if (clearLogBtn) {
+    clearLogBtn.addEventListener('click', () => {
+      if (activityLog) {
+        activityLog.innerHTML = `<div class="log-entry"><span class="log-time">[LOG]</span><span class="log-tag-info">Console cleared.</span></div>`
+      }
+    })
+  }
+
+  // Create Desktop Shortcut Action (Solves user's issue!)
+  if (createShortcutBtn) {
+    createShortcutBtn.addEventListener('click', async () => {
+      if (isElectron && typeof window.electronAPI.createDesktopShortcut === 'function') {
+        try {
+          createShortcutBtn.disabled = true
+          createShortcutBtn.innerHTML = '<span>Creating Shortcut...</span> ⏳'
+          const result = await window.electronAPI.createDesktopShortcut()
+          if (result && result.success) {
+            showToast('✅ Shortcut created on your Windows Desktop!', 'success')
+            logActivity('SYSTEM', 'Desktop icon created at: ' + (result.path || 'Desktop'), 'ready')
+          } else {
+            showToast(result?.message || 'Could not create shortcut', 'error')
+            logActivity('ERROR', 'Desktop shortcut error: ' + (result?.message || 'Unknown'), 'error')
+          }
+        } catch (err) {
+          showToast('Error creating desktop shortcut', 'error')
+        } finally {
+          createShortcutBtn.disabled = false
+          createShortcutBtn.innerHTML = '<span>Create Desktop Shortcut Icon 📌</span>'
+        }
+      } else {
+        showToast('Desktop shortcuts are supported in the Windows app', 'info')
+      }
+    })
+  }
+
+  // Auto Start On Windows Boot Toggle
+  if (autoStartToggle) {
+    autoStartToggle.addEventListener('change', async () => {
+      const enabled = autoStartToggle.checked
+      config.autoStartOnBoot = enabled
+      if (isElectron) {
+        await window.electronAPI.saveConfig({ autoStartOnBoot: enabled })
+        logActivity('SYSTEM', `Auto-start on Windows boot set to: ${enabled ? 'ENABLED' : 'DISABLED'}`, 'info')
+        showToast(`Auto-start ${enabled ? 'enabled' : 'disabled'}!`, 'success')
+      }
+    })
+  }
+
+  // Query and Populate REAL Installed Windows OS Spooler Printers
   async function loadPrinters() {
     detectedPrinters = []
+    if (printersCountVal) printersCountVal.textContent = 'Scanning...'
 
     if (isElectron) {
       try {
         const osPrinters = await window.electronAPI.getPrinters()
-        if (Array.isArray(osPrinters)) {
-          detectedPrinters = osPrinters
-        }
+        if (Array.isArray(osPrinters)) detectedPrinters = osPrinters
       } catch (err) {
-        console.error('Electron printer detection failed:', err)
-      }
-    } else {
-      // In Browser mode, query real system printers from backend OS spooler API
-      try {
-        const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'https://scanandprint.onrender.com'
-        const apiUrl = targetUrl.replace(/\/+$/, '') + '/api/print-agent/system-printers'
-        const res = await fetch(apiUrl)
-        const json = await res.json()
-        if (json.success && Array.isArray(json.data?.printers)) {
-          detectedPrinters = json.data.printers
-        }
-      } catch (err) {
-        console.warn('System printers API fetch note:', err.message)
+        console.error('Printer detection failed:', err)
       }
     }
 
@@ -146,396 +272,117 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (detectedPrinters.length === 0) {
       bwPrinterSelect.innerHTML = '<option value="">-- No Windows Printers Found --</option>'
       colorPrinterSelect.innerHTML = '<option value="">-- No Windows Printers Found --</option>'
-      logActivity('⚠️ No hardware printers detected on this machine', 'error')
-      showAlert('⚠️ No printers found on this PC. Connect a printer via USB or WiFi.', 'error')
+      if (printersCountVal) printersCountVal.textContent = '0 Detected'
+      logActivity('PRINTERS', 'No hardware printers detected on Windows spooler', 'error')
       return
     }
 
-    bwPrinterSelect.innerHTML = '<option value="">-- Select Black & White Printer --</option>'
-    colorPrinterSelect.innerHTML = '<option value="">-- Select Color Printer --</option>'
+    if (printersCountVal) printersCountVal.textContent = `${detectedPrinters.length} Active`
+    logActivity('PRINTERS', `Detected ${detectedPrinters.length} Windows Spooler printer(s)`, 'ready')
 
-    detectedPrinters.forEach((p) => {
-      const optionBw = document.createElement('option')
-      optionBw.value = p.name
-      optionBw.textContent = `${p.name}${p.isDefault ? ' ★ (Windows Default)' : ''}`
-      if (config.defaultBwPrinter === p.name || (!config.defaultBwPrinter && p.isDefault)) {
-        optionBw.selected = true
+    let hasMatchedBw = false
+    let hasMatchedColor = false
+
+    detectedPrinters.forEach((printer) => {
+      const pName = typeof printer === 'string' ? printer : printer.name
+      const pLabel = typeof printer === 'string' ? printer : `${printer.name} ${printer.isDefault ? '(Default)' : ''}`
+
+      const optBw = document.createElement('option')
+      optBw.value = pName
+      optBw.textContent = pLabel
+      if (config.defaultBwPrinter && config.defaultBwPrinter === pName) {
+        optBw.selected = true
+        hasMatchedBw = true
       }
-      bwPrinterSelect.appendChild(optionBw)
+      bwPrinterSelect.appendChild(optBw)
 
-      const optionColor = document.createElement('option')
-      optionColor.value = p.name
-      optionColor.textContent = `${p.name}${p.isDefault ? ' ★ (Windows Default)' : ''}`
-      if (config.defaultColorPrinter === p.name || (!config.defaultColorPrinter && p.isDefault)) {
-        optionColor.selected = true
+      const optColor = document.createElement('option')
+      optColor.value = pName
+      optColor.textContent = pLabel
+      if (config.defaultColorPrinter && config.defaultColorPrinter === pName) {
+        optColor.selected = true
+        hasMatchedColor = true
       }
-      colorPrinterSelect.appendChild(optionColor)
+      colorPrinterSelect.appendChild(optColor)
     })
 
-    logActivity(`🖨️ Auto-detected ${detectedPrinters.length} printer(s) from Windows spooler`, 'success')
-    showAlert(`✓ Found ${detectedPrinters.length} installed printer(s) on your PC`, 'success')
-
-    // If socket is already connected, sync the real printers with Cloud Backend
-    if (browserSocket && browserSocket.connected) {
-      const cleanShopCode = shopIdInput.value.trim().toUpperCase()
-      browserSocket.emit('AGENT_PRINTERS_UPDATED', {
-        shopId: cleanShopCode,
-        printers: detectedPrinters,
-      })
-      logActivity(`Synced ${detectedPrinters.length} printer(s) with Shop Dashboard`, 'info')
+    // Auto select first/default printer if not configured
+    if (!hasMatchedBw && detectedPrinters.length > 0) {
+      const first = typeof detectedPrinters[0] === 'string' ? detectedPrinters[0] : detectedPrinters[0].name
+      bwPrinterSelect.value = first
+      config.defaultBwPrinter = first
+    }
+    if (!hasMatchedColor && detectedPrinters.length > 0) {
+      const first = typeof detectedPrinters[0] === 'string' ? detectedPrinters[0] : detectedPrinters[0].name
+      colorPrinterSelect.value = first
+      config.defaultColorPrinter = first
     }
   }
 
-  // Connection Modal Handlers
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', () => {
-      if (connectionSuccessModal) connectionSuccessModal.classList.add('hidden')
+  if (refreshPrintersBtn) {
+    refreshPrintersBtn.addEventListener('click', async () => {
+      refreshPrintersBtn.disabled = true
+      refreshPrintersBtn.innerHTML = '<span>Refreshing...</span> ⏳'
+      await loadPrinters()
+      refreshPrintersBtn.disabled = false
+      refreshPrintersBtn.innerHTML = '<span>Refresh</span> 🔄'
+      showToast('Printers list updated', 'success')
     })
   }
 
-  function showConnectionSuccess(shopCode, socketId) {
-    if (liveConnectionBanner) {
-      liveConnectionBanner.classList.remove('hidden')
-      if (bannerDetails) bannerDetails.textContent = `Shop: ${shopCode} · Hardware: ${detectedPrinters.length} Printer(s)`
-    }
-    if (connectionSuccessModal) {
-      if (modalShopCode) modalShopCode.textContent = shopCode
-      if (modalShopCodeVal) modalShopCodeVal.textContent = shopCode
-      if (modalSocketIdVal) modalSocketIdVal.textContent = socketId || 'Active'
-      connectionSuccessModal.classList.remove('hidden')
-    }
-  }
-
-  function hideConnectionSuccess() {
-    if (liveConnectionBanner) liveConnectionBanner.classList.add('hidden')
-    if (connectionSuccessModal) connectionSuccessModal.classList.add('hidden')
-  }
-
-  // Display Incoming Job Approval Modal
-  function showIncomingJobModal(jobData, targetPrinter) {
-    currentPendingJob = { ...jobData, targetPrinter }
-
-    const isColor = jobData.colorType === 'COLOR'
-    const totalPages = jobData.totalPages || 1
-    const copies = jobData.copies || 1
-    const totalSheets = totalPages * copies
-    const amountVal = Number(jobData.totalAmount) || (isColor ? totalSheets * 10 : totalSheets * 5)
-
-    const nowFormatted = new Date().toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      day: '2-digit',
-      month: 'short',
-    })
-
-    if (jobModalId) jobModalId.textContent = jobData.jobId || 'JOB_NEW'
-    if (jobModalFileName) jobModalFileName.textContent = jobData.originalFileName || 'document.pdf'
-    if (jobModalPages) jobModalPages.textContent = `${totalPages} Page(s) × ${copies} Copy (${totalSheets} sheet${totalSheets > 1 ? 's' : ''})`
-    
-    if (jobModalColorBadge) {
-      jobModalColorBadge.textContent = isColor ? '🎨 COLOR' : '📄 BLACK & WHITE'
-      jobModalColorBadge.className = isColor ? 'badge-color' : 'badge-bw'
-    }
-
-    if (jobModalAmount) jobModalAmount.textContent = `₹${amountVal.toFixed(2)} (Paid via UPI)`
-    if (jobModalTime) jobModalTime.textContent = nowFormatted
-    if (jobModalPrinter) jobModalPrinter.textContent = targetPrinter || 'Windows Spooler'
-
-    if (incomingJobModal) {
-      incomingJobModal.classList.remove('hidden')
-      playNotificationChime()
-    }
-  }
-
-  // Handle "Approve & Print" Action
-  if (approvePrintBtn) {
-    approvePrintBtn.addEventListener('click', async () => {
-      if (!currentPendingJob) return
-
-      const job = currentPendingJob
-      const printer = job.targetPrinter || (detectedPrinters[0]?.name || 'Default Printer')
-
-      approvePrintBtn.disabled = true
-      approvePrintBtn.textContent = '⏳ Printing...'
-
-      try {
-        if (isElectron) {
-          const result = await window.electronAPI.printJob(job)
-          if (!result.success) {
-            throw new Error(result.error || 'Hardware printer error')
-          }
-        } else {
-          // In Browser Mode: Send print command to local machine print engine
-          const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'https://scanandprint.onrender.com'
-          const printApiUrl = targetUrl.replace(/\/+$/, '') + '/api/print-agent/print-job'
-          const res = await fetch(printApiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              jobId: job.jobId,
-              fileUrl: job.fileUrl,
-              downloadUrl: job.downloadUrl,
-              printerName: printer,
-              copies: job.copies || 1,
-            }),
-          })
-          const json = await res.json()
-          if (!json.success) {
-            throw new Error(json.message || 'Printer hardware spooler failed')
-          }
-        }
-
-        // Notify Cloud Backend of successful print execution
-        if (browserSocket && browserSocket.connected) {
-          browserSocket.emit('JOB_SUCCESS', {
-            jobId: job.jobId,
-            printerName: printer,
-            timestamp: new Date().toISOString(),
-          })
-        }
-
-        logActivity(`✅ Approved & Printed: ${job.jobId} on [${printer}]`, 'success')
-        showAlert(`✅ [Job Approved]: ${job.jobId} sent to printer ${printer}!`, 'success')
-      } catch (err) {
-        logActivity(`❌ Print execution failed: ${err.message}`, 'error')
-        showAlert(`❌ Print Failed: ${err.message}`, 'error')
-        if (browserSocket && browserSocket.connected) {
-          browserSocket.emit('JOB_FAILED', {
-            jobId: job.jobId,
-            error: err.message,
-          })
-        }
-      } finally {
-        approvePrintBtn.disabled = false
-        approvePrintBtn.textContent = '🖨️ Approve & Print'
-        if (incomingJobModal) incomingJobModal.classList.add('hidden')
-        currentPendingJob = null
-      }
-    })
-  }
-
-  // Handle "Reject" Action
-  if (rejectJobBtn) {
-    rejectJobBtn.addEventListener('click', () => {
-      if (!currentPendingJob) return
-
-      const job = currentPendingJob
-
-      if (browserSocket && browserSocket.connected) {
-        browserSocket.emit('JOB_FAILED', {
-          jobId: job.jobId,
-          error: 'Order rejected by shopkeeper',
-          timestamp: new Date().toISOString(),
-        })
-      }
-
-      logActivity(`❌ Job Rejected by Shopkeeper: ${job.jobId}`, 'error')
-      showAlert(`❌ [Job Rejected]: Order ${job.jobId} was declined.`, 'error')
-
-      if (incomingJobModal) incomingJobModal.classList.add('hidden')
-      currentPendingJob = null
-    })
-  }
-
-  // Live Socket Connection Engine
-  function connectBrowserSocket(cfg) {
-    if (typeof io === 'undefined') {
-      logActivity('❌ Error: Socket.IO client library not loaded in browser', 'error')
-      showAlert('❌ Socket.IO library not loaded. Check internet or server connection.', 'error')
+  // Test Print Handlers
+  async function handleTestPrint(printerName, modeLabel) {
+    if (!printerName) {
+      showToast('Please select a target printer first', 'error')
       return
     }
 
-    if (browserSocket) {
-      browserSocket.disconnect()
-      browserSocket = null
-    }
-
-    const cleanShopCode = String(cfg.shopId || '').trim().toUpperCase()
-    const cleanSecret = String(cfg.secretKey || '').trim()
-    let targetUrl = cfg.serverUrl || 'https://scanandprint.onrender.com'
-    if (!targetUrl.startsWith('http')) {
-      targetUrl = 'http://' + targetUrl
-    }
-
-    if (!cleanShopCode || !cleanSecret) {
-      statusBadge.className = 'status-badge status-unconfigured'
-      statusText.textContent = '🟡 Unconfigured'
-      hideConnectionSuccess()
-      return
-    }
-
-    statusBadge.className = 'status-badge status-unconfigured'
-    statusText.textContent = '🟡 Connecting to Server...'
-    logActivity(`Initiating connection to ${targetUrl}...`, 'info')
-
-    try {
-      browserSocket = io(targetUrl, {
-        auth: {
-          shopId: cleanShopCode,
-          secretKey: cleanSecret,
-          agentType: 'DESKTOP_WIN_AGENT',
-        },
-        reconnection: true,
-        reconnectionAttempts: 10,
-        reconnectionDelay: 2000,
-        timeout: 10000,
-      })
-
-      browserSocket.on('connect', () => {
-        logActivity(`Socket connected [ID: ${browserSocket.id}]. Sending AGENT_REGISTER...`, 'info')
-        browserSocket.emit('AGENT_REGISTER', {
-          shopId: cleanShopCode,
-          secretApiKey: cleanSecret,
-          agentVersion: '1.0.0',
-          printers: detectedPrinters,
-        })
-      })
-
-      browserSocket.on('AGENT_CONNECTED', (data) => {
-        const code = data.shopCode || cleanShopCode
-        statusBadge.className = 'status-badge status-connected'
-        statusText.textContent = `🟢 Online (${code})`
-        showAlert(`✓ Connected successfully to Shop ${code}!`, 'success')
-        logActivity(`✅ AGENT_CONNECTED: Shop ${code} is Online & Active! (${detectedPrinters.length} printers synced)`, 'success')
-        showConnectionSuccess(code, browserSocket.id)
-      })
-
-      browserSocket.on('AGENT_AUTH_ERROR', (err) => {
-        statusBadge.className = 'status-badge status-disconnected'
-        statusText.textContent = '🔴 Auth Failed'
-        showAlert(`❌ Handshake rejected: ${err.message}`, 'error')
-        logActivity(`❌ AGENT_AUTH_ERROR: ${err.message}`, 'error')
-        hideConnectionSuccess()
-      })
-
-      browserSocket.on('disconnect', (reason) => {
-        statusBadge.className = 'status-badge status-disconnected'
-        statusText.textContent = '🔴 Disconnected'
-        logActivity(`🔴 Socket disconnected: ${reason}`, 'error')
-        hideConnectionSuccess()
-      })
-
-      browserSocket.on('connect_error', (err) => {
-        statusBadge.className = 'status-badge status-disconnected'
-        statusText.textContent = '🔴 Offline (Server unreachable)'
-        logActivity(`🔴 Connection error: ${err.message}`, 'error')
-        hideConnectionSuccess()
-      })
-
-      // Listen for incoming print jobs: Auto-Print directly!
-      browserSocket.on('PRINT_JOB_DISPATCH', (jobData) => {
-        const isColor = jobData.colorType === 'COLOR'
-        const selectedPrinter = (isColor ? cfg.defaultColorPrinter : cfg.defaultBwPrinter) || (detectedPrinters[0]?.name || 'Default Hardware Spooler')
-
-        logActivity(`🖨️ [Auto-Print Active]: Direct auto-printing Job #${jobData.jobId || 'Job'} (${jobData.totalPages || 1} pages, ${jobData.colorType || 'B&W'}) to ${selectedPrinter}...`, 'success')
-      })
-
-    } catch (e) {
-      logActivity(`Connection setup exception: ${e.message}`, 'error')
-    }
-  }
-
-  // Handle Electron mode status events
-  if (isElectron) {
-    window.electronAPI.onStatusUpdate((event, { status, details }) => {
-      statusBadge.className = 'status-badge'
-      if (status === 'CONNECTED') {
-        statusBadge.classList.add('status-connected')
-        statusText.textContent = `🟢 Online (${details.shopId || 'Connected'})`
-        logActivity(`Electron Agent Connected: ${details.shopId || 'Online'}`, 'success')
-        showConnectionSuccess(details.shopId || 'Online', details.socketId || 'Desktop Spooler')
-      } else if (status === 'UNCONFIGURED') {
-        statusBadge.classList.add('status-unconfigured')
-        statusText.textContent = '🟡 Unconfigured'
-        hideConnectionSuccess()
-      } else {
-        statusBadge.classList.add('status-disconnected')
-        statusText.textContent = '🔴 Disconnected'
-        hideConnectionSuccess()
-      }
-    })
-
-    // Listen for incoming print job in Electron mode
-    if (window.electronAPI.onPrintJob) {
-      window.electronAPI.onPrintJob((event, jobData) => {
-        const isColor = jobData.colorType === 'COLOR'
-        const selectedPrinter = (isColor ? config.defaultColorPrinter : config.defaultBwPrinter) || (detectedPrinters[0]?.name || 'Default Spooler')
-        logActivity(`🖨️ [Auto-Print]: Processing Job #${jobData.jobId} to ${selectedPrinter}`, 'success')
-      })
-    }
-  } else {
-    // Browser auto-connect if credentials exist
-    if (config.shopId && config.secretKey) {
-      connectBrowserSocket(config)
-    } else {
-      statusBadge.className = 'status-badge status-unconfigured'
-      statusText.textContent = '🟡 Unconfigured (Enter Shop ID & Secret Key)'
-      logActivity('Waiting for Shop ID and Secret Key...', 'info')
-    }
-  }
-
-  // Event Handlers
-  refreshPrintersBtn.addEventListener('click', async () => {
-    logActivity('Refreshing local OS printers...', 'info')
-    await loadPrinters()
-  })
-
-  testPrintBtn.addEventListener('click', async () => {
-    const selectedPrinter = bwPrinterSelect.value || colorPrinterSelect.value || (detectedPrinters[0]?.name || '')
-    if (!selectedPrinter) {
-      showAlert('❌ No printer selected for test print', 'error')
-      logActivity('❌ No printer selected to test', 'error')
-      return
-    }
-
-    showAlert(`Sending test print page to ${selectedPrinter}...`, 'success')
-    logActivity(`Triggered test page print to ${selectedPrinter}`, 'info')
+    logActivity('PRINT', `Sending ${modeLabel} test print page to: ${printerName}...`, 'print')
+    showToast(`Sending test page to ${printerName}...`, 'success')
 
     if (isElectron) {
-      const result = await window.electronAPI.testPrint(selectedPrinter)
-      if (result.success) {
-        showAlert(`✓ ${result.message}`, 'success')
-        logActivity(`✓ ${result.message}`, 'success')
-      } else {
-        showAlert(`❌ Test print failed: ${result.error}`, 'error')
-        logActivity(`❌ Test print failed: ${result.error}`, 'error')
-      }
-    } else {
       try {
-        const targetUrl = serverUrlInput.value.trim() || config.serverUrl || 'https://scanandprint.onrender.com'
-        const printApiUrl = targetUrl.replace(/\/+$/, '') + '/api/print-agent/print-job'
-        const res = await fetch(printApiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jobId: `TEST_PAGE_${Date.now().toString().slice(-4)}`,
-            printerName: selectedPrinter,
-            copies: 1,
-          }),
-        })
-        const json = await res.json()
-        if (json.success) {
-          showAlert(`✓ [Windows Spooler] Test page sent to ${selectedPrinter}!`, 'success')
-          logActivity(`✓ [Windows Spooler] Test page sent to ${selectedPrinter}!`, 'success')
+        const result = await window.electronAPI.testPrint(printerName)
+        if (result && result.success) {
+          showToast(`✅ Test print sent successfully to ${printerName}!`, 'success')
+          logActivity('PRINT', `✓ Test page spool completed on ${printerName}`, 'online')
         } else {
-          showAlert(`❌ Test print failed: ${json.message}`, 'error')
-          logActivity(`❌ Test print failed: ${json.message}`, 'error')
+          showToast(`❌ Test print failed: ${result?.error || 'Unknown error'}`, 'error')
+          logActivity('ERROR', `Test print failed: ${result?.error || 'Unknown error'}`, 'error')
         }
       } catch (err) {
-        showAlert(`❌ Test print error: ${err.message}`, 'error')
-        logActivity(`❌ Test print error: ${err.message}`, 'error')
+        showToast(`❌ Spooler error: ${err.message}`, 'error')
+        logActivity('ERROR', `Spooler error: ${err.message}`, 'error')
       }
     }
-  })
+  }
 
+  if (testBwPrintBtn) {
+    testBwPrintBtn.addEventListener('click', () => {
+      handleTestPrint(bwPrinterSelect.value, 'Black & White')
+    })
+  }
+
+  if (testColorPrintBtn) {
+    testColorPrintBtn.addEventListener('click', () => {
+      handleTestPrint(colorPrinterSelect.value, 'Color')
+    })
+  }
+
+  // Save Settings & Connect
   settingsForm.addEventListener('submit', async (e) => {
     e.preventDefault()
     const cleanShopCode = shopIdInput.value.trim().toUpperCase()
     const cleanSecret = secretKeyInput.value.trim()
     const cleanServerUrl = serverUrlInput.value.trim() || 'https://scanandprint.onrender.com'
 
+    if (!cleanShopCode || !cleanSecret) {
+      showToast('Please enter both Shop ID and Secret API Key', 'error')
+      return
+    }
+
     shopIdInput.value = cleanShopCode
+    if (displayShopCode) displayShopCode.textContent = cleanShopCode
 
     const newConfig = {
       shopId: cleanShopCode,
@@ -543,33 +390,70 @@ document.addEventListener('DOMContentLoaded', async () => {
       serverUrl: cleanServerUrl,
       defaultBwPrinter: bwPrinterSelect.value,
       defaultColorPrinter: colorPrinterSelect.value,
+      autoStartOnBoot: autoStartToggle ? autoStartToggle.checked : true,
     }
+
+    saveBtn.disabled = true
+    saveBtn.innerHTML = '<span>Saving & Connecting...</span> ⏳'
 
     if (isElectron) {
       const saved = await window.electronAPI.saveConfig(newConfig)
       if (saved) {
-        showAlert('✓ Settings saved! Agent reconnecting...', 'success')
-        logActivity('Settings saved locally. Reconnecting agent...', 'info')
+        config = { ...config, ...newConfig }
+        showToast('✓ Credentials saved! Connecting to cloud...', 'success')
+        logActivity('CONFIG', `Credentials saved for ${cleanShopCode}. Reconnecting...`, 'ready')
       } else {
-        showAlert('❌ Failed to save settings', 'error')
+        showToast('❌ Failed to save configuration', 'error')
       }
     } else {
-      // Browser mode
-      localStorage.setItem('agent_config', JSON.stringify(newConfig))
-      showAlert('✓ Connecting agent to Cloud Server...', 'success')
-      logActivity(`Saved config. Connecting as ${cleanShopCode}...`, 'info')
-      connectBrowserSocket(newConfig)
+      localStorage.setItem('scanandprint_agent_config', JSON.stringify(newConfig))
+      showToast('✓ Saved locally', 'success')
     }
+
+    saveBtn.disabled = false
+    saveBtn.innerHTML = '<span>Save Credentials & Connect 🚀</span>'
   })
 
-  function showAlert(msg, type) {
-    alertMessage.textContent = msg
-    alertMessage.className = `alert-message ${type === 'success' ? 'alert-success' : 'alert-error'}`
-    setTimeout(() => {
-      if (alertMessage.textContent === msg) alertMessage.textContent = ''
-    }, 4000)
+  // Status Change Listener from Electron Main Process
+  function updateUIStatus(status, details = {}) {
+    statusCard.className = 'status-card ' + status.toLowerCase()
+    statusPill.className = 'status-pill ' + status.toLowerCase()
+
+    if (status === 'CONNECTED') {
+      statusText.textContent = 'Connected & Listening ⚡'
+      statusDot.className = 'status-dot pulse-animation'
+      if (displayShopCode && details.shopId) displayShopCode.textContent = details.shopId
+      logActivity('ONLINE', `🟢 Connected to Cloud Server (Shop: ${details.shopId || config.shopId})`, 'online')
+    } else if (status === 'DISCONNECTED') {
+      statusText.textContent = 'Disconnected (Retrying...)'
+      statusDot.className = 'status-dot'
+      logActivity('OFFLINE', '🔴 Connection to Cloud Server lost. Retrying...', 'error')
+    } else if (status === 'UNCONFIGURED') {
+      statusText.textContent = 'Awaiting Shop Setup'
+      statusDot.className = 'status-dot'
+      logActivity('SETUP', '🟡 Shop ID or Secret Key missing. Please pair your shop.', 'job')
+    }
   }
 
-  // Initial load of real system printers
+  if (isElectron && typeof window.electronAPI.onStatusUpdate === 'function') {
+    window.electronAPI.onStatusUpdate((payload) => {
+      const status = payload?.status || payload
+      const details = payload?.details || {}
+      updateUIStatus(status, details)
+    })
+  }
+
+  // Incoming Job Notification
+  if (isElectron && typeof window.electronAPI.onIncomingJob === 'function') {
+    window.electronAPI.onIncomingJob((job) => {
+      totalJobsProcessed++
+      if (jobsCountVal) jobsCountVal.textContent = totalJobsProcessed.toString()
+      flashIncomingJobBanner(job)
+      logActivity('JOB', `⚡ Received Job #${job.jobId || 'NEW'} (${job.pages || 1}p, ${job.colorMode || 'B&W'}) → Spooling to printer`, 'job')
+    })
+  }
+
+  // Initial load
   await loadPrinters()
+  logActivity('READY', 'Scan&Print Agent UI Ready. Background services online.', 'ready')
 })

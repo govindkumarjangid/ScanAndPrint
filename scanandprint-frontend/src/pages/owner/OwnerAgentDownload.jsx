@@ -60,10 +60,10 @@ export default function OwnerAgentDownload() {
             Windows 10 / 11 Compatible
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold font-heading">
-            Download Print Agent Setup v1.0.2
+            Download Print Agent Setup v1.0.3
           </h2>
           <p className="text-rose-100 text-xs sm:text-sm max-w-md leading-relaxed">
-            Single 1-click Windows installer (~103.28MB). Runs silently in system tray next to the Windows clock.
+            Windows installer (~103MB). Automatically creates a Desktop Shortcut and runs silently in your Windows System Tray next to the clock.
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export default function OwnerAgentDownload() {
           href={downloadUrl}
           target="_blank"
           rel="noopener noreferrer"
-          download="Scan&Print_Agent_Setup_1.0.0.exe"
+          download="Scan_and_Print_Agent_Setup_1.0.3.exe"
           className="shrink-0"
         >
           <motion.button
@@ -161,11 +161,11 @@ export default function OwnerAgentDownload() {
 
       {/* 4-Step Instructions */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-4">
-        <h3 className="text-lg font-extrabold text-stone-900 font-heading">Quick 4-Step Setup Guide</h3>
+        <h3 className="text-lg font-extrabold text-stone-900 font-heading">Quick Setup & Launch Guide</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-stone-700">
           <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
             <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0">1</span>
-            <span>Download & Run <strong>Scan_and_Print_Agent_Setup_1.0.0.exe</strong></span>
+            <span>Download & Run <strong>Scan_and_Print_Agent_Setup_1.0.3.exe</strong></span>
           </div>
           <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
             <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0">2</span>
@@ -177,7 +177,7 @@ export default function OwnerAgentDownload() {
           </div>
           <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
             <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-extrabold flex items-center justify-center shrink-0">4</span>
-            <span>App minimizes to System Tray 🟢 and auto-prints incoming orders!</span>
+            <span>📌 <strong>Desktop Shortcut is created automatically</strong>, and agent runs in system tray 🟢!</span>
           </div>
         </div>
       </div>

@@ -50,7 +50,7 @@ export const useJobStore = create((set, get) => ({
   refreshJobs: async (page = 1, limit = 10, status = '') => {
     const now = Date.now()
     const last = get().lastRefreshedAt || 0
-    const cooldownSec = get().currentCooldownDuration || 15
+    const cooldownSec = 15
     const timeSinceLast = (now - last) / 1000
 
     if (timeSinceLast < cooldownSec) {
@@ -63,27 +63,16 @@ export const useJobStore = create((set, get) => ({
     }
 
     try {
-      // Determine if consecutive click within 90s of previous cooldown
-      const isConsecutive = last > 0 && ((now - last) < ((cooldownSec + 90) * 1000))
-      const nextCount = isConsecutive ? (get().consecutiveRefreshCount + 1) : 1
-      
-      let nextCooldown = 15
-      if (nextCount === 1) nextCooldown = 15
-      else if (nextCount === 2) nextCooldown = 30
-      else if (nextCount === 3) nextCooldown = 60
-      else nextCooldown = 120
-
       set({
         isRefreshing: true,
         lastRefreshedAt: now,
-        consecutiveRefreshCount: nextCount,
-        currentCooldownDuration: nextCooldown,
+        currentCooldownDuration: 15,
       })
 
       await get().fetchJobs(page, limit, status)
       await get().fetchAnalytics()
       toast.success('Orders queue refreshed!', { id: 'refresh-success' })
-      return nextCooldown
+      return 15
     } catch (error) {
       toast.error('Failed to refresh orders')
       return false
