@@ -189,19 +189,58 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Default (Light Warm for Owner & Marketing Pages) */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: #FFFBF7;
 }
 ::-webkit-scrollbar-thumb {
   background: #E5E0D8;
-  border-radius: 4px;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #CBD5E1;
+}
+
+/* Custom Scrollbar - Dark Admin Theme (Active when path starts with /admin) */
+[data-theme='admin'],
+.admin-theme,
+[data-theme='admin'] * {
+  scrollbar-color: #44403c #0c0a09;
+}
+
+[data-theme='admin']::-webkit-scrollbar,
+[data-theme='admin'] *::-webkit-scrollbar,
+.admin-theme::-webkit-scrollbar,
+.admin-theme *::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+[data-theme='admin']::-webkit-scrollbar-track,
+[data-theme='admin'] *::-webkit-scrollbar-track,
+.admin-theme::-webkit-scrollbar-track,
+.admin-theme *::-webkit-scrollbar-track {
+  background: #0c0a09;
+}
+
+[data-theme='admin']::-webkit-scrollbar-thumb,
+[data-theme='admin'] *::-webkit-scrollbar-thumb,
+.admin-theme::-webkit-scrollbar-thumb,
+.admin-theme *::-webkit-scrollbar-thumb {
+  background: #383533;
+  border-radius: 9999px;
+  border: 1px solid #1c1917;
+}
+
+[data-theme='admin']::-webkit-scrollbar-thumb:hover,
+[data-theme='admin'] *::-webkit-scrollbar-thumb:hover,
+.admin-theme::-webkit-scrollbar-thumb:hover,
+.admin-theme *::-webkit-scrollbar-thumb:hover {
+  background: #57534e;
 }
 
 /* Selection highlight */

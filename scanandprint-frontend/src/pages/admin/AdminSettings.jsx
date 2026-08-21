@@ -20,6 +20,14 @@ export default function AdminSettings() {
 
   const handleSaveSettings = async (e) => {
     e.preventDefault()
+    if (!settingsData.monthlyPrice || Number(settingsData.monthlyPrice) <= 0) {
+      toast.error('Please enter a valid monthly price (min ₹1)')
+      return
+    }
+    if (!settingsData.yearlyPrice || Number(settingsData.yearlyPrice) <= 0) {
+      toast.error('Please enter a valid yearly price (min ₹1)')
+      return
+    }
     await saveSettings()
   }
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Store, Search, CheckCircle2, XCircle, ShieldCheck, Loader2, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { Store, Search, CheckCircle2, XCircle, ShieldCheck, Loader2, ChevronLeft, ChevronRight, RefreshCw, Clock, AlertCircle } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
+import AdminDemoTimer from '../../components/ui/AdminDemoTimer'
 
 export default function AdminShops() {
   const [currentPage, setCurrentPage] = useState(1)
@@ -72,24 +73,25 @@ export default function AdminShops() {
       </div>
 
       {/* Shops Table */}
-      <div className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800">
+      <div className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800 shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
+          <table className="w-full text-left text-sm border-collapse min-w-[850px]">
             <thead>
-              <tr className="border-b border-stone-800 text-stone-400 font-bold text-xs uppercase tracking-wider">
+              <tr className="border-b border-stone-800 text-stone-400 font-bold text-xs uppercase tracking-wider whitespace-nowrap">
                 <th className="py-3.5 px-4">Shop ID</th>
                 <th className="py-3.5 px-4">Shop Name</th>
                 <th className="py-3.5 px-4">Owner Name</th>
                 <th className="py-3.5 px-4">Mobile</th>
                 <th className="py-3.5 px-4">City</th>
-                <th className="py-3.5 px-4">Plan</th>
-                <th className="py-3.5 px-4 text-right">Live Status</th>
+                <th className="py-3.5 px-4">Plan Type</th>
+                <th className="py-3.5 px-4">Subscription</th>
+                <th className="py-3.5 px-4 text-right">Agent Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
               {shopsLoading ? (
                 <tr>
-                  <td colSpan="7" className="py-12">
+                  <td colSpan="8" className="py-12">
                     <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
                       <Loader2 className="w-7 h-7 animate-spin text-rose-500" />
                       <span className="font-semibold text-xs text-stone-400">Loading shops...</span>
@@ -98,40 +100,85 @@ export default function AdminShops() {
                 </tr>
               ) : shopsData.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="py-12 text-center text-stone-500 text-sm font-medium">
+                  <td colSpan="8" className="py-12 text-center text-stone-500 text-sm font-medium">
                     No shops found matching your search.
                   </td>
                 </tr>
               ) : (
-                shopsData.map((s) => (
-                  <tr key={s.shopCode || s.code || s._id} className="hover:bg-stone-900/60 transition-colors">
-                    <td className="py-4 px-4 font-bold text-white font-mono text-xs select-all">{s.shopCode || s.code || '—'}</td>
-                    <td className="py-4 px-4 font-semibold text-stone-200">{s.shopName || s.name || '—'}</td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.ownerName || s.owner || '—'}</td>
-                    <td className="py-4 px-4 text-xs font-mono text-stone-400">{s.phone || s.mobile || '—'}</td>
-                    <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.address || s.cityState || s.city || '—'}</td>
-                    <td className="py-4 px-4">
-                      <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-950 text-rose-300 border border-rose-900/60">
-                        {s.planType === 'FREE_TRIAL'
-                          ? 'Free Demo (2-Hr)'
-                          : s.planType === 'YEARLY_799'
-                          ? '₹799 / Yr (Yearly)'
-                          : '₹299 / Mo (Monthly)'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      {s.isOnline ? (
-                        <span className="inline-flex items-center gap-1.5 bg-emerald-950 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Online
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 bg-stone-900 text-stone-400 text-[11px] font-extrabold px-3 py-1 rounded-full border border-stone-800">
-                          <span className="w-2 h-2 rounded-full bg-stone-500" /> Offline
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                shopsData.map((s) => {
+                  const pType = s.planType || s.plan || (s.isDemoAccount ? 'FREE_TRIAL' : 'MONTHLY_299')
+                  const subStatus = s.status || (s.isDemoAccount ? 'Demo Active' : 'Active')
+                  const isOnline = Boolean(s.isOnline)
+
+                  return (
+                    <tr key={s.shopCode || s.code || s._id} className="hover:bg-stone-900/60 transition-colors whitespace-nowrap">
+                      <td className="py-4 px-4 font-bold text-white font-mono text-xs select-all">{s.shopCode || s.code || '—'}</td>
+                      <td className="py-4 px-4 font-semibold text-stone-200">{s.shopName || s.name || '—'}</td>
+                      <td className="py-4 px-4 text-xs font-medium text-stone-300">{s.ownerName || s.owner || '—'}</td>
+                      <td className="py-4 px-4 text-xs font-mono text-stone-400">{s.phone || s.mobile || '—'}</td>
+                      <td className="py-4 px-4 text-xs font-medium text-stone-400">{s.address || s.cityState || s.city || '—'}</td>
+                      <td className="py-4 px-4">
+                        {pType === 'FREE_TRIAL' || s.isDemoAccount ? (
+                          <div className="flex flex-col gap-1.5 items-start">
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full bg-amber-950/90 text-amber-300 border border-amber-800/80 shadow-xs whitespace-nowrap">
+                              <Clock className="w-3 h-3 text-amber-400" />
+                              <span>Free Demo (2-Hr)</span>
+                            </span>
+                            <AdminDemoTimer demoExpiresAt={s.demoExpiresAt} createdAt={s.createdAt} status={subStatus} />
+                          </div>
+                        ) : pType === 'YEARLY_799' ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-purple-950/90 text-purple-300 border border-purple-800/80 whitespace-nowrap">
+                            ₹799 / Yr (Yearly)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-rose-950/90 text-rose-300 border border-rose-900/60 whitespace-nowrap">
+                            ₹299 / Mo (Monthly)
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-4">
+                        {s.isDemoAccount || pType === 'FREE_TRIAL' ? (
+                          subStatus === 'Demo Active' || subStatus === 'Active' ? (
+                            <span className="inline-flex items-center gap-1.5 bg-amber-950/90 text-amber-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-amber-800/80 shadow-xs whitespace-nowrap">
+                              <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                              <span>Demo Active</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 bg-rose-950/90 text-rose-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-rose-900 whitespace-nowrap">
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                              <span>Demo Expired</span>
+                            </span>
+                          )
+                        ) : subStatus === 'Active' ? (
+                          <span className="inline-flex items-center gap-1.5 bg-emerald-950/90 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900 whitespace-nowrap shadow-xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Active</span>
+                          </span>
+                        ) : subStatus === 'Expired' ? (
+                          <span className="inline-flex items-center gap-1.5 bg-rose-950/90 text-rose-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-rose-900 whitespace-nowrap">
+                            <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                            <span>Expired</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 bg-amber-950/90 text-amber-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-amber-900 whitespace-nowrap">
+                            <span>{subStatus}</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        {isOnline ? (
+                          <span className="inline-flex items-center gap-1.5 bg-emerald-950/90 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900 whitespace-nowrap">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Online
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 bg-stone-900 text-stone-400 text-[11px] font-extrabold px-3 py-1 rounded-full border border-stone-800 whitespace-nowrap">
+                            <span className="w-2 h-2 rounded-full bg-stone-500" /> Offline
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
