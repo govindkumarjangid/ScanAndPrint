@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
+import SEO from '../../components/common/SEO'
 import { Check, Sparkles, ArrowRight, Zap, Clock, pricingFaqItems } from '../../assets/assets'
 import Accordion from "../../components/ui/Accordion"
 import DemoRegisterModal from '../../components/pricing/DemoRegisterModal'
@@ -23,6 +24,7 @@ export default function Pricing() {
 
   return (
     <div className="flex flex-col gap-16 md:gap-20 py-10 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+      <SEO path="/pricing" />
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
         <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto">

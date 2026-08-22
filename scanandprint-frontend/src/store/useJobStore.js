@@ -135,9 +135,7 @@ export const useJobStore = create((set, get) => ({
       const res = await api.delete(`/jobs/${jobId}`)
       if (res.data.success) {
         toast.success('🗑️ Order record deleted from database!')
-        set((state) => ({
-          jobs: state.jobs.filter((j) => j.jobId !== jobId && j._id !== jobId),
-        }))
+        get().removeJob(jobId)
         return true
       }
     } catch (err) {
@@ -145,6 +143,51 @@ export const useJobStore = create((set, get) => ({
       toast.error(msg)
       return false
     }
+  },
+
+  // Real-time WebSocket Optimistic Updates
+  addOrUpdateJob: (newJob) => {
+    if (!newJob || (!newJob.jobId && !newJob._id)) return
+    set((state) => {
+      const exists = state.jobs.some((j) => (j.jobId && j.jobId === newJob.jobId) || j._id === newJob._id)
+      if (exists) {
+        return {
+          jobs: state.jobs.map((j) =>
+            (j.jobId && j.jobId === newJob.jobId) || j._id === newJob._id ? { ...j, ...newJob } : j
+          ),
+        }
+      } else {
+        return {
+          jobs: [newJob, ...state.jobs],
+          pagination: {
+            ...state.pagination,
+            totalCount: (state.pagination.totalCount || state.jobs.length) + 1,
+          },
+        }
+      }
+    })
+  },
+
+  updateJobStatus: (jobId, status, extra = {}) => {
+    if (!jobId) return
+    set((state) => ({
+      jobs: state.jobs.map((j) =>
+        j.jobId === jobId || j._id === jobId
+          ? { ...j, status, ...extra }
+          : j
+      ),
+    }))
+  },
+
+  removeJob: (jobId) => {
+    if (!jobId) return
+    set((state) => ({
+      jobs: state.jobs.filter((j) => j.jobId !== jobId && j._id !== jobId),
+      pagination: {
+        ...state.pagination,
+        totalCount: Math.max(0, (state.pagination.totalCount || state.jobs.length) - 1),
+      },
+    }))
   },
 }))
 

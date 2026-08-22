@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Printer, RefreshCw, Sparkles, Loader2, CheckCircle2, AlertCircle, Laptop, Usb } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Printer, RefreshCw, Sparkles, Loader2, CheckCircle2, Usb } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
+import PrinterListSkeleton from '../../components/skeleton/PrinterListSkeleton'
 
 export default function OwnerPrinters() {
   const { currentShop, fetchProfile, updatePrinters, isSavingPrinters } = useAuthStore()
@@ -132,7 +132,14 @@ export default function OwnerPrinters() {
         </div>
 
         {/* List of Connected Printers detected by Agent */}
-        {connectedPrinters.length > 0 && (
+        {isScanning && connectedPrinters.length === 0 ? (
+          <div className="bg-stone-50/70 p-4 rounded-2xl border border-stone-200/80 flex flex-col gap-2">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-stone-500">
+              Scanning Hardware Spoolers...
+            </span>
+            <PrinterListSkeleton count={2} />
+          </div>
+        ) : connectedPrinters.length > 0 ? (
           <div className="bg-stone-50/70 p-4 rounded-2xl border border-stone-200/80 flex flex-col gap-2">
             <span className="text-xs font-extrabold uppercase tracking-wider text-stone-500">
               Discovered Spooler Devices
@@ -154,7 +161,7 @@ export default function OwnerPrinters() {
               ))}
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* B&W Printer Selection */}
         <div className="flex flex-col gap-2">

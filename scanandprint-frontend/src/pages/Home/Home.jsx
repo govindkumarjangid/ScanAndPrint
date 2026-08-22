@@ -1,3 +1,4 @@
+import SEO from '../../components/common/SEO';
 import Hero from '../../components/home/Hero';
 import DashboardPreview from '../../components/home/DashboardPreview';
 import AudienceGrid from '../../components/home/AudienceGrid';
@@ -10,6 +11,7 @@ import IntersectionLazyView from '../../components/common/IntersectionLazyView';
 export default function Home() {
   return (
     <div className="flex flex-col gap-16 md:gap-24 pb-16">
+      <SEO path="/" />
       <Hero />
 
       <IntersectionLazyView placeholderHeight="450px">

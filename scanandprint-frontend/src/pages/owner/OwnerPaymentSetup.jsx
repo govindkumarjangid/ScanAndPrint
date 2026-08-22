@@ -17,6 +17,7 @@ import {
   Lock,
   Info,
   Zap,
+  Smartphone,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
@@ -27,6 +28,7 @@ export default function OwnerPaymentSetup() {
   const [paymentMode, setPaymentMode] = useState(currentShop?.paymentSettings?.paymentMode || 'online_counter')
   const [razorpayKeyId, setRazorpayKeyId] = useState(currentShop?.paymentSettings?.razorpayKeyId || '')
   const [razorpayKeySecret, setRazorpayKeySecret] = useState('')
+  const [upiId, setUpiId] = useState(currentShop?.paymentSettings?.upiId || '')
   const [showSecret, setShowSecret] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
 
@@ -38,23 +40,21 @@ export default function OwnerPaymentSetup() {
   }, [fetchProfile])
 
   useEffect(() => {
-    if (currentShop?.paymentSettings) {
-      if (currentShop.paymentSettings.paymentMode) setPaymentMode(currentShop.paymentSettings.paymentMode)
-      if (currentShop.paymentSettings.razorpayKeyId) setRazorpayKeyId(currentShop.paymentSettings.razorpayKeyId)
+    if (currentShop) {
+      if (currentShop.paymentSettings?.paymentMode) setPaymentMode(currentShop.paymentSettings.paymentMode)
+      if (currentShop.paymentSettings?.razorpayKeyId) setRazorpayKeyId(currentShop.paymentSettings.razorpayKeyId)
+      const foundUpi = currentShop.paymentSettings?.upiId || currentShop.upiId || ''
+      if (foundUpi) setUpiId(foundUpi)
     }
   }, [currentShop])
 
   const handleSave = async (e) => {
     e.preventDefault()
 
-    // Validation: if online mode selected, keys are required
+    // Validation: if online mode selected and no custom UPI, keys are required
     if (paymentMode !== 'counter') {
-      if (!razorpayKeyId.trim()) {
-        toast.error('Razorpay Key ID is required for online payments')
-        return
-      }
-      if (!hasExistingKeys && !razorpayKeySecret.trim()) {
-        toast.error('Razorpay Key Secret is required')
+      if (!razorpayKeyId.trim() && !upiId.trim()) {
+        toast.error('Please enter Razorpay Key ID or direct UPI ID')
         return
       }
     }
@@ -63,6 +63,7 @@ export default function OwnerPaymentSetup() {
       paymentMode,
       paymentGateway: 'razorpay',
       razorpayKeyId: razorpayKeyId.trim(),
+      upiId: upiId.trim(),
     }
 
     // Only send secret if user entered a new one
@@ -288,6 +289,23 @@ export default function OwnerPaymentSetup() {
                 </div>
               </div>
 
+              {/* Direct UPI ID (VPA) Input */}
+              <div className="flex flex-col gap-1.5 pt-2 border-t border-stone-100">
+                <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+                  Direct UPI ID / QR VPA (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  placeholder="e.g. 9876543210@paytm, shopname@okaxis, yourupi@ybl"
+                  className="w-full h-12 px-4 rounded-xl border border-stone-300 bg-stone-50/50 focus:bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-all font-mono"
+                />
+                <span className="text-[11px] text-stone-400 font-medium ml-1">
+                  If entered, Kiosk Dynamic QR Code will receive money directly to this UPI account.
+                </span>
+              </div>
             </div>
 
             {/* HOW TO GET RAZORPAY KEYS - Expandable Guide */}

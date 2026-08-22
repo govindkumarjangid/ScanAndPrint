@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import {
   IndianRupee,
@@ -9,27 +9,54 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  ArrowUpRight,
   Loader2,
   FileText,
+  Sliders,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import AdminDemoTimer from '../../components/ui/AdminDemoTimer'
+import AdminExpiringAlerts from '../../components/admin/AdminExpiringAlerts'
+import MetricCardSkeleton from '../../components/skeleton/MetricCardSkeleton'
+import TableSkeleton from '../../components/skeleton/TableSkeleton'
+import ChartSkeleton from '../../components/skeleton/ChartSkeleton'
+
+const AdminAnalyticsCharts = lazy(() => import('../../components/admin/AdminAnalyticsCharts'))
+const AdminShopActionModal = lazy(() => import('../../components/admin/AdminShopActionModal'))
 
 export default function AdminOverview() {
-  const { overviewLoading, overviewData, recentShops, fetchOverview } = useAdminStore()
+  const {
+    overviewLoading,
+    overviewData,
+    recentShops,
+    fetchOverview,
+    analyticsData,
+    analyticsLoading,
+    fetchAnalytics,
+  } = useAdminStore()
+
+  const [selectedShop, setSelectedShop] = useState(null)
+  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
     fetchOverview()
-  }, [fetchOverview])
+    fetchAnalytics()
+  }, [fetchOverview, fetchAnalytics])
 
   const stats = overviewData || {}
+
+  const handleOpenShopModal = (shop) => {
+    setSelectedShop(shop)
+    setModalOpen(true)
+  }
 
   return (
     <div className="flex flex-col gap-8">
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {overviewLoading && !overviewData ? (
+        <MetricCardSkeleton count={4} variant="dark" />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
         {/* Total Platform GMV */}
         <motion.div
@@ -128,6 +155,15 @@ export default function AdminOverview() {
         </motion.div>
 
       </div>
+      )}
+
+      {/* Priority Expiring Alerts */}
+      <AdminExpiringAlerts expiringShops={analyticsData?.expiringSoonShops || []} />
+
+      {/* Recharts Analytics & Visual Graphs */}
+      <Suspense fallback={<ChartSkeleton />}>
+        <AdminAnalyticsCharts analyticsData={analyticsData} loading={analyticsLoading} />
+      </Suspense>
 
       {/* Recent Onboarded Shops Table */}
       <div className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800 flex flex-col gap-5 shadow-sm">
@@ -139,32 +175,39 @@ export default function AdminOverview() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse min-w-200">
+          <table className="w-full text-left text-sm border-collapse min-w-[800px]">
             <thead>
               <tr className="border-b border-stone-800 text-stone-400 font-bold text-xs uppercase tracking-wider whitespace-nowrap">
-                <th className="py-3.5 px-4">Shop Code</th>
-                <th className="py-3.5 px-4">Shop Name</th>
-                <th className="py-3.5 px-4">Owner Name</th>
-                <th className="py-3.5 px-4">Location</th>
-                <th className="py-3.5 px-4">Plan Type</th>
-                <th className="py-3.5 px-4">Subscription</th>
-                <th className="py-3.5 px-4 text-right">Agent Status</th>
+                <th className="py-3 px-4">Code</th>
+                <th className="py-3 px-4">Shop Name</th>
+                <th className="py-3 px-4">Owner Name</th>
+                <th className="py-3 px-4">Location</th>
+                <th className="py-3 px-4">Plan Type</th>
+                <th className="py-3 px-4">Subscription</th>
+                <th className="py-3 px-4 text-center">Actions</th>
+                <th className="py-3 px-4 text-right">Agent Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
-              {overviewLoading ? (
-                <tr>
-                  <td colSpan="7" className="py-8">
-                    <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
-                      <Loader2 className="w-6 h-6 animate-spin text-rose-500" />
-                      <span className="font-medium text-xs">Loading shop data...</span>
-                    </div>
-                  </td>
-                </tr>
+              {overviewLoading && recentShops.length === 0 ? (
+                <TableSkeleton
+                  variant="dark"
+                  rows={5}
+                  columns={[
+                    { width: 'w-16', label: 'Code' },
+                    { width: 'w-40', label: 'Shop Name' },
+                    { width: 'w-28', label: 'Owner Name' },
+                    { width: 'w-32', label: 'Location' },
+                    { width: 'w-20', label: 'Plan Type' },
+                    { width: 'w-20', label: 'Subscription' },
+                    { width: 'w-16', label: 'Actions' },
+                    { width: 'w-20', label: 'Agent Status' },
+                  ]}
+                />
               ) : recentShops.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="py-8 text-center text-stone-500 font-medium">
-                    No recent shops — data will appear here once shops register.
+                  <td colSpan="8" className="py-8 text-center text-stone-500 text-sm">
+                    No shops onboarded yet.
                   </td>
                 </tr>
               ) : (
@@ -236,6 +279,15 @@ export default function AdminOverview() {
                           </span>
                         )}
                       </td>
+                      <td className="py-4 px-4 text-center">
+                        <button
+                          onClick={() => handleOpenShopModal(s)}
+                          className="px-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white border border-stone-800 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <Sliders className="w-3 h-3 text-brand" />
+                          <span>Manage</span>
+                        </button>
+                      </td>
                       <td className="py-4 px-4 text-right">
                         {isOnline ? (
                           <span className="inline-flex items-center gap-1.5 bg-emerald-950/90 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900 whitespace-nowrap">
@@ -256,8 +308,20 @@ export default function AdminOverview() {
         </div>
       </div>
 
+      {/* Shop Action & History Modal */}
+      {modalOpen && (
+        <Suspense fallback={null}>
+          <AdminShopActionModal
+            shop={selectedShop}
+            isOpen={modalOpen}
+            onClose={() => {
+              setModalOpen(false)
+              setSelectedShop(null)
+            }}
+          />
+        </Suspense>
+      )}
+
     </div>
   )
 }
-
-

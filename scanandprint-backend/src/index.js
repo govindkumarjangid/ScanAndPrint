@@ -20,6 +20,7 @@ import kioskRoutes from './routes/kiosk.routes.js'
 import jobRoutes from './routes/job.routes.js'
 import agentRoutes from './routes/agent.routes.js'
 import adminRoutes from './routes/admin.route.js'
+import deviceRoutes from './routes/device.routes.js'
 
 import { notFoundHandler, globalErrorHandler } from './middlewares/error.middleware.js'
 import { setupSocket } from './socket.js'
@@ -88,8 +89,8 @@ app.set('trust proxy', 1)
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
 app.use(cors(corsOptions))
 app.use(cookieParser())
-app.use(express.json({ limit: '50mb' }))
-app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+app.use(express.json({ limit: '100mb' }))
+app.use(express.urlencoded({ extended: true, limit: '100mb' }))
 if (envConfig.nodeEnv === 'development')
   app.use(morgan('dev'))
 
@@ -134,6 +135,7 @@ app.use('/api/kiosk', kioskRoutes)
 app.use('/api/jobs', jobRoutes)
 app.use('/api/print-agent', agentRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/devices', deviceRoutes)
 
 app.use(notFoundHandler)
 app.use(globalErrorHandler)

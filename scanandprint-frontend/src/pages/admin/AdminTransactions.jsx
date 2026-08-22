@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { CreditCard, IndianRupee, CheckCircle2, Loader2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CheckCircle2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, RefreshCw, Download } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
+import { downloadCsv } from '../../utils/exportCsv'
+import api from '../../lib/axios'
+import toast from 'react-hot-toast'
+import TableSkeleton from '../../components/skeleton/TableSkeleton'
 
 export default function AdminTransactions() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
   const { transactionsLoading, transactionsData, transactionsPagination, fetchTransactions } = useAdminStore()
 
   useEffect(() => {
@@ -17,6 +21,33 @@ export default function AdminTransactions() {
     e?.preventDefault()
     setCurrentPage(1)
     fetchTransactions(1, 10, searchTerm, statusFilter)
+  }
+
+  const handleExportTransactions = async () => {
+    setIsExporting(true)
+    try {
+      const res = await api.get('/admin/export/transactions')
+      if (res.data.success && res.data.data?.transactions) {
+        const flat = res.data.data.transactions.map((t) => ({
+          JobId: t.jobId || '—',
+          ShopCode: t.shopCode || t.shopId?.shopCode || '—',
+          ShopName: t.shopId?.shopName || '—',
+          CustomerPhone: t.customerPhone || '—',
+          Amount: `₹${t.totalAmount || 0}`,
+          TotalPages: t.totalPages || 1,
+          Copies: t.copies || 1,
+          Status: t.status || '—',
+          PaymentMode: t.paymentMode || 'ONLINE_UPI',
+          CreatedAt: t.createdAt ? new Date(t.createdAt).toLocaleString('en-IN') : '—',
+        }))
+        downloadCsv(flat, `ScanAndPrint_Transactions_${new Date().toISOString().split('T')[0]}.csv`)
+        toast.success('Transactions CSV exported successfully!')
+      }
+    } catch (e) {
+      toast.error('Failed to export transactions')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   const pagination = transactionsPagination || {
@@ -36,18 +67,29 @@ export default function AdminTransactions() {
             Payment Transactions & Gateway Settlement
           </h1>
           <p className="text-stone-400 text-sm mt-0.5 font-medium">
-            Platform-wide UPI payments processed via PhonePe PG, Razorpay, and Paytm
+            Platform-wide customer payments and subscription transactions across India
           </p>
         </div>
 
-        <button
-          onClick={() => fetchTransactions(currentPage, 10, searchTerm, statusFilter)}
-          disabled={transactionsLoading}
-          className="btn btn-sm bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 flex items-center gap-2 self-start sm:self-auto cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${transactionsLoading ? 'animate-spin text-rose-500' : ''}`} />
-          <span>Refresh Transactions</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <button
+            onClick={handleExportTransactions}
+            disabled={isExporting}
+            className="btn btn-sm bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 flex items-center gap-1.5 cursor-pointer"
+          >
+            {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 text-brand" />}
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => fetchTransactions(currentPage, 10, searchTerm, statusFilter)}
+            disabled={transactionsLoading}
+            className="btn btn-sm bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 flex items-center gap-2 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${transactionsLoading ? 'animate-spin text-rose-500' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Search & Filter Bar */}
@@ -108,15 +150,19 @@ export default function AdminTransactions() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
-              {transactionsLoading ? (
-                <tr>
-                  <td colSpan="6" className="py-12">
-                    <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
-                      <Loader2 className="w-7 h-7 animate-spin text-rose-500" />
-                      <span className="font-semibold text-xs text-stone-400">Loading transactions...</span>
-                    </div>
-                  </td>
-                </tr>
+              {transactionsLoading && transactionsData.length === 0 ? (
+                <TableSkeleton
+                  variant="dark"
+                  rows={8}
+                  columns={[
+                    { width: 'w-24', label: 'Transaction ID' },
+                    { width: 'w-40', label: 'Shop Name' },
+                    { width: 'w-20', label: 'Gateway' },
+                    { width: 'w-16', label: 'Amount' },
+                    { width: 'w-24', label: 'Time' },
+                    { width: 'w-20', label: 'Status' },
+                  ]}
+                />
               ) : transactionsData.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="py-12 text-center text-stone-500 text-sm font-medium">

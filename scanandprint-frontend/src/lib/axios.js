@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '../store/useAuthStore'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://scanandprint.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   withCredentials: true,
 })
 
@@ -11,7 +11,10 @@ api.interceptors.request.use(
   (config) => {
     const adminToken = localStorage.getItem('adminToken')
     const shopToken = localStorage.getItem('shopToken')
-    if (adminToken && config.url?.startsWith('/admin')) {
+    const url = config.url || ''
+    const isAdminRequest = url.startsWith('/admin') || url.includes('/admin')
+
+    if (adminToken && isAdminRequest) {
       config.headers.Authorization = `Bearer ${adminToken}`
     } else if (shopToken) {
       config.headers.Authorization = `Bearer ${shopToken}`

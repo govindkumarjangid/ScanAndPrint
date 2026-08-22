@@ -29,6 +29,18 @@ const adminSettingsSchema = new mongoose.Schema({
     type: String,
     default: "scanqrandprint@gmail.com"
   },
+  supportPhone: {
+    type: String,
+    default: "+91 98765 43210"
+  },
+  demoDurationHours: {
+    type: Number,
+    default: 2
+  },
+  filePurgeMinutes: {
+    type: Number,
+    default: 60
+  },
   maintenanceMode: {
     type: Boolean,
     default: false

@@ -88,9 +88,33 @@ export default function PaymentStage({
     }
   }
 
-  // Dynamic UPI String for shop
-  const upiId = shopInfo?.paymentSettings?.upiId || 'scanandprint@ybl'
-  const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(shopInfo?.shopName || 'PrintShop')}&am=${totalAmount}&cu=INR&tn=PrintJob_${Date.now().toString().slice(-6)}`
+  // 4. Handle Direct UPI QR Code Payment Confirmation
+  const handleConfirmQrPayment = async () => {
+    try {
+      const formData = getJobFormData()
+      formData.append('paymentMethod', 'UPI_QR')
+      formData.append('paymentTxnId', `UPI_${Date.now()}`)
+      await payAtCounter(formData)
+      toast.success('✅ Payment confirmed! Spooling to printer...')
+      onPaymentSuccess()
+    } catch (err) {
+      toast.error('Failed to dispatch print job')
+    }
+  }
+
+  // Live NPCI Compliant Clean UPI URI (Compatible with PhonePe, Google Pay, Paytm, BHIM)
+  const configuredUpi = shopInfo?.paymentSettings?.upiId || shopInfo?.upiId
+  // Default to shop's configured UPI, or phone@ybl, or fallback
+  const activeUpiId =
+    configuredUpi ||
+    (shopInfo?.phone ? `${shopInfo.phone}@ybl` : 'scanandprint@ybl')
+  const cleanShopName = (shopInfo?.shopName || 'ScanAndPrint').replace(/[^a-zA-Z0-9 ]/g, '').trim() || 'Print Shop'
+  const formattedAmount = Number(totalAmount).toFixed(2)
+
+  // Official NPCI Standard UPI Pay URL
+  const upiString = `upi://pay?pa=${encodeURIComponent(activeUpiId)}&pn=${encodeURIComponent(
+    cleanShopName
+  )}&am=${formattedAmount}&cu=INR`
 
   return (
     <motion.div
@@ -126,7 +150,7 @@ export default function PaymentStage({
           </h2>
           <p className="text-xs text-stone-500 font-medium">
             {activeTab === 'online'
-              ? 'Instant UPI / Card Payment (PhonePe, GPay, Paytm)'
+              ? 'Scan UPI QR or Pay via PhonePe / GPay / Paytm'
               : 'Pay Cash to Shopkeeper at Counter'}
           </p>
         </div>
@@ -144,7 +168,7 @@ export default function PaymentStage({
               }`}
             >
               <CreditCard className="w-3.5 h-3.5 text-brand" />
-              <span>Pay Online (UPI)</span>
+              <span>UPI & Online</span>
             </button>
             <button
               type="button"
@@ -182,53 +206,87 @@ export default function PaymentStage({
         </div>
 
         {/* Action Content based on activeTab */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3.5">
           
           {/* ONLINE PAYMENT MODE */}
           {activeTab === 'online' && (
-            <>
-              {/* Main Razorpay / UPI Button */}
+            <div className="flex flex-col gap-3">
+              {/* LIVE NPCI UPI QR CODE CARD */}
+              <div className="bg-stone-50/90 p-4 rounded-3xl border border-stone-200 flex flex-col items-center gap-3 shadow-xs">
+                <div className="p-3 bg-white rounded-2xl shadow-sm border border-stone-200">
+                  <QRCode
+                    value={upiString}
+                    size={170}
+                    qrStyle="dots"
+                    eyeRadius={8}
+                    bgColor="#ffffff"
+                    fgColor="#111827"
+                  />
+                </div>
+
+                <div className="flex flex-col items-center gap-0.5">
+                  <div className="flex items-center gap-1 text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Scan with Any UPI App · Pay ₹{totalAmount}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-stone-500 mt-1">
+                    UPI ID: <strong className="text-stone-800">{activeUpiId}</strong>
+                  </span>
+                </div>
+
+                {/* One-Tap Mobile Deep-Link Launcher */}
+                <a
+                  href={upiString}
+                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>Tap to Pay in PhonePe / GPay / Paytm</span>
+                </a>
+
+                {/* Instant Print After Payment Button */}
+                <button
+                  type="button"
+                  onClick={handleConfirmQrPayment}
+                  disabled={isBusy}
+                  className="w-full py-3 px-3 rounded-xl bg-brand hover:bg-rose-600 active:bg-rose-700 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isBusy ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>I Have Paid via QR · Print Now</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Alternative: Secure Online Payment Checkout */}
+              <div className="flex items-center gap-2 my-1">
+                <div className="flex-1 h-px bg-stone-200" />
+                <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Or Pay Online</span>
+                <div className="flex-1 h-px bg-stone-200" />
+              </div>
+
               <button
                 type="button"
                 onClick={handleRazorpayPay}
                 disabled={isBusy}
-                className="btn btn-primary w-full py-3.5 bg-stone-900! hover:bg-black! shadow-lg flex items-center justify-center gap-2 text-sm font-bold cursor-pointer disabled:opacity-50"
+                className="w-full py-3.5 px-4 rounded-2xl bg-stone-900 hover:bg-black active:scale-[0.99] text-white flex items-center justify-center gap-2.5 text-xs sm:text-sm font-extrabold shadow-md transition-all cursor-pointer disabled:opacity-50"
               >
                 {isBusy ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-brand" />
-                    <span>Processing Payment...</span>
+                    <span>Connecting Securely...</span>
                   </>
                 ) : (
                   <>
-                    <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <span>Pay ₹{totalAmount} (PhonePe / GPay / Paytm)</span>
+                    <Lock className="w-4 h-4 text-emerald-400" />
+                    <span>Pay Online (Cards / Netbanking / Wallets)</span>
                   </>
                 )}
               </button>
-
-              {/* Dynamic UPI QR Code Toggle */}
-              <button
-                type="button"
-                onClick={() => setShowQrCode(!showQrCode)}
-                className="btn btn-ghost py-2 text-xs text-stone-600 hover:text-stone-900 font-bold flex items-center justify-center gap-1.5"
-              >
-                <QrCode className="w-4 h-4 text-stone-600" />
-                <span>{showQrCode ? 'Hide QR Code' : 'Scan UPI QR Code from another phone'}</span>
-              </button>
-
-              {/* Dynamic QR Display */}
-              {showQrCode && (
-                <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex flex-col items-center gap-2">
-                  <div className="p-2 bg-white rounded-xl shadow-xs border border-stone-200">
-                    <QRCode value={upiString} size={150} qrStyle="dots" eyeRadius={6} />
-                  </div>
-                  <span className="text-[11px] font-bold text-stone-600">
-                    Scan with any UPI App to Pay ₹{totalAmount}
-                  </span>
-                </div>
-              )}
-            </>
+            </div>
           )}
 
           {/* CASH COUNTER PAYMENT MODE */}
@@ -280,6 +338,7 @@ export default function PaymentStage({
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             <span>256-Bit Encrypted & Instant Hardware Routing</span>
           </div>
+
         </div>
       </div>
     </motion.div>

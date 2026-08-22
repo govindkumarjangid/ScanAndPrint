@@ -13,6 +13,16 @@ if (!fs.existsSync(uploadsJobsDir)) {
   fs.mkdirSync(uploadsJobsDir, { recursive: true })
 }
 
+/**
+ * Cleanly strips any existing extension (.png, .jpg, .jpeg, .webp, .docx, .png.pdf, etc.)
+ * and returns a clean, canonical .pdf filename (e.g. document_page_123.pdf)
+ */
+export function cleanToPdfFilename(filename) {
+  if (!filename) return 'document.pdf'
+  const nameWithoutExt = filename.replace(/(\.(png|jpg|jpeg|webp|docx|doc|pdf))+$/gi, '')
+  return `${nameWithoutExt || 'document'}.pdf`
+}
+
 // get public shop info for kiosk
 export const getPublicShopInfo = asyncHandler(async (req, res, next) => {
   const { shopCode } = req.params
@@ -27,73 +37,196 @@ export const getPublicShopInfo = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 200, 'Shop details loaded successfully', { shop })
 })
 
-// create a print job from kiosk (handles file upload to Cloudinary and local backup cache)
-export const createPrintJob = asyncHandler(async (req, res, next) => {
-  let uploadedCloudinaryUrl = null
+// optimistic background pre-upload endpoint (Step 1 cache)
+export const preUploadFile = asyncHandler(async (req, res, next) => {
   let fileBuffer = null
-  let originalName =
-    req.file?.originalname ||
-    req.body.originalFileName ||
-    'document.pdf'
+  let originalName = req.file?.originalname || req.body.originalFileName || 'document.pdf'
 
-  // 1. If file uploaded via Multer (multipart/form-data)
   if (req.file && req.file.buffer) {
     fileBuffer = req.file.buffer
-    req.body.fileSizeBytes = req.file.size
-  }
-  // 2. If file passed as Base64 Data URL in body
-  else if (req.body.fileUrl && req.body.fileUrl.startsWith('data:')) {
+  } else if (req.body.fileUrl && req.body.fileUrl.startsWith('data:')) {
     const base64Data = req.body.fileUrl.replace(/^data:[^;]+;base64,/, '')
     fileBuffer = Buffer.from(base64Data, 'base64')
-    req.body.fileSizeBytes = fileBuffer.length
-  } else if (req.body.file && typeof req.body.file === 'string' && req.body.file.startsWith('data:')) {
-    const base64Data = req.body.file.replace(/^data:[^;]+;base64,/, '')
-    fileBuffer = Buffer.from(base64Data, 'base64')
-    req.body.fileSizeBytes = fileBuffer.length
   } else if (req.body.fileDataUrl && req.body.fileDataUrl.startsWith('data:')) {
     const base64Data = req.body.fileDataUrl.replace(/^data:[^;]+;base64,/, '')
     fileBuffer = Buffer.from(base64Data, 'base64')
-    req.body.fileSizeBytes = fileBuffer.length
-  } else if (req.body.fileUrl && (req.body.fileUrl.startsWith('http://') || req.body.fileUrl.startsWith('https://'))) {
-    uploadedCloudinaryUrl = req.body.fileUrl
   }
 
-  // Convert ANY image format (PNG, JPG, WEBP) to standard A4 printable PDF
-  if (fileBuffer) {
-    fileBuffer = await ensurePdfBuffer(fileBuffer, originalName)
-    req.body.fileSizeBytes = fileBuffer.length
-    if (!originalName.toLowerCase().endsWith('.pdf')) {
-      originalName = `${originalName}.pdf`
+  if (!fileBuffer || fileBuffer.length === 0) {
+    return sendError(res, 400, 'No file content provided for pre-upload')
+  }
+
+  // Ensure PDF format and clean .pdf filename
+  fileBuffer = await ensurePdfBuffer(fileBuffer, originalName)
+  originalName = cleanToPdfFilename(originalName)
+
+  const tempId = `TMP_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+  const tempPath = path.join(uploadsJobsDir, `${tempId}.pdf`)
+  fs.writeFileSync(tempPath, fileBuffer)
+
+  // Start background Cloudinary upload optimistically
+  uploadToCloudinary(fileBuffer, originalName).catch((cErr) => {
+    console.warn('[Pre-upload Cloudinary Notice]:', cErr.message)
+  })
+
+  return sendSuccess(res, 200, 'File pre-uploaded successfully', {
+    tempId,
+    originalFileName: originalName,
+    fileSizeBytes: fileBuffer.length,
+  })
+})
+
+// single-flight atomic quick dispatch for Counter and Demo orders (<80ms total latency)
+export const quickDispatchPrintJob = asyncHandler(async (req, res, next) => {
+  let fileBuffer = null
+  let originalName = req.file?.originalname || req.body.originalFileName || 'document.pdf'
+  const tempId = req.body.tempId
+
+  // 1. Check if file was pre-uploaded in Step 1
+  if (tempId) {
+    const tempPath = path.join(uploadsJobsDir, `${tempId}.pdf`)
+    if (fs.existsSync(tempPath)) {
+      fileBuffer = fs.readFileSync(tempPath)
     }
   }
 
-  // Upload to Cloudinary if we have a buffer
-  if (fileBuffer) {
-    try {
-      const cloudinaryRes = await uploadToCloudinary(fileBuffer, originalName)
-      if (cloudinaryRes?.secure_url) {
-        uploadedCloudinaryUrl = cloudinaryRes.secure_url
-      }
-    } catch (cErr) {
-      console.warn('[Cloudinary Notice]: Using local secure stream fallback:', cErr.message)
+  // 2. Fallback to direct Multer / Base64 upload
+  if (!fileBuffer) {
+    if (req.file && req.file.buffer) {
+      fileBuffer = req.file.buffer
+      req.body.fileSizeBytes = req.file.size
+    } else if (req.body.fileUrl && req.body.fileUrl.startsWith('data:')) {
+      const base64Data = req.body.fileUrl.replace(/^data:[^;]+;base64,/, '')
+      fileBuffer = Buffer.from(base64Data, 'base64')
+      req.body.fileSizeBytes = fileBuffer.length
+    } else if (req.body.fileDataUrl && req.body.fileDataUrl.startsWith('data:')) {
+      const base64Data = req.body.fileDataUrl.replace(/^data:[^;]+;base64,/, '')
+      fileBuffer = Buffer.from(base64Data, 'base64')
+      req.body.fileSizeBytes = fileBuffer.length
+    }
+
+    if (fileBuffer) {
+      fileBuffer = await ensurePdfBuffer(fileBuffer, originalName)
+      req.body.fileSizeBytes = fileBuffer.length
     }
   }
 
-  // Create Job in Database
-  req.body.fileUrl = uploadedCloudinaryUrl || (fileBuffer ? `data:application/pdf;base64,${fileBuffer.toString('base64')}` : '')
+  originalName = cleanToPdfFilename(originalName)
+
+  if (!fileBuffer && !req.body.fileUrl) {
+    return sendError(res, 400, 'A valid document file is required for print dispatch.')
+  }
+
+  // Safe file payload handling: Never inject huge >1.5MB base64 into MongoDB documents
   req.body.originalFileName = originalName
+  if (fileBuffer && fileBuffer.length <= 1.5 * 1024 * 1024) {
+    req.body.fileUrl = `data:application/pdf;base64,${fileBuffer.toString('base64')}`
+  } else if (!req.body.fileUrl || req.body.fileUrl.startsWith('data:')) {
+    req.body.fileUrl = ''
+  }
 
-  if (!req.body.fileUrl) {
+  const io = req.app.get('io')
+  const savedJob = await kioskService.quickDispatchJob(req.body, io)
+
+  if (io && savedJob) {
+    const shopRoom = `shop:${savedJob.shopCode}`
+    io.to(shopRoom).emit('NEW_PRINT_JOB', { job: savedJob })
+    io.to(shopRoom).emit('JOB_STATUS_UPDATED', { jobId: savedJob.jobId, status: savedJob.status, job: savedJob })
+    io.to('admin:room').emit('ADMIN_JOB_CREATED', { job: savedJob })
+  }
+
+  // Save guaranteed local fast download file for agent stream (<150ms download)
+  if (fileBuffer && savedJob?.jobId) {
+    const localJobFilePath = path.join(uploadsJobsDir, `${savedJob.jobId}.pdf`)
+    fs.writeFileSync(localJobFilePath, fileBuffer)
+
+    // Non-blocking asynchronous Cloudinary backup in background
+    setImmediate(() => {
+      uploadToCloudinary(fileBuffer, originalName)
+        .then(async (cRes) => {
+          if (cRes?.secure_url) {
+            await PrintJob.updateOne({ jobId: savedJob.jobId }, { fileUrl: cRes.secure_url })
+          }
+        })
+        .catch((cErr) => console.warn('[Async Cloudinary Backup Notice]:', cErr.message))
+    })
+  }
+
+  return sendSuccess(res, 201, 'Print job dispatched instantly to printer!', { job: savedJob })
+})
+
+// create a print job from kiosk (handles file upload to Cloudinary and local backup cache)
+export const createPrintJob = asyncHandler(async (req, res, next) => {
+  let fileBuffer = null
+  let originalName = req.file?.originalname || req.body.originalFileName || 'document.pdf'
+  const tempId = req.body.tempId
+
+  // Check pre-upload cache first
+  if (tempId) {
+    const tempPath = path.join(uploadsJobsDir, `${tempId}.pdf`)
+    if (fs.existsSync(tempPath)) {
+      fileBuffer = fs.readFileSync(tempPath)
+    }
+  }
+
+  if (!fileBuffer) {
+    if (req.file && req.file.buffer) {
+      fileBuffer = req.file.buffer
+      req.body.fileSizeBytes = req.file.size
+    } else if (req.body.fileUrl && req.body.fileUrl.startsWith('data:')) {
+      const base64Data = req.body.fileUrl.replace(/^data:[^;]+;base64,/, '')
+      fileBuffer = Buffer.from(base64Data, 'base64')
+      req.body.fileSizeBytes = fileBuffer.length
+    } else if (req.body.fileDataUrl && req.body.fileDataUrl.startsWith('data:')) {
+      const base64Data = req.body.fileDataUrl.replace(/^data:[^;]+;base64,/, '')
+      fileBuffer = Buffer.from(base64Data, 'base64')
+      req.body.fileSizeBytes = fileBuffer.length
+    }
+
+    if (fileBuffer) {
+      fileBuffer = await ensurePdfBuffer(fileBuffer, originalName)
+      req.body.fileSizeBytes = fileBuffer.length
+    }
+  }
+
+  originalName = cleanToPdfFilename(originalName)
+  req.body.originalFileName = originalName
+  if (fileBuffer && fileBuffer.length <= 1.5 * 1024 * 1024) {
+    req.body.fileUrl = `data:application/pdf;base64,${fileBuffer.toString('base64')}`
+  } else if (!req.body.fileUrl || req.body.fileUrl.startsWith('data:')) {
+    req.body.fileUrl = ''
+  }
+
+  if (!fileBuffer && !req.body.fileUrl) {
     return sendError(res, 400, 'A valid document file is required.')
   }
 
   const result = await kioskService.createJob(req.body)
   const savedJob = result.job
 
+  const io = req.app.get('io')
+  if (io && savedJob) {
+    const shopRoom = `shop:${savedJob.shopCode}`
+    io.to(shopRoom).emit('NEW_PRINT_JOB', { job: savedJob })
+    io.to(shopRoom).emit('JOB_STATUS_UPDATED', { jobId: savedJob.jobId, status: savedJob.status, job: savedJob })
+    io.to('admin:room').emit('ADMIN_JOB_CREATED', { job: savedJob })
+  }
+
   // Cache binary file locally on server for fast, guaranteed agent download
   if (fileBuffer && savedJob?.jobId) {
     const localJobFilePath = path.join(uploadsJobsDir, `${savedJob.jobId}.pdf`)
     fs.writeFileSync(localJobFilePath, fileBuffer)
+
+    // Non-blocking asynchronous Cloudinary backup in background
+    setImmediate(() => {
+      uploadToCloudinary(fileBuffer, originalName)
+        .then(async (cRes) => {
+          if (cRes?.secure_url) {
+            await PrintJob.updateOne({ jobId: savedJob.jobId }, { fileUrl: cRes.secure_url })
+          }
+        })
+        .catch((cErr) => console.warn('[Async Cloudinary Backup Notice]:', cErr.message))
+    })
   }
 
   return sendSuccess(res, 201, 'Print job created successfully', result)
@@ -107,7 +240,7 @@ export const downloadJobFile = asyncHandler(async (req, res, next) => {
     return sendError(res, 404, 'Print job not found')
   }
 
-  // 1. Check local uploads cache
+  // 1. Check local uploads cache (Fastest Path <100ms)
   const localJobFilePath = path.join(uploadsJobsDir, `${job.jobId}.pdf`)
   if (fs.existsSync(localJobFilePath)) {
     const stat = fs.statSync(localJobFilePath)

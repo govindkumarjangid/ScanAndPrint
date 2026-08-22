@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Monitor, CheckCircle2, Loader2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CheckCircle2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
+import { getSocket } from '../../lib/socket'
+import TableSkeleton from '../../components/skeleton/TableSkeleton'
 
 export default function AdminAgents() {
   const [currentPage, setCurrentPage] = useState(1)
@@ -12,6 +13,29 @@ export default function AdminAgents() {
   useEffect(() => {
     fetchAgents(currentPage, 10, searchInput, statusFilter)
   }, [fetchAgents, currentPage, statusFilter])
+
+  // Real-time socket sync for live agent IP and connection changes
+  useEffect(() => {
+    const socket = getSocket()
+    socket.emit('JOIN_ADMIN_ROOM')
+
+    const handleLiveAgentStatus = (data) => {
+      console.log('📡 [AdminAgents Live Sync]:', data)
+      fetchAgents(currentPage, 10, searchInput, statusFilter)
+    }
+
+    socket.on('AGENT_STATUS_CHANGE', handleLiveAgentStatus)
+    socket.on('ADMIN_LIVE_AGENT_UPDATE', handleLiveAgentStatus)
+    socket.on('ADMIN_LIVE_AGENTS_SYNC', handleLiveAgentStatus)
+    socket.on('ADMIN_SHOP_UPDATED', handleLiveAgentStatus)
+
+    return () => {
+      socket.off('AGENT_STATUS_CHANGE', handleLiveAgentStatus)
+      socket.off('ADMIN_LIVE_AGENT_UPDATE', handleLiveAgentStatus)
+      socket.off('ADMIN_LIVE_AGENTS_SYNC', handleLiveAgentStatus)
+      socket.off('ADMIN_SHOP_UPDATED', handleLiveAgentStatus)
+    }
+  }, [fetchAgents, currentPage, searchInput, statusFilter])
 
   const handleSearchSubmit = (e) => {
     e?.preventDefault()
@@ -106,15 +130,19 @@ export default function AdminAgents() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
-              {agentsLoading ? (
-                <tr>
-                  <td colSpan="6" className="py-12">
-                    <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
-                      <Loader2 className="w-7 h-7 animate-spin text-rose-500" />
-                      <span className="font-semibold text-xs text-stone-400">Loading active print agents...</span>
-                    </div>
-                  </td>
-                </tr>
+              {agentsLoading && agentsData.length === 0 ? (
+                <TableSkeleton
+                  variant="dark"
+                  rows={6}
+                  columns={[
+                    { width: 'w-24', label: 'Socket ID' },
+                    { width: 'w-40', label: 'Shop Details' },
+                    { width: 'w-24', label: 'IP Address' },
+                    { width: 'w-28', label: 'Version / OS' },
+                    { width: 'w-32', label: 'Printers' },
+                    { width: 'w-20', label: 'Live Status' },
+                  ]}
+                />
               ) : agentsData.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="py-12 text-center text-stone-500 text-sm font-medium">
@@ -123,37 +151,71 @@ export default function AdminAgents() {
                 </tr>
               ) : (
                 agentsData.map((a, idx) => {
-                  const socketId = a.socketId || `SOCKET_${idx + 1}`
+                  const socketId = a.socketId || a.rawSocketId || '—'
                   const shopTitle = a.shopId?.shopName || a.shop || 'Unassigned Shop'
                   const shopCode = a.shopId?.shopCode ? ` (${a.shopId.shopCode})` : ''
-                  const ip = a.ipAddress || '127.0.0.1 (Localhost)'
-                  const ver = a.agentVersion || '1.0.0'
-                  const osArch = a.osArch || 'win32 (64-bit)'
+                  const ip = a.ipAddress && a.ipAddress !== '—' ? a.ipAddress : (a.isOnline ? '127.0.0.1' : '—')
+                  const cleanVer = String(a.agentVersion || '1.0.3').replace(/^v+/i, '')
+                  const osPlatform = a.osPlatform || a.osArch || 'Windows x64'
                   const isOnline = Boolean(a.isConnected || a.isOnline)
                   const printerList = a.connectedPrinters || a.shopId?.connectedPrinters || []
                   const printersLabel = printerList.length > 0 ? `${printerList.length} Spooler Devices` : 'No Printers Detected'
 
                   return (
-                    <tr key={a._id || a.socketId || idx} className="hover:bg-stone-900/60 transition-colors">
-                      <td className="py-4 px-4 font-bold text-white font-mono text-xs truncate max-w-[140px] select-all">
+                    <tr key={a._id || a.socketId || idx} className="hover:bg-stone-900/60 transition-colors whitespace-nowrap">
+                      <td className="py-4 px-4 font-bold text-white font-mono text-xs truncate max-w-[140px] select-all" title={a.rawSocketId || socketId}>
                         {isOnline ? socketId : '—'}
                       </td>
                       <td className="py-4 px-4 font-semibold text-stone-200">
                         {shopTitle}
                         <span className="text-xs font-mono text-stone-400 block sm:inline">{shopCode}</span>
                       </td>
-                      <td className="py-4 px-4 text-xs font-mono text-stone-400">{ip}</td>
-                      <td className="py-4 px-4 text-xs font-medium text-stone-300">
-                        v{ver} ({osArch})
+                      <td className="py-4 px-4 text-xs font-mono">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-extrabold text-emerald-400 select-all">{ip}</span>
+                          {a.meta?.defaultGateway && (
+                            <span className="text-[10px] text-stone-500 flex items-center gap-1">
+                              <span>GW:</span>
+                              <span className="text-stone-400 select-all">{a.meta.defaultGateway}</span>
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className="py-4 px-4 text-xs font-medium text-stone-400" title={printerList.map(p => p.name || p).join(', ')}>
-                        {printersLabel}
+                      <td className="py-4 px-4 text-xs">
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-1.5 font-bold text-stone-200">
+                            <span>v{cleanVer}</span>
+                            {a.meta?.hostname && (
+                              <>
+                                <span className="text-stone-500">•</span>
+                                <span className="font-mono text-stone-300">{a.meta.hostname}</span>
+                              </>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-stone-400 truncate max-w-[200px]" title={a.meta?.cpuModel || osPlatform}>
+                            {a.meta?.cpuModel || osPlatform}
+                          </span>
+                          {a.meta?.motherboardSerial && a.meta?.motherboardSerial !== 'Unknown' && (
+                            <span className="text-[10px] font-mono text-stone-500 select-all">
+                              MB: {a.meta.motherboardSerial}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-xs font-medium text-stone-300" title={printerList.map(p => p.name || p).join(', ')}>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs ${
+                          printerList.length > 0
+                            ? 'bg-stone-900 text-stone-200 border border-stone-800'
+                            : 'bg-stone-950 text-stone-500 border border-stone-800'
+                        }`}>
+                          {printersLabel}
+                        </span>
                       </td>
                       <td className="py-4 px-4 text-right">
                         <span
                           className={`inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full border ${
                             isOnline
-                              ? 'bg-emerald-950 text-emerald-300 border-emerald-900'
+                              ? 'bg-emerald-950 text-emerald-300 border-emerald-900 shadow-xs'
                               : 'bg-stone-900 text-stone-400 border-stone-800'
                           }`}
                         >

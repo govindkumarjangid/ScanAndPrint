@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -189,20 +188,53 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Custom Scrollbar - Default (Light Warm for Owner & Marketing Pages) */
+/* Custom Scrollbar - Default (Light Warm for Owner & Marketing Pages with Solid Arrow Steppers) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 }
+
 ::-webkit-scrollbar-track {
   background: #FFFBF7;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #E5E0D8;
+  background: #D6D3D1;
   border-radius: 9999px;
+  border: 2px solid #FFFBF7;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #CBD5E1;
+  background: #A8A29E;
+}
+
+/* Scrollbar Stepper Buttons (Up & Down Solid Arrows) - Light Theme */
+::-webkit-scrollbar-button:single-button:vertical:decrement {
+  height: 12px;
+  width: 9px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 7px 7px;
+  background-color: #FFFBF7;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2378716C'%3E%3Cpolygon points='8,3.5 2,12 14,12'/%3E%3C/svg%3E");
+}
+
+::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23F0245C'%3E%3Cpolygon points='8,3.5 2,12 14,12'/%3E%3C/svg%3E");
+}
+
+::-webkit-scrollbar-button:single-button:vertical:increment {
+  height: 12px;
+  width: 9px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 7px 7px;
+  background-color: #FFFBF7;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2378716C'%3E%3Cpolygon points='8,12.5 2,4 14,4'/%3E%3C/svg%3E");
+}
+
+::-webkit-scrollbar-button:single-button:vertical:increment:hover {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23F0245C'%3E%3Cpolygon points='8,12.5 2,4 14,4'/%3E%3C/svg%3E");
 }
 
 /* Custom Scrollbar - Dark Admin Theme (Active when path starts with /admin) */
@@ -216,8 +248,8 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme='admin'] *::-webkit-scrollbar,
 .admin-theme::-webkit-scrollbar,
 .admin-theme *::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 9px;
+  height: 9px;
 }
 
 [data-theme='admin']::-webkit-scrollbar-track,
@@ -233,7 +265,7 @@ h1, h2, h3, h4, h5, h6 {
 .admin-theme *::-webkit-scrollbar-thumb {
   background: #383533;
   border-radius: 9999px;
-  border: 1px solid #1c1917;
+  border: 2px solid #0c0a09;
 }
 
 [data-theme='admin']::-webkit-scrollbar-thumb:hover,
@@ -243,17 +275,69 @@ h1, h2, h3, h4, h5, h6 {
   background: #57534e;
 }
 
+/* Scrollbar Stepper Buttons (Up & Down Solid Arrows) - Dark Admin Theme */
+[data-theme='admin']::-webkit-scrollbar-button:single-button:vertical:decrement,
+[data-theme='admin'] *::-webkit-scrollbar-button:single-button:vertical:decrement,
+.admin-theme::-webkit-scrollbar-button:single-button:vertical:decrement,
+.admin-theme *::-webkit-scrollbar-button:single-button:vertical:decrement {
+  height: 12px;
+  width: 9px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 7px 7px;
+  background-color: #0c0a09;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2378716C'%3E%3Cpolygon points='8,3.5 2,12 14,12'/%3E%3C/svg%3E");
+}
+
+[data-theme='admin']::-webkit-scrollbar-button:single-button:vertical:decrement:hover,
+[data-theme='admin'] *::-webkit-scrollbar-button:single-button:vertical:decrement:hover,
+.admin-theme::-webkit-scrollbar-button:single-button:vertical:decrement:hover,
+.admin-theme *::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23F0245C'%3E%3Cpolygon points='8,3.5 2,12 14,12'/%3E%3C/svg%3E");
+}
+
+[data-theme='admin']::-webkit-scrollbar-button:single-button:vertical:increment,
+[data-theme='admin'] *::-webkit-scrollbar-button:single-button:vertical:increment,
+.admin-theme::-webkit-scrollbar-button:single-button:vertical:increment,
+.admin-theme *::-webkit-scrollbar-button:single-button:vertical:increment {
+  height: 12px;
+  width: 9px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 7px 7px;
+  background-color: #0c0a09;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2378716C'%3E%3Cpolygon points='8,12.5 2,4 14,4'/%3E%3C/svg%3E");
+}
+
+[data-theme='admin']::-webkit-scrollbar-button:single-button:vertical:increment:hover,
+[data-theme='admin'] *::-webkit-scrollbar-button:single-button:vertical:increment:hover,
+.admin-theme::-webkit-scrollbar-button:single-button:vertical:increment:hover,
+.admin-theme *::-webkit-scrollbar-button:single-button:vertical:increment:hover {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23F0245C'%3E%3Cpolygon points='8,12.5 2,4 14,4'/%3E%3C/svg%3E");
+}
+
+/* Hide scrollbar completely in sidebars & clean carousels while retaining smooth scroll */
+.sidebar-nav,
+.sidebar-nav * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.sidebar-nav::-webkit-scrollbar,
+.sidebar-nav *::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
 /* Selection highlight */
 ::selection {
   background-color: var(--brand-primary);
   color: #FFFFFF;
-}
-
-/* Hide scrollbar for clean carousels */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }

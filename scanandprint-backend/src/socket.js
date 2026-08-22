@@ -1,13 +1,45 @@
 import { agentService } from './services/agent.service.js'
 import { shopRepository } from './repositories/shop.repository.js'
+import { createSocketDeviceBindingMiddleware } from './middlewares/socketDeviceBinding.middleware.js'
 
 // In-Memory Live Active Agents for real-time online/offline status
 export const activeAgentsMap = new Map()
+
+let ioInstance = null
+
+export const getIo = () => ioInstance
+
+/**
+ * Disconnects and kicks a revoked/replaced device socket server-side
+ */
+export const kickRevokedDeviceSocket = (shopCode, targetDeviceId, reason = 'Another PC has been approved for this shop.') => {
+  if (!ioInstance) return
+  const cleanCode = String(shopCode || '').trim().toUpperCase()
+
+  ioInstance.sockets.sockets.forEach((socket) => {
+    if (socket.isAgent && socket.shopCode === cleanCode) {
+      if (!targetDeviceId || socket.deviceId === String(targetDeviceId)) {
+        console.log(`👢 [DeviceBinding] Kicking revoked agent socket ${socket.id} (Shop: ${cleanCode})`)
+        socket.emit('AGENT_KICKED', {
+          reason,
+          code: 'DEVICE_REVOKED',
+          timestamp: new Date().toISOString(),
+        })
+        socket.disconnect(true)
+      }
+    }
+  })
+}
 
 /**
  * @param {import('socket.io').Server} io
  */
 export const setupSocket = (io) => {
+  ioInstance = io
+
+  // Register Device-Binding Guard Middleware
+  io.use(createSocketDeviceBindingMiddleware(io))
+
   io.on('connection', (socket) => {
     console.log(`🔌 [Socket Connected]: ${socket.id}`)
 
@@ -42,6 +74,56 @@ export const setupSocket = (io) => {
           printers,
         })
       }
+    })
+
+    // Kiosk Client Joins Shop Room to receive live status & live print job updates
+    socket.on('JOIN_KIOSK', async (data) => {
+      const shopCode = String(data?.shopCode || '').trim().toUpperCase()
+      if (shopCode) {
+        const shopRoom = `shop:${shopCode}`
+        socket.join(shopRoom)
+        console.log(`📱 [Kiosk Connected]: Socket ${socket.id} joined room ${shopRoom}`)
+
+        let isOnline = activeAgentsMap.has(shopCode)
+        const agentData = activeAgentsMap.get(shopCode)
+        let printers = agentData?.printers || []
+
+        socket.emit('AGENT_STATUS_CHANGE', {
+          isOnline,
+          shopCode,
+          printers,
+        })
+      }
+    })
+
+    // Admin Dashboard Client Joins Admin Room for live real-time telemetry
+    socket.on('JOIN_ADMIN_ROOM', () => {
+      socket.join('admin:room')
+      console.log(`🛡️ [Admin Connected]: Socket ${socket.id} joined admin:room`)
+
+      // Emit live real-time agents map to Admin immediately
+      const liveList = []
+      const seenShops = new Set()
+      for (const [code, ag] of activeAgentsMap.entries()) {
+        if (!seenShops.has(ag.shopCode)) {
+          seenShops.add(ag.shopCode)
+          liveList.push({
+            shopCode: ag.shopCode,
+            shopId: ag.shopId,
+            socketId: ag.socketId,
+            ipAddress: ag.ipAddress,
+            localIp: ag.localIp,
+            defaultGateway: ag.defaultGateway,
+            agentVersion: ag.agentVersion,
+            osPlatform: ag.osPlatform,
+            printers: ag.printers,
+            deviceFingerprint: ag.deviceFingerprint,
+            meta: ag.meta,
+            isOnline: true,
+          })
+        }
+      }
+      socket.emit('ADMIN_LIVE_AGENTS_SYNC', liveList)
     })
 
     // Manual Agent Status Ping from Dashboard
@@ -81,11 +163,51 @@ export const setupSocket = (io) => {
       }
     })
 
+function isVirtualOrLocal(ip) {
+  if (!ip) return true
+  const s = String(ip).replace(/^::ffff:/, '').trim()
+  if (s === '127.0.0.1' || s === '::1' || s.startsWith('127.')) return true
+  if (s.startsWith('169.254.')) return true
+  if (s.startsWith('192.168.23.') || s.startsWith('192.168.248.') || s.startsWith('192.168.56.')) return true
+  return false
+}
+
+function resolveClientIp(socket, data) {
+  // 1. Exact physical adapter IP detected on counter machine
+  const agentIp = data?.localIp || data?.ipAddress || data?.deviceMeta?.ipAddress || data?.meta?.ipAddress
+  if (agentIp && !isVirtualOrLocal(agentIp)) {
+    return String(agentIp).trim()
+  }
+
+  // 2. Proxied WAN IP
+  const forwarded = socket.handshake?.headers?.['x-forwarded-for'] || socket.handshake?.headers?.['x-real-ip'] || socket.handshake?.headers?.['cf-connecting-ip']
+  if (forwarded) {
+    const rawIp = String(forwarded).split(',')[0].trim().replace(/^::ffff:/, '')
+    if (rawIp && !isVirtualOrLocal(rawIp)) {
+      return rawIp
+    }
+  }
+
+  // 3. Socket TCP remote IP
+  const socketAddress = socket.handshake?.address || socket.conn?.remoteAddress || ''
+  const cleanSocketAddress = String(socketAddress).replace(/^::ffff:/, '').trim()
+  if (cleanSocketAddress && !isVirtualOrLocal(cleanSocketAddress)) {
+    return cleanSocketAddress
+  }
+
+  // 4. Public WAN IP
+  if (data?.publicIp && !isVirtualOrLocal(data.publicIp)) {
+    return String(data.publicIp).trim()
+  }
+
+  return agentIp || cleanSocketAddress || '127.0.0.1'
+}
+
     // Agent Register / Handshake Event (Desktop Agent Connects)
     socket.on('AGENT_REGISTER', async (data) => {
       try {
-        const remoteIp = socket.handshake?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || socket.handshake?.address
-        const shop = await agentService.registerAgent(data, socket.id, remoteIp)
+        const detectedIp = resolveClientIp(socket, data)
+        const shop = await agentService.registerAgent({ ...data, ipAddress: detectedIp }, socket.id, detectedIp)
         const cleanShopCode = String(shop.shopCode).trim().toUpperCase()
 
         socket.shopCode = cleanShopCode
@@ -94,12 +216,35 @@ export const setupSocket = (io) => {
         const shopRoom = `shop:${cleanShopCode}`
         socket.join(shopRoom)
 
+        const detectedPlatform = data?.osPlatform || data?.osArch || (data?.platform === 'win32' ? 'Windows x64' : data?.platform) || 'Windows'
+        const detectedVersion = data?.agentVersion || '1.0.3'
+
+        const liveMeta = {
+          hostname: data?.hostname || data?.deviceMeta?.hostname || '',
+          platform: data?.platform || data?.deviceMeta?.platform || 'Windows',
+          arch: data?.deviceMeta?.arch || 'x64',
+          cpuModel: data?.deviceMeta?.cpuModel || '',
+          motherboardSerial: data?.deviceMeta?.motherboardSerial || '',
+          systemUuid: data?.deviceMeta?.systemUuid || '',
+          totalMemoryGb: data?.deviceMeta?.totalMemoryGb || 0,
+          ipAddress: detectedIp,
+          localIp: data?.localIp || detectedIp,
+          defaultGateway: data?.deviceMeta?.defaultGateway || data?.defaultGateway || '',
+        }
+
         // Register in In-Memory Map (both shopCode and shopId for instant lookup)
         const agentRecord = {
           socketId: socket.id,
           shopCode: cleanShopCode,
           shopId: shop._id,
+          ipAddress: detectedIp,
+          localIp: data?.localIp || detectedIp,
+          defaultGateway: liveMeta.defaultGateway,
+          agentVersion: detectedVersion,
+          osPlatform: detectedPlatform,
           printers: shop.connectedPrinters || [],
+          deviceFingerprint: data?.deviceFingerprint || '',
+          meta: liveMeta,
           connectedAt: Date.now(),
         }
         activeAgentsMap.set(cleanShopCode, agentRecord)
@@ -107,13 +252,38 @@ export const setupSocket = (io) => {
           activeAgentsMap.set(String(shop._id), agentRecord)
         }
 
-        console.log(`🟢 [Print Agent Online]: Shop ${cleanShopCode} is LIVE in room ${shopRoom}`)
+        console.log(`🟢 [Print Agent Online]: Shop ${cleanShopCode} is LIVE with IP ${detectedIp} (Gateway: ${liveMeta.defaultGateway || 'N/A'})`)
 
         // Broadcast to Dashboard that Agent is LIVE
-        io.to(shopRoom).emit('AGENT_STATUS_CHANGE', {
+        const statusPayload = {
           isOnline: true,
           shopCode: cleanShopCode,
+          shopId: shop._id,
           printers: shop.connectedPrinters || [],
+          socketId: socket.id,
+          ipAddress: detectedIp,
+          localIp: data?.localIp || detectedIp,
+          defaultGateway: liveMeta.defaultGateway,
+          agentVersion: detectedVersion,
+          osPlatform: detectedPlatform,
+          deviceFingerprint: data?.deviceFingerprint || '',
+          meta: liveMeta,
+        }
+
+        io.to(shopRoom).emit('AGENT_STATUS_CHANGE', statusPayload)
+        io.to('admin:room').emit('AGENT_STATUS_CHANGE', statusPayload)
+        io.to('admin:room').emit('ADMIN_LIVE_AGENT_UPDATE', statusPayload)
+        io.to('admin:room').emit('ADMIN_DEVICE_UPDATED', {
+          shopCode: cleanShopCode,
+          shopId: shop._id,
+          deviceFingerprint: data?.deviceFingerprint || '',
+          meta: liveMeta,
+          status: 'APPROVED',
+        })
+        io.to('admin:room').emit('ADMIN_SHOP_UPDATED', {
+          shopCode: cleanShopCode,
+          isOnline: true,
+          connectedPrinters: shop.connectedPrinters || [],
         })
 
         socket.emit('AGENT_CONNECTED', {
@@ -142,6 +312,11 @@ export const setupSocket = (io) => {
           }
 
           io.to(`shop:${cleanShopCode}`).emit('AGENT_STATUS_CHANGE', {
+            isOnline: true,
+            shopCode: cleanShopCode,
+            printers: data.printers,
+          })
+          io.to('admin:room').emit('AGENT_STATUS_CHANGE', {
             isOnline: true,
             shopCode: cleanShopCode,
             printers: data.printers,
@@ -209,6 +384,11 @@ export const setupSocket = (io) => {
 
           console.log(`🔴 [Print Agent Offline]: Shop ${socket.shopCode} disconnected`)
           io.to(shopRoom).emit('AGENT_STATUS_CHANGE', {
+            isOnline: false,
+            shopCode: socket.shopCode,
+            printers: [],
+          })
+          io.to('admin:room').emit('AGENT_STATUS_CHANGE', {
             isOnline: false,
             shopCode: socket.shopCode,
             printers: [],

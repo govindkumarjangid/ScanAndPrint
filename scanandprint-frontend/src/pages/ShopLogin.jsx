@@ -1,6 +1,12 @@
 import React from 'react'
+import SEO from '../components/common/SEO'
 import ShopAuth from './ShopAuth'
 
 export default function ShopLogin() {
-  return <ShopAuth />
+  return (
+    <>
+      <SEO path="/shop-login" />
+      <ShopAuth />
+    </>
+  )
 }

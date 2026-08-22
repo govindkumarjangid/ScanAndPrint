@@ -1,5 +1,3 @@
-import { PDFDocument } from 'pdf-lib'
-
 export async function getExactPageCount(file) {
   if (!file) return 1
 
@@ -10,6 +8,7 @@ export async function getExactPageCount(file) {
   if ((file.type && file.type.includes('pdf')) || (file.name && file.name.toLowerCase().endsWith('.pdf'))) {
     try {
       const arrayBuffer = await file.arrayBuffer()
+      const { PDFDocument } = await import('pdf-lib')
       const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true })
       const count = pdfDoc.getPageCount()
       return Math.max(1, count)

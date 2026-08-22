@@ -8,6 +8,7 @@ import { envConfig } from '../configs/env.config.js'
 import Admin from '../models/Admin.model.js'
 import AdminSettings from '../models/AdminSettings.model.js'
 import SubscriptionPayment from '../models/SubscriptionPayment.model.js'
+import { memoryCache } from '../utils/cache.util.js'
 
 export const authService = {
 
@@ -223,7 +224,7 @@ export const authService = {
         activatedFrom: new Date(),
         activatedUntil: subscriptionExpiresAt,
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     )
 
     // Issue standard JWT session tokens
@@ -310,6 +311,9 @@ export const authService = {
     // Check if phone exists
     const existing = await shopRepository.findByPhoneOrEmail(demoEmail, cleanMobile, { lean: true })
     if (existing) {
+      if (existing.isSuspended) {
+        throw new Error('This shop account has been suspended by Administrator. Please contact support.')
+      }
       if (existing.isDemoAccount) {
         const isPasswordValid = await comparePassword(password, existing.passwordHash || '')
         if (isPasswordValid) {
@@ -345,6 +349,7 @@ export const authService = {
       bwRate: 5.0,
       colorRate: 10.0,
       isOnline: true,
+      isSuspended: false,
     })
 
     return this._generateAuthTokens(newShop)
@@ -361,6 +366,11 @@ export const authService = {
 
     const isPasswordValid = await comparePassword(password, shop.passwordHash)
     if (!isPasswordValid) throw new Error('Invalid email, mobile number, or password credentials')
+
+    // Block Suspended Shops from logging in
+    if (shop.isSuspended) {
+      throw new Error('This shop account has been suspended by Administrator. Please contact support.')
+    }
 
     // Synchronize demo / subscription expiration status on login
     const now = new Date()
@@ -457,18 +467,23 @@ export const authService = {
     return { success: true }
   },
 
-  // Update the shop's payment settings (bcrypt-encrypt razorpayKeySecret)
+  // Update the shop's payment settings (bcrypt-encrypt razorpayKeySecret, save upiId)
   async updatePaymentSettings(shopId, paymentData) {
-    const { razorpayKeySecret, razorpayKeyId, paymentMode, paymentGateway } = paymentData
+    const { razorpayKeySecret, razorpayKeyId, paymentMode, paymentGateway, upiId } = paymentData
 
     const updateFields = {
       'paymentSettings.paymentMode': paymentMode || 'online_counter',
       'paymentSettings.paymentGateway': paymentGateway || 'razorpay',
     }
 
+    // Save direct UPI ID for Kiosk dynamic QR code
+    if (upiId !== undefined) {
+      updateFields['paymentSettings.upiId'] = String(upiId || '').trim()
+    }
+
     // Save Key ID as-is (not secret, used in frontend checkout)
-    if (razorpayKeyId) {
-      updateFields['paymentSettings.razorpayKeyId'] = razorpayKeyId
+    if (razorpayKeyId !== undefined) {
+      updateFields['paymentSettings.razorpayKeyId'] = String(razorpayKeyId || '').trim()
     }
 
     // Bcrypt hash the Key Secret before saving
@@ -479,6 +494,7 @@ export const authService = {
     }
 
     const updatedShop = await shopRepository.updateById(shopId, updateFields)
+    memoryCache.invalidateShop(shopId)
 
     // Strip hashed secret from response (never expose to frontend)
     if (updatedShop?.paymentSettings) {
@@ -506,7 +522,7 @@ export const authService = {
           },
         },
       },
-      { new: true }
+      { returnDocument: 'after' }
     )
     return updatedShop
   },

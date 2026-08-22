@@ -70,9 +70,15 @@ import {
   Maximize2,
   Move,
   Star,
+  MapPin,
+  Info,
+  Lock,
+  Server,
+  User,
+  AlertTriangle,
+  Loader2,
+  Quote,
 } from 'lucide-react'
-
-export * from 'lucide-react'
 
 // Custom SVG Icons for Instagram & YouTube
 export function InstagramIcon({ className = 'w-5 h-5' }) {
@@ -165,6 +171,14 @@ export {
   Maximize2,
   Move,
   Star,
+  MapPin,
+  Info,
+  Lock,
+  Server,
+  User,
+  AlertTriangle,
+  Loader2,
+  Quote,
 }
 
 // Export unified icons dictionary object
@@ -250,6 +264,7 @@ export const adminNavItems = [
   { name: 'Shops Management', path: '/admin/shops', icon: Store },
   { name: 'Transactions & Revenue', path: '/admin/transactions', icon: CreditCard },
   { name: 'Live Print Agents', path: '/admin/agents', icon: Monitor },
+  { name: 'PC Device Bindings', path: '/admin/devices', icon: Lock },
   { name: 'System Settings', path: '/admin/settings', icon: Settings },
 ]
 
@@ -258,6 +273,7 @@ export const ownerNavItems = [
   { name: 'Dashboard Overview', path: '/owner/dashboard', icon: LayoutDashboard },
   { name: 'Print Orders Queue', path: '/owner/jobs', icon: FileText },
   { name: 'Printer Setup', path: '/owner/printers', icon: Printer },
+  { name: 'PC Device Binding', path: '/owner/devices', icon: Lock },
   { name: 'Print Rates & Pricing', path: '/owner/pricing', icon: IndianRupee },
   { name: 'Shop QR Code', path: '/owner/qr-code', icon: QrCode },
   { name: 'Print Agent (.exe)', path: '/owner/agent', icon: Download },

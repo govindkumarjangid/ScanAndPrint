@@ -37,6 +37,21 @@ export const verifySubscriptionPayment = asyncHandler(async (req, res, next) => 
   res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
   res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 })
 
+  const io = req.app.get('io')
+  if (io && shop) {
+    io.to(`shop:${shop.shopCode}`).emit('SUBSCRIPTION_ACTIVATED', { shop })
+    io.to(`shop:${shop.shopCode}`).emit('SHOP_STATUS_UPDATED', {
+      shopId: shop._id,
+      shopCode: shop.shopCode,
+      planType: shop.planType,
+      status: 'Active',
+      isSubscriptionActive: true,
+      subscriptionExpiresAt: shop.subscriptionExpiresAt,
+      isDemoAccount: false,
+    })
+    io.to('admin:room').emit('ADMIN_SHOP_UPDATED', { shopId: shop._id, shopCode: shop.shopCode })
+  }
+
   return sendSuccess(res, 200, '🎉 Payment Verified Successfully! Your shop subscription is active.', {
     token: accessToken,
     shop,
@@ -124,18 +139,40 @@ export const getShopProfile = asyncHandler(async (req, res, next) => {
 // update shop rates
 export const updateShopRates = asyncHandler(async (req, res, next) => {
   const updatedShop = await authService.updateRates(req.shop._id, req.body)
+  const io = req.app.get('io')
+  if (io && updatedShop) {
+    io.to(`shop:${updatedShop.shopCode}`).emit('SHOP_RATES_UPDATED', {
+      shopCode: updatedShop.shopCode,
+      bwRate: updatedShop.bwRate,
+      colorRate: updatedShop.colorRate,
+    })
+  }
   return sendSuccess(res, 200, 'Print rates updated successfully', { shop: updatedShop })
 })
 
 // update shop printers
 export const updateShopPrinters = asyncHandler(async (req, res, next) => {
   const updatedShop = await authService.updatePrinters(req.shop._id, req.body)
+  const io = req.app.get('io')
+  if (io && updatedShop) {
+    io.to(`shop:${updatedShop.shopCode}`).emit('PRINTER_SETTINGS_UPDATED', {
+      shopCode: updatedShop.shopCode,
+      defaultBwPrinter: updatedShop.defaultBwPrinter,
+      defaultColorPrinter: updatedShop.defaultColorPrinter,
+      connectedPrinters: updatedShop.connectedPrinters,
+    })
+  }
   return sendSuccess(res, 200, 'Printers mapped successfully', { shop: updatedShop })
 })
 
 // update shop profile
 export const updateShopProfile = asyncHandler(async (req, res, next) => {
   const updatedShop = await authService.updateProfile(req.shop._id, req.body)
+  const io = req.app.get('io')
+  if (io && updatedShop) {
+    io.to(`shop:${updatedShop.shopCode}`).emit('SHOP_PROFILE_UPDATED', { shop: updatedShop })
+    io.to('admin:room').emit('ADMIN_SHOP_UPDATED', { shopId: updatedShop._id, shopCode: updatedShop.shopCode })
+  }
   return sendSuccess(res, 200, 'Profile updated successfully', { shop: updatedShop })
 })
 
@@ -152,6 +189,14 @@ export const changeShopPassword = asyncHandler(async (req, res, next) => {
 // update shop payment settings
 export const updateShopPaymentSettings = asyncHandler(async (req, res, next) => {
   const updatedShop = await authService.updatePaymentSettings(req.shop._id, req.body)
+  const io = req.app.get('io')
+  if (io && updatedShop) {
+    io.to(`shop:${updatedShop.shopCode}`).emit('PAYMENT_SETTINGS_UPDATED', {
+      shopCode: updatedShop.shopCode,
+      paymentSettings: updatedShop.paymentSettings,
+      upiId: updatedShop.paymentSettings?.upiId || '',
+    })
+  }
   return sendSuccess(res, 200, 'Payment settings saved successfully', { shop: updatedShop })
 })
 

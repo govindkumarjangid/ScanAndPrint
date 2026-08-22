@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Minus, ArrowRight, ArrowLeft, Layers, Sparkles, Check, AlertCircle } from 'lucide-react'
+import { Plus, Minus, ArrowRight, ArrowLeft, Layers, Sparkles, Check, AlertCircle, Crop } from 'lucide-react'
 import { parsePageRange } from '../../lib/pdfUtil'
 
 export default function PrintOptionsStage({
   shopInfo,
+  selectedFile,
   colorType,
   setColorType,
   copies,
@@ -21,12 +22,15 @@ export default function PrintOptionsStage({
   selectedPagesCount,
   setSelectedPagesCount,
   totalAmount,
+  onOpenImageEditor,
+  onOpenCropModal,
   onBack,
   onProceedToPayment,
 }) {
   const bwRate = shopInfo?.bwRate ?? 5
   const colorRate = shopInfo?.colorRate ?? 10
   const [rangeError, setRangeError] = useState('')
+  const isImage = selectedFile && selectedFile.type?.startsWith('image/')
 
   const handleCustomRangeChange = (val) => {
     setCustomRangeStr(val)
@@ -82,6 +86,29 @@ export default function PrintOptionsStage({
       {/* Main Options Form */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/80 shadow-md flex flex-col gap-5">
         
+        {/* Image Cropping & Editing Shortcut Banner */}
+        {isImage && (
+          <div className="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200/80 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-white text-brand border border-rose-100 flex items-center justify-center shadow-xs shrink-0">
+                <Crop className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-extrabold text-stone-900 truncate">Image Crop & Adjustments</span>
+                <span className="text-[11px] text-stone-500 font-medium truncate">Trim borders, rotate or enhance contrast</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenImageEditor}
+              className="btn btn-primary py-1.5 px-3 rounded-xl text-xs font-bold shrink-0 shadow-xs flex items-center gap-1 cursor-pointer"
+            >
+              <Crop className="w-3.5 h-3.5" />
+              <span>Crop Image</span>
+            </button>
+          </div>
+        )}
+
         {/* 1. Page Range Selection (If document has > 1 page) */}
         {totalDocPages > 1 && (
           <div className="flex flex-col gap-2">

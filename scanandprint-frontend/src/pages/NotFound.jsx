@@ -2,12 +2,14 @@ import React from 'react'
 import { Link, useNavigate } from 'react-router'
 import { motion } from 'framer-motion'
 import { AlertTriangle, ArrowLeft, Home } from 'lucide-react'
+import SEO from '../components/common/SEO'
 
 export default function NotFound() {
   const navigate = useNavigate()
 
   return (
     <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
+      <SEO title="404 - Page Not Found | Scan&Print" description="The page you are looking for does not exist." noIndex={true} />
       {/* Background accents */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-125 h-125 bg-brand/10 rounded-full blur-[120px]" />

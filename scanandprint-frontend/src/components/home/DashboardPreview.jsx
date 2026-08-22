@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import {
   Sparkles,
@@ -10,14 +10,13 @@ import {
   ShieldCheck,
 } from '../../assets/assets';
 
-export default function DashboardPreview() {
-  const [currentTime, setCurrentTime] = useState('')
-  const [activeJobsCount, setActiveJobsCount] = useState(14)
-
+// Isolated LiveClock component to prevent re-rendering the heavy 3D Framer Motion perspective card every second
+const LiveClock = memo(function LiveClock() {
+  const [timeStr, setTimeStr] = useState('')
   useEffect(() => {
     const updateTime = () => {
       const now = new Date()
-      setCurrentTime(
+      setTimeStr(
         now.toLocaleTimeString('en-IN', {
           hour: '2-digit',
           minute: '2-digit',
@@ -30,6 +29,11 @@ export default function DashboardPreview() {
     const timer = setInterval(updateTime, 1000)
     return () => clearInterval(timer)
   }, [])
+  return <span>{timeStr || 'Live Sync'}</span>
+})
+
+export default function DashboardPreview() {
+  const [activeJobsCount, setActiveJobsCount] = useState(14)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -55,8 +59,6 @@ export default function DashboardPreview() {
   const glareX = useTransform(mouseX, [-0.5, 0.5], ['0%', '100%'])
   const glareY = useTransform(mouseY, [-0.5, 0.5], ['0%', '100%'])
 
-  const [isHovered, setIsHovered] = useState(false)
-
   const handleMouseMove = (e) => {
     if (!cardRef.current) return
     const rect = cardRef.current.getBoundingClientRect()
@@ -70,12 +72,7 @@ export default function DashboardPreview() {
     y.set(mouseYPos)
   }
 
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-  }
-
   const handleMouseLeave = () => {
-    setIsHovered(false)
     x.set(0)
     y.set(0)
   }
@@ -100,7 +97,7 @@ export default function DashboardPreview() {
           <span className="text-stone-300">|</span>
           <span className="flex items-center gap-1 font-mono text-stone-600 font-bold text-[11px] bg-white/80 px-2 py-0.5 rounded-full border border-stone-200/60">
             <Clock className="w-3 h-3 text-brand" />
-            {currentTime || 'Live Sync'}
+            <LiveClock />
           </span>
         </motion.div>
 
@@ -167,7 +164,6 @@ export default function DashboardPreview() {
         <motion.div
           ref={cardRef}
           onMouseMove={handleMouseMove}
-          onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           style={{
             rotateX: rotateX,
@@ -205,7 +201,7 @@ export default function DashboardPreview() {
                 <span>Active</span>
               </span>
               <span className="font-mono text-[10px] text-amber-300 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-400/30 backdrop-blur-md">
-                {currentTime || '17:40 IST'}
+                <LiveClock />
               </span>
             </div>
           </div>
@@ -215,12 +211,22 @@ export default function DashboardPreview() {
             style={{ transform: 'translateZ(10px)', transformStyle: 'preserve-3d' }}
             className="relative rounded-xl overflow-hidden bg-stone-950 border border-white/10 shadow-inner group"
           >
-            <img
-              src="/images/main-landing-image.png"
-              alt="Scan&Print Shop Owner Dashboard"
-              className="w-full h-auto object-cover rounded-xl backface:hidden transform:[translateZ(0)]"
-              loading="lazy"
-            />
+            <picture>
+              <source
+                type="image/webp"
+                srcSet="/images/main-landing-image-800.webp 800w, /images/main-landing-image-1200.webp 1200w"
+                sizes="(max-width: 768px) 100vw, 1024px"
+              />
+              <img
+                src="/images/main-landing-image-1200.webp"
+                alt="Scan&Print Shop Owner Real-Time Dashboard Interface"
+                width="1200"
+                height="679"
+                className="w-full h-auto object-cover rounded-xl backface:hidden transform:[translateZ(0)]"
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
 
             {/* Dynamic Glare Reflection */}
             <motion.div

@@ -1,0 +1,13 @@
+# Scan&Print Production Robots Configuration
+User-agent: *
+Allow: /
+
+# Disallow private dashboards, admin portals, and kiosk active upload sessions
+Disallow: /owner/
+Disallow: /admin/
+Disallow: /admin-login
+Disallow: /p/
+Disallow: /kiosk/
+
+# Reference canonical sitemap
+Sitemap: https://www.scanandprint.in/sitemap.xml

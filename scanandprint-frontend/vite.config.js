@@ -10,14 +10,16 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 600,
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (
-            id.includes('node_modules/react') ||
-            id.includes('node_modules/react-dom') ||
-            id.includes('node_modules/react-router')
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/react-router/') ||
+            id.includes('node_modules/react-helmet-async/')
           ) {
             return 'vendor-react'
           }
@@ -26,6 +28,18 @@ export default defineConfig({
           }
           if (id.includes('node_modules/lucide-react')) {
             return 'vendor-icons'
+          }
+          if (id.includes('node_modules/recharts')) {
+            return 'vendor-charts'
+          }
+          if (id.includes('node_modules/pdf-lib')) {
+            return 'vendor-pdf'
+          }
+          if (id.includes('node_modules/socket.io-client') || id.includes('node_modules/engine.io-client')) {
+            return 'vendor-socket'
+          }
+          if (id.includes('node_modules/react-hook-form') || id.includes('node_modules/zod')) {
+            return 'vendor-forms'
           }
         },
       },

@@ -42,7 +42,7 @@ class PrintService {
         fileBuffer = Buffer.from(base64Data, 'base64')
       } else {
         // Case 2: Download from remote URLs (Cloudinary, Backend Proxy, or downloadUrl)
-        const serverUrl = configStore.get('serverUrl') || 'https://scanandprint.onrender.com'
+        const serverUrl = configStore.get('serverUrl') || 'http://localhost:5000'
         const candidateUrls = []
 
         // Local & Remote fallback URLs
@@ -51,14 +51,14 @@ class PrintService {
             candidateUrls.push(downloadUrl)
           } else {
             candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
-            candidateUrls.push(`https://scanandprint.onrender.com${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
+            candidateUrls.push(`http://localhost:5000${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
           }
         }
         if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://'))) {
           candidateUrls.push(fileUrl)
         }
         candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}/api/kiosk/download/${jobId}`)
-        candidateUrls.push(`https://scanandprint.onrender.com/api/kiosk/download/${jobId}`)
+        candidateUrls.push(`http://localhost:5000/api/kiosk/download/${jobId}`)
 
         for (const targetUrl of candidateUrls) {
           try {
@@ -107,7 +107,7 @@ class PrintService {
         }
       }
 
-      // Auto-detect physical printer if virtual driver is selected
+      // Auto-detect physical printer or default printer to ensure 100% silent execution
       try {
         const availablePrinters = await printerManager.getAvailablePrinters(2, 1000)
         if (!selectedPrinter || selectedPrinter === 'Microsoft Print to PDF') {
@@ -123,13 +123,23 @@ class PrintService {
             console.log(`[PrintService] Auto-selected hardware printer: ${selectedPrinter}`)
           }
         }
+        if (!selectedPrinter && availablePrinters.length > 0) {
+          selectedPrinter = availablePrinters[0].name
+        }
+        if (!selectedPrinter) {
+          try {
+            const defP = await ptp.getDefaultPrinter()
+            if (defP) selectedPrinter = defP
+          } catch (e) {}
+        }
       } catch (pErr) {}
 
       console.log(`[PrintService] Sending silent print job to printer: ${selectedPrinter || 'System Default'}`)
 
-      // Execute Silent Hardware Print via pdf-to-printer
+      // Execute Silent Hardware Print via pdf-to-printer (Requires explicit printer name for 0 GUI dialog)
       const printOptions = {
         copies: Number(copies) || 1,
+        silent: true,
       }
 
       if (selectedPrinter) {
@@ -137,10 +147,15 @@ class PrintService {
       }
 
       try {
-        await ptp.print(tempFilePath, printOptions)
-        console.log(`[PrintService] ✅ Hardware print executed successfully via SumatraPDF for Job #${jobId}`)
+        if (selectedPrinter) {
+          await ptp.print(tempFilePath, printOptions)
+          console.log(`[PrintService] ✅ Silent hardware print executed successfully for Job #${jobId}`)
+        } else {
+          // If no printer detected, use silent PowerShell spooler instead of opening Sumatra GUI
+          await this.fallbackWindowsPrint(tempFilePath, null)
+        }
       } catch (printErr) {
-        console.warn(`[PrintService] pdf-to-printer error (${printErr.message}), executing Windows PowerShell Spooler fallback...`)
+        console.warn(`[PrintService] Silent print note (${printErr.message}), trying fallback...`)
         await this.fallbackWindowsPrint(tempFilePath, selectedPrinter)
       }
 

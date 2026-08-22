@@ -1,6 +1,7 @@
 import React, { useRef, useState, useLayoutEffect, useCallback } from 'react'
 import { Link } from 'react-router'
 import { motion, useScroll, useSpring } from 'framer-motion'
+import SEO from '../../components/common/SEO'
 import { ArrowRight, setupSteps } from '../../assets/assets'
 
 export default function HowToSetup() {
@@ -43,14 +44,13 @@ export default function HowToSetup() {
 
   const buildPath = () => {
     if (!ready || points.length === 0 || !dims.width) return ''
-    const cx = dims.width / 2
-    const all = [{ x: cx, y: 0 }, ...points, { x: cx, y: dims.height }]
-    let d = `M ${all[0].x},${all[0].y}`
-    for (let i = 0; i < all.length - 1; i++) {
-      const p0 = all[i]
-      const p1 = all[i + 1]
-      const midY = (p0.y + p1.y) / 2
-      d += ` C ${p0.x},${midY} ${p1.x},${midY} ${p1.x},${p1.y}`
+    let d = `M ${points[0].x} ${points[0].y}`
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i]
+      const p2 = points[i + 1]
+      const mx = (p1.x + p2.x) / 2
+      const my = (p1.y + p2.y) / 2
+      d += ` Q ${p1.x} ${my}, ${mx} ${my} T ${p2.x} ${p2.y}`
     }
     return d
   }
@@ -59,7 +59,7 @@ export default function HowToSetup() {
 
   const { scrollYProgress } = useScroll({
     target: stageRef,
-    offset: ['start 60%', 'end 80%'],
+    offset: ['start center', 'end center'],
   })
 
   const pathLength = useSpring(scrollYProgress, {
@@ -70,6 +70,7 @@ export default function HowToSetup() {
 
   return (
     <div className="flex flex-col gap-16 md:gap-24 py-10 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+      <SEO path="/how-to-setup" />
 
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">

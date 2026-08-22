@@ -10,7 +10,6 @@ import {
   QrCode,
   Download,
   ArrowUpRight,
-  Loader2,
   X,
   RefreshCw,
   Trash2,
@@ -20,7 +19,8 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useJobStore } from '../../store/useJobStore'
 import { getSocket } from '../../lib/socket'
-import api from '../../lib/axios'
+import MetricCardSkeleton from '../../components/skeleton/MetricCardSkeleton'
+import TableSkeleton from '../../components/skeleton/TableSkeleton'
 
 export default function OwnerOverview() {
   const { currentShop, fetchProfile } = useAuthStore()
@@ -96,7 +96,10 @@ export default function OwnerOverview() {
       </div>
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {isLoading && !analytics ? (
+        <MetricCardSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
         {/* Revenue */}
         <motion.div
@@ -194,6 +197,7 @@ export default function OwnerOverview() {
         </motion.div>
 
       </div>
+      )}
 
       {/* Quick Action Banners */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
@@ -264,16 +268,19 @@ export default function OwnerOverview() {
             </thead>
 
             <tbody className="block md:table-row-group space-y-4 md:space-y-0 md:divide-y md:divide-stone-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan="7" className="py-12 text-center text-stone-500 font-medium">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <Loader2 className="w-7 h-7 animate-spin text-brand" />
-                      <span className="text-sm font-semibold text-stone-700">Loading recent orders...</span>
-                      <span className="text-xs text-stone-400">Fetching live updates from server</span>
-                    </div>
-                  </td>
-                </tr>
+              {isLoading && jobs.length === 0 ? (
+                <TableSkeleton
+                  rows={5}
+                  columns={[
+                    { width: 'w-20', label: 'Job ID' },
+                    { width: 'w-44', label: 'File Name' },
+                    { width: 'w-24', label: 'Pages & Copies' },
+                    { width: 'w-16', label: 'Type' },
+                    { width: 'w-14', label: 'Amount' },
+                    { width: 'w-20', label: 'Status' },
+                    { width: 'w-16', label: 'Actions' },
+                  ]}
+                />
               ) : jobs.length === 0 ? (
                 <tr><td colSpan="7" className="py-8 text-center text-sm text-stone-500 font-medium">No print jobs found.</td></tr>
               ) : jobs.map((j) => (

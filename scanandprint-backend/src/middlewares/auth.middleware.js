@@ -24,6 +24,10 @@ export const authenticateShop = async (req, res, next) => {
     if (!shop)
       return sendError(res, 401, 'Unauthorized: Shop account not found')
 
+    if (shop.isSuspended) {
+      return sendError(res, 403, 'Account Suspended: Your shop has been suspended by Administrator. Please contact support.')
+    }
+
     // Check if subscription or demo period has expired
     const now = new Date()
     let isExpired = false
@@ -90,6 +94,20 @@ export const authenticateAgent = async (req, res, next) => {
 
     if (!shop)
       return sendError(res, 401, 'Unauthorized: Invalid Agent API Key or Shop Code')
+
+    if (shop.isSuspended) {
+      return sendError(res, 403, 'Account Suspended: This shop has been suspended by Administrator.')
+    }
+
+    const now = Date.now()
+    if (shop.isDemoAccount) {
+      const isDemoExpired = shop.demoExpiresAt ? new Date(shop.demoExpiresAt).getTime() <= now : true
+      if (isDemoExpired) {
+        return sendError(res, 403, 'Demo Expired: Demo trial access has expired. Please upgrade to a paid plan.')
+      }
+    } else if (shop.subscriptionExpiresAt && new Date(shop.subscriptionExpiresAt).getTime() <= now) {
+      return sendError(res, 403, 'Subscription Expired: Subscription access has expired. Please renew.')
+    }
 
     req.shop = shop
     next()

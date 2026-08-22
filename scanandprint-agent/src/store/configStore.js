@@ -26,6 +26,9 @@ class ConfigStore {
         const rawData = fs.readFileSync(this.configPath, 'utf8')
         const parsed = JSON.parse(rawData)
         if (parsed.shopId && parsed.secretKey) {
+          if (parsed.serverUrl === 'https://scanandprint.onrender.com') {
+            parsed.serverUrl = 'http://localhost:5000'
+          }
           return parsed
         }
       }
@@ -36,7 +39,7 @@ class ConfigStore {
     return {
       shopId: '',
       secretKey: '',
-      serverUrl: 'https://scanandprint.onrender.com',
+      serverUrl: 'http://localhost:5000',
       defaultBwPrinter: '',
       defaultColorPrinter: '',
       autoStartOnBoot: true,

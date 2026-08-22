@@ -1,10 +1,12 @@
 import React from 'react'
 import { Link } from 'react-router'
+import SEO from '../../components/common/SEO'
 import { ShieldCheck, Info, ArrowRight, Lock, RefreshCw, FileText } from '../../assets/assets'
 
 export default function Disclaimer() {
   return (
     <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
+      <SEO path="/disclaimer" />
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-sm flex flex-col gap-8">
 
         {/* Header */}

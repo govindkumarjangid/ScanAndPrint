@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, Fragment } from 'react'
 import {
   FileText,
   Search,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useJobStore } from '../../store/useJobStore'
+import TableSkeleton from '../../components/skeleton/TableSkeleton'
 
 export default function OwnerJobs() {
   const [searchInput, setSearchInput] = useState('')
@@ -234,16 +234,21 @@ export default function OwnerJobs() {
               </tr>
             </thead>
             <tbody className="block md:table-row-group space-y-4 md:space-y-0 md:divide-y md:divide-stone-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan="9" className="py-16 text-center text-stone-500 font-medium">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <Loader2 className="w-8 h-8 animate-spin text-brand" />
-                      <span className="text-sm font-semibold text-stone-700">Loading print orders...</span>
-                      <span className="text-xs text-stone-400">Fetching orders queue from database</span>
-                    </div>
-                  </td>
-                </tr>
+              {isLoading && jobs.length === 0 ? (
+                <TableSkeleton
+                  rows={8}
+                  columns={[
+                    { width: 'w-20', label: 'Job ID' },
+                    { width: 'w-48', label: 'File Name' },
+                    { width: 'w-28', label: 'Customer' },
+                    { width: 'w-24', label: 'Pages/Copies' },
+                    { width: 'w-16', label: 'Type' },
+                    { width: 'w-14', label: 'Amount' },
+                    { width: 'w-16', label: 'Time' },
+                    { width: 'w-20', label: 'Status' },
+                    { width: 'w-16', label: 'Actions' },
+                  ]}
+                />
               ) : filteredJobs.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="py-12 text-center text-stone-500 font-medium">
@@ -521,7 +526,7 @@ export default function OwnerJobs() {
                 .map((p, idx, arr) => {
                   const prev = arr[idx - 1]
                   return (
-                    <React.Fragment key={p}>
+                    <Fragment key={p}>
                       {prev && p - prev > 1 && (
                         <span className="px-1 text-xs text-stone-400 font-mono">...</span>
                       )}
@@ -535,7 +540,7 @@ export default function OwnerJobs() {
                       >
                         {p}
                       </button>
-                    </React.Fragment>
+                    </Fragment>
                   )
                 })}
 

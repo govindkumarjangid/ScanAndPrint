@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let config = {
     shopId: '',
     secretKey: '',
-    serverUrl: 'https://scanandprint.onrender.com',
+    serverUrl: 'http://localhost:5000',
     defaultBwPrinter: '',
     defaultColorPrinter: '',
     autoStartOnBoot: true,
@@ -148,7 +148,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Populate Input Fields
   shopIdInput.value = config.shopId || ''
   secretKeyInput.value = config.secretKey || ''
-  serverUrlInput.value = config.serverUrl || 'https://scanandprint.onrender.com'
+  const currentUrl = config.serverUrl === 'https://scanandprint.onrender.com' ? 'http://localhost:5000' : (config.serverUrl || 'http://localhost:5000')
+  serverUrlInput.value = currentUrl
   if (autoStartToggle) autoStartToggle.checked = config.autoStartOnBoot !== false
   if (displayShopCode) displayShopCode.textContent = config.shopId || 'UNSET'
 
@@ -433,10 +434,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     statusPill.className = 'status-pill ' + status.toLowerCase()
 
     if (status === 'CONNECTED') {
-      statusText.innerHTML = 'Connected & Listening <i class="bx bxs-zap"></i>'
+      statusText.innerHTML = 'Connected & Authorized <i class="bx bxs-zap"></i>'
       statusDot.className = 'status-dot pulse-animation'
       if (displayShopCode && details.shopId) displayShopCode.textContent = details.shopId
-      logActivity('ONLINE', ` Connected to Cloud Server (Shop: ${details.shopId || config.shopId})`, 'online')
+      logActivity('ONLINE', ` Connected & Bound to PC (${details.hostname || 'This PC'})`, 'online')
+    } else if (status === 'DEVICE_NOT_APPROVED') {
+      statusText.innerHTML = 'Pending Approval <i class="bx bx-time-five"></i>'
+      statusDot.className = 'status-dot'
+      logActivity('DEVICE', '🔒 Device Pending: Open your Shop Dashboard > Devices to approve this PC.', 'job')
+      showToast('⚠️ Device Approval Required! Approve this PC from your Shop Dashboard.', 'error')
+    } else if (status === 'DEVICE_REVOKED') {
+      statusText.innerHTML = 'Device Unlinked <i class="bx bx-shield-x"></i>'
+      statusDot.className = 'status-dot'
+      logActivity('DEVICE', `❌ ${details.message || 'Device authorization was revoked.'}`, 'error')
+      showToast(details.message || 'Device unlinked from shop.', 'error')
     } else if (status === 'DISCONNECTED') {
       statusText.textContent = 'Disconnected (Retrying...)'
       statusDot.className = 'status-dot'

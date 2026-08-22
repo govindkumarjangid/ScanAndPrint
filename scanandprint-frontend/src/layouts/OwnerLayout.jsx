@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, AlertCircle, ownerNavItems } from '../assets/assets'
-import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check, Rocket } from 'lucide-react'
+import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check, Rocket, ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
 import { useAuthStore } from '../store/useAuthStore'
+import { useJobStore } from '../store/useJobStore'
 import { getSocket } from '../lib/socket'
 import { loadRazorpayScript } from '../lib/razorpay'
 import toast from 'react-hot-toast'
@@ -12,6 +13,13 @@ import api from '../lib/axios'
 
 export default function OwnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('ownerSidebarCollapsed') === 'true'
+    } catch {
+      return false
+    }
+  })
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [demoTimeLeft, setDemoTimeLeft] = useState('')
   const [isDemoExpired, setIsDemoExpired] = useState(false)
@@ -20,6 +28,7 @@ export default function OwnerLayout() {
   const [selectedRenewPlan, setSelectedRenewPlan] = useState('MONTHLY_299')
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [selectedUpgradePlan, setSelectedUpgradePlan] = useState('YEARLY_799')
+  const [pendingCounterOrder, setPendingCounterOrder] = useState(null)
 
   const navigate = useNavigate()
   const {
@@ -41,7 +50,25 @@ export default function OwnerLayout() {
   const monthlyPrice = publicSettings?.monthlyPrice || 299
   const yearlyPrice = publicSettings?.yearlyPrice || 799
 
-  // Real-time Agent Socket Connection (Pure Socket.IO - 0 API Polling Overhead)
+  // Play audio alert chime
+  const playChime = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+      const osc = audioCtx.createOscillator()
+      const gain = audioCtx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime)
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.12)
+      gain.gain.setValueAtTime(0.25, audioCtx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5)
+      osc.connect(gain)
+      gain.connect(audioCtx.destination)
+      osc.start()
+      osc.stop(audioCtx.currentTime + 0.5)
+    } catch (e) {}
+  }
+
+  // Real-time Socket Connection (Pure Socket.IO - 0 Refresh Required)
   useEffect(() => {
     const shopCode = currentShop?.shopCode || currentShop?._id
     if (!shopCode) return
@@ -59,16 +86,124 @@ export default function OwnerLayout() {
 
     const handleAgentStatus = (data) => {
       if (data?.shopCode && String(data.shopCode).toUpperCase() !== String(shopCode).toUpperCase()) return
-      setIsAgentConnected(Boolean(data?.isOnline))
+      const isOnline = Boolean(data?.isOnline)
+      setIsAgentConnected(isOnline)
+      useAuthStore.setState((state) => ({
+        currentShop: state.currentShop
+          ? {
+              ...state.currentShop,
+              isOnline,
+              connectedPrinters: data?.printers || state.currentShop.connectedPrinters || [],
+            }
+          : null,
+      }))
+    }
+
+    const handleForceLogout = (data) => {
+      console.warn('🚨 [Owner Force Logout via Socket]:', data)
+      toast.error(data?.reason || '⚠️ Your shop account has been suspended by Administrator.', {
+        id: 'suspended-logout',
+        duration: 8000,
+      })
+      logout()
+    }
+
+    const handleShopStatusUpdate = (data) => {
+      console.log('📡 [Shop Status Live Sync]:', data)
+      if (data?.isSuspended) {
+        toast.error('⚠️ Your shop account has been suspended by Administrator.', {
+          id: 'suspended-logout',
+          duration: 8000,
+        })
+        logout()
+      } else {
+        fetchProfile()
+      }
+    }
+
+    const handleNewJob = (data) => {
+      if (data?.job) {
+        useJobStore.getState().addOrUpdateJob(data.job)
+        const isCounter =
+          data.job.paymentMethod === 'CASH_COUNTER' ||
+          data.job.paymentMethod === 'COUNTER' ||
+          data.job.paymentMethod === 'counter'
+        if (isCounter) {
+          setPendingCounterOrder(data.job)
+          playChime()
+        } else {
+          toast.success(`📄 New Print Order: ${data.job.originalFileName || data.job.jobId} (₹${data.job.totalAmount})`, {
+            icon: '🖨️',
+            duration: 5000,
+          })
+        }
+      }
+    }
+
+    const handleJobStatus = (data) => {
+      if (data?.jobId && data?.status) {
+        useJobStore.getState().updateJobStatus(data.jobId, data.status, data.job || {})
+      }
+    }
+
+    const handleGlobalSettings = (settings) => {
+      fetchPublicSettings()
+    }
+
+    const handleSubActivated = () => {
+      fetchProfile()
+    }
+
+    const handleNewDevicePending = (data) => {
+      console.log('🔒 [New Device Pending Approval]:', data)
+      toast((t) => (
+        <div className="flex flex-col gap-1.5 p-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-base">🔒</span>
+            <span className="font-extrabold text-stone-900 text-xs">New PC Binding Request</span>
+          </div>
+          <p className="text-[11px] text-stone-600 leading-tight">
+            PC <strong>{data.hostname || 'Windows Device'}</strong> is requesting to connect.
+          </p>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <button
+              onClick={() => {
+                toast.dismiss(t.id)
+                navigate('/owner/devices')
+              }}
+              className="btn btn-xs bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1 rounded-lg cursor-pointer"
+            >
+              Review & Approve →
+            </button>
+          </div>
+        </div>
+      ), {
+        id: 'new-device-pending',
+        duration: 12000,
+      })
     }
 
     socket.on('AGENT_STATUS_CHANGE', handleAgentStatus)
+    socket.on('FORCE_SHOP_LOGOUT', handleForceLogout)
+    socket.on('SHOP_STATUS_UPDATED', handleShopStatusUpdate)
+    socket.on('NEW_PRINT_JOB', handleNewJob)
+    socket.on('JOB_STATUS_UPDATED', handleJobStatus)
+    socket.on('GLOBAL_SETTINGS_UPDATED', handleGlobalSettings)
+    socket.on('SUBSCRIPTION_ACTIVATED', handleSubActivated)
+    socket.on('NEW_DEVICE_PENDING_APPROVAL', handleNewDevicePending)
 
     return () => {
       socket.off('connect', joinRoom)
       socket.off('AGENT_STATUS_CHANGE', handleAgentStatus)
+      socket.off('FORCE_SHOP_LOGOUT', handleForceLogout)
+      socket.off('SHOP_STATUS_UPDATED', handleShopStatusUpdate)
+      socket.off('NEW_PRINT_JOB', handleNewJob)
+      socket.off('JOB_STATUS_UPDATED', handleJobStatus)
+      socket.off('GLOBAL_SETTINGS_UPDATED', handleGlobalSettings)
+      socket.off('SUBSCRIPTION_ACTIVATED', handleSubActivated)
+      socket.off('NEW_DEVICE_PENDING_APPROVAL', handleNewDevicePending)
     }
-  }, [currentShop?.shopCode, currentShop?._id])
+  }, [currentShop?.shopCode, currentShop?._id, logout, fetchProfile, fetchPublicSettings, navigate])
 
   const isDemo = Boolean(currentShop?.isDemoAccount)
   const isYearly = currentShop?.planType === 'YEARLY_799'
@@ -256,6 +391,16 @@ export default function OwnerLayout() {
     }
   }
 
+  const toggleCollapse = () => {
+    const nextState = !isCollapsed
+    setIsCollapsed(nextState)
+    try {
+      localStorage.setItem('ownerSidebarCollapsed', String(nextState))
+    } catch (e) {
+      console.warn(e)
+    }
+  }
+
   const shopName = currentShop?.shopName || 'Cyber Cafe'
 
   const handleLogout = async () => {
@@ -271,49 +416,90 @@ export default function OwnerLayout() {
     <div className="min-h-screen bg-stone-100/70 flex font-sans text-stone-800 relative">
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-stone-200/80 sticky top-0 h-screen justify-between z-30 shadow-xs">
-        <div>
-          {/* Logo */}
-          <div className="pl-5 py-3.5 border-b border-stone-100 flex items-center justify-between">
-            <OwnerLogo />
-          </div>
+      <aside
+        className={`hidden lg:flex flex-col bg-white border-r border-stone-200/80 sticky top-0 h-screen justify-between z-30 shadow-xs transition-all duration-300 ${
+          isCollapsed ? 'w-18' : 'w-65'
+        }`}
+      >
+        {/* Floating Chevron Collapse / Expand Button placed at bottom-20 baseline */}
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          className="absolute -right-3.5 bottom-20 z-40 w-7 h-7 rounded-full bg-white border border-stone-300 text-stone-600 hover:text-stone-900 hover:bg-stone-50 flex items-center justify-center shadow-md cursor-pointer transition-transform duration-200 hover:scale-110"
+        >
+          {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+        </button>
 
-          {/* Navigation tabs */}
-          <nav className="px-4 space-y-1 mt-4">
-            {ownerNavItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 ${isActive
-                      ? 'bg-brand text-white shadow-md shadow-rose-500/20'
-                      : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
-                    }`
-                  }
-                >
-                  <Icon className="w-5 h-5 shrink-0" />
-                  <span>{item.name}</span>
-                </NavLink>
-              )
-            })}
-          </nav>
+        {/* 1. Header / Logo (Pinned at top, shrink-0) */}
+        <div className="px-3 pt-5 pb-2 flex items-center shrink-0">
+          <Link to="/owner/overview" title="Scan&Print Owner Dashboard" className="flex items-center gap-3.5 group cursor-pointer">
+            <div className="relative shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-white p-2 flex items-center justify-center shadow-md shadow-rose-500/10 border border-rose-100 group-hover:scale-105 transition-transform duration-200">
+                <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
+              </div>
+            </div>
+            <div className={`flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
+              <span className="font-extrabold text-lg tracking-tight text-stone-900 leading-none">
+                Scan<span className="text-brand">&Print</span>
+              </span>
+              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">
+                Owner Dashboard
+              </span>
+            </div>
+          </Link>
         </div>
 
-        {/* Footer Logout Button */}
-        <div className="p-4 border-t border-stone-100">
+        {/* 2. Navigation Tabs (Scrollable flex-1 overflow-y-auto with hidden scrollbar) */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 space-y-1.5 py-3 sidebar-nav no-scrollbar">
+          {ownerNavItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                title={isCollapsed ? item.name : undefined}
+                className={({ isActive }) =>
+                  `flex items-center h-12 rounded-2xl text-sm font-bold transition-all duration-200 group px-3.5 overflow-hidden ${
+                    isActive
+                      ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
+                      : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                  }`
+                }
+              >
+                <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105" />
+                <span
+                  className={`ml-3.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                    isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+                  }`}
+                >
+                  {item.name}
+                </span>
+              </NavLink>
+            )
+          })}
+        </nav>
+
+        {/* 3. Footer Logout Button (Pinned firmly at bottom, shrink-0, border-t) */}
+        <div className="p-3 border-t border-stone-100 w-full shrink-0 bg-white">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center justify-center gap-2 text-xs font-bold"
+            title={isCollapsed ? 'Sign Out' : undefined}
+            className="flex items-center h-12 px-3.5 rounded-2xl w-full text-rose-600 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all duration-200 overflow-hidden cursor-pointer group"
           >
             {isLoggingOut ? (
-              <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+              <Loader2 className="w-5 h-5 animate-spin text-rose-500 shrink-0" />
             ) : (
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
             )}
-            <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
+            <span
+              className={`ml-3.5 text-xs font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+              }`}
+            >
+              {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
+            </span>
           </button>
         </div>
       </aside>
@@ -470,54 +656,57 @@ export default function OwnerLayout() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-72 bg-white border-r border-stone-200 p-6 flex flex-col justify-between z-50 lg:hidden shadow-2xl"
+              className="fixed inset-y-0 left-0 w-72 bg-white border-r border-stone-200 p-4 flex flex-col justify-between z-50 lg:hidden shadow-2xl"
             >
-              <div>
-                <div className="flex items-center justify-between pb-2 border-b border-stone-100 mb-6">
-                  <OwnerLogo />
-                  <button
-                    onClick={() => setSidebarOpen(false)}
-                    className="p-2 text-stone-400 hover:text-stone-700 cursor-pointer transition-colors rounded-xl hover:bg-stone-200"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <nav className="space-y-1">
-                  {ownerNavItems.map((item) => {
-                    const Icon = item.icon
-                    return (
-                      <NavLink
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setSidebarOpen(false)}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
-                            ? 'bg-brand text-white shadow-md'
-                            : 'text-stone-700 hover:bg-stone-100'
-                          }`
-                        }
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span>{item.name}</span>
-                      </NavLink>
-                    )
-                  })}
-                </nav>
+              {/* Mobile Drawer Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-stone-100 mb-2 shrink-0">
+                <OwnerLogo />
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-2 text-stone-400 hover:text-stone-700 cursor-pointer transition-colors rounded-xl hover:bg-stone-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center justify-center gap-2 text-xs font-bold"
-              >
-                {isLoggingOut ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
-                ) : (
-                  <LogOut className="w-4 h-4" />
-                )}
-                <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
-              </button>
+              {/* Scrollable Mobile Navigation (Hidden scrollbar) */}
+              <nav className="flex-1 overflow-y-auto space-y-1 my-2 sidebar-nav no-scrollbar">
+                {ownerNavItems.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
+                          ? 'bg-brand text-white shadow-md'
+                          : 'text-stone-700 hover:bg-stone-100'
+                        }`
+                      }
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span>{item.name}</span>
+                    </NavLink>
+                  )
+                })}
+              </nav>
+
+              {/* Pinned Mobile Logout Button */}
+              <div className="pt-3 border-t border-stone-100 shrink-0">
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center justify-center gap-2 text-xs font-bold"
+                >
+                  {isLoggingOut ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+                  ) : (
+                    <LogOut className="w-4 h-4" />
+                  )}
+                  <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
+                </button>
+              </div>
             </motion.aside>
           </>
         )}
@@ -771,6 +960,106 @@ export default function OwnerLayout() {
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Secured by 256-bit encrypted Razorpay Payment Gateway</span>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Live Cash Counter Order Approval Modal */}
+      <AnimatePresence>
+        {pendingCounterOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-xs">
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.92, opacity: 0, y: 15 }}
+              className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full border border-stone-200 shadow-2xl flex flex-col gap-4 text-center relative"
+            >
+              {/* Header */}
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-stone-900 text-white flex items-center justify-center text-xs font-bold">
+                    ⚙
+                  </div>
+                  <h2 className="text-xl font-extrabold text-stone-900 font-heading">
+                    Counter Payment Order
+                  </h2>
+                </div>
+                <p className="text-xs text-stone-500 font-medium">
+                  Customer counter par cash dega — print approve karein?
+                </p>
+              </div>
+
+              {/* Order Info Card */}
+              <div className="bg-stone-50 border border-stone-200/90 rounded-2xl p-3.5 text-left flex flex-col gap-1.5 text-xs font-semibold">
+                <div className="flex">
+                  <span className="w-20 text-stone-900 font-bold">Print</span>
+                  <span className="text-stone-700">
+                    {pendingCounterOrder.colorType === 'COLOR' ? '🌈 Color' : '⚫ B&W'} • {pendingCounterOrder.totalPages || 1} page (pages: {pendingCounterOrder.totalPages || 1}) • {pendingCounterOrder.copies || 1} copy
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="w-20 text-stone-900 font-bold">Amount</span>
+                  <span className="text-stone-900 font-extrabold">
+                    ₹{pendingCounterOrder.totalAmount} <span className="font-medium text-stone-500">(counter par lena hai)</span>
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="w-20 text-stone-900 font-bold">File</span>
+                  <span className="text-stone-800 font-bold truncate max-w-60">
+                    {pendingCounterOrder.originalFileName || 'document.pdf'}
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="w-20 text-stone-900 font-bold">Time</span>
+                  <span className="text-stone-600">
+                    {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Decision Buttons */}
+              <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const jId = pendingCounterOrder.jobId
+                      setPendingCounterOrder(null)
+                      try {
+                        await useJobStore.getState().triggerPrintNow(jId)
+                        toast.success('✅ Approved! Spooling to printer...')
+                      } catch (e) {
+                        toast.error('Failed to trigger print')
+                      }
+                    }}
+                    className="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+                  >
+                    <span>☑</span>
+                    <span>Approve & Print</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const jId = pendingCounterOrder.jobId
+                      setPendingCounterOrder(null)
+                      try {
+                        await useJobStore.getState().cancelJob(jId)
+                        toast.error('❌ Order Denied')
+                      } catch (e) {
+                        toast.error('Failed to cancel order')
+                      }
+                    }}
+                    className="py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-rose-600/20 cursor-pointer"
+                  >
+                    <span>✕</span>
+                    <span>Deny</span>
+                  </button>
+                </div>
+                <p className="text-[11px] text-stone-400 font-medium">
+                  Deny karne par order cancel + file delete ho jayegi
+                </p>
               </div>
             </motion.div>
           </div>

@@ -26,6 +26,28 @@ const printAgentSchema = new mongoose.Schema(
       type: String,
       default: 'Windows',
     },
+    deviceFingerprint: {
+      type: String,
+      default: '',
+    },
+    meta: {
+      hostname: { type: String, default: '' },
+      platform: { type: String, default: 'Windows' },
+      cpuModel: { type: String, default: '' },
+      motherboardSerial: { type: String, default: '' },
+      systemUuid: { type: String, default: '' },
+      totalMemoryGb: { type: Number, default: 0 },
+      ipAddress: { type: String, default: '' },
+      localIp: { type: String, default: '' },
+      defaultGateway: { type: String, default: '' },
+    },
+    connectedPrinters: [
+      {
+        name: { type: String, trim: true },
+        deviceId: { type: String, trim: true },
+        isDefault: { type: Boolean, default: false },
+      },
+    ],
     isConnected: {
       type: Boolean,
       default: true,

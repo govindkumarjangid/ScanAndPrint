@@ -1,5 +1,4 @@
-import React from 'react'
-import { MapPin, Sparkles, Wifi, WifiOff } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { Link } from 'react-router'
 
 export default function KioskHeader({ shopInfo }) {
@@ -17,7 +16,7 @@ export default function KioskHeader({ shopInfo }) {
         <div className="flex items-center gap-3 min-w-0">
           <Link to="/" className="shrink-0 group" title="Scan&Print">
             <div className="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-200/80 p-2 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-              <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
+              <img src="/svgs/logo.svg" alt="Scan&Print Logo" width="44" height="44" className="w-full h-full object-contain" />
             </div>
           </Link>
           <div className="flex flex-col min-w-0">

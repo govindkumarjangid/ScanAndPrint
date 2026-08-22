@@ -1,13 +1,33 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Store, Search, CheckCircle2, XCircle, ShieldCheck, Loader2, ChevronLeft, ChevronRight, RefreshCw, Clock, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import {
+  Search,
+  CheckCircle2,
+  XCircle,
+  ShieldAlert,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Clock,
+  AlertCircle,
+  Download,
+  Sliders,
+} from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import AdminDemoTimer from '../../components/ui/AdminDemoTimer'
+import AdminShopActionModal from '../../components/admin/AdminShopActionModal'
+import { downloadCsv } from '../../utils/exportCsv'
+import api from '../../lib/axios'
+import toast from 'react-hot-toast'
+import TableSkeleton from '../../components/skeleton/TableSkeleton'
 
 export default function AdminShops() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
-  const { shopsLoading, shopsData, shopsPagination, fetchShops } = useAdminStore()
+  const [selectedShop, setSelectedShop] = useState(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+
+  const { shopsLoading, shopsData, shopsPagination, fetchShops, toggleShopStatus } = useAdminStore()
 
   useEffect(() => {
     fetchShops(currentPage, 10, searchTerm)
@@ -17,6 +37,21 @@ export default function AdminShops() {
     e?.preventDefault()
     setCurrentPage(1)
     fetchShops(1, 10, searchTerm)
+  }
+
+  const handleExportShops = async () => {
+    setIsExporting(true)
+    try {
+      const res = await api.get('/admin/export/shops')
+      if (res.data.success && res.data.data?.shops) {
+        downloadCsv(res.data.data.shops, `ScanAndPrint_Shops_${new Date().toISOString().split('T')[0]}.csv`)
+        toast.success('Shops CSV downloaded successfully!')
+      }
+    } catch (e) {
+      toast.error('Failed to export shops CSV')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   const pagination = shopsPagination || {
@@ -40,14 +75,25 @@ export default function AdminShops() {
           </p>
         </div>
 
-        <button
-          onClick={() => fetchShops(currentPage, 10, searchTerm)}
-          disabled={shopsLoading}
-          className="btn btn-sm bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 flex items-center gap-2 self-start sm:self-auto cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${shopsLoading ? 'animate-spin text-rose-500' : ''}`} />
-          <span>Refresh Shops</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <button
+            onClick={handleExportShops}
+            disabled={isExporting}
+            className="btn btn-sm bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 flex items-center gap-1.5 cursor-pointer"
+          >
+            {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 text-brand" />}
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => fetchShops(currentPage, 10, searchTerm)}
+            disabled={shopsLoading}
+            className="btn btn-sm bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 flex items-center gap-2 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${shopsLoading ? 'animate-spin text-rose-500' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -59,7 +105,7 @@ export default function AdminShops() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search Shop Name, Code, Phone..."
+              placeholder="Search Shop Name, Code, Phone, Owner..."
               className="w-full bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-stone-500 focus:outline-none focus:border-rose-500 transition-colors"
             />
           </div>
@@ -75,7 +121,7 @@ export default function AdminShops() {
       {/* Shops Table */}
       <div className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800 shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse min-w-[850px]">
+          <table className="w-full text-left text-sm border-collapse min-w-[900px]">
             <thead>
               <tr className="border-b border-stone-800 text-stone-400 font-bold text-xs uppercase tracking-wider whitespace-nowrap">
                 <th className="py-3.5 px-4">Shop ID</th>
@@ -85,22 +131,30 @@ export default function AdminShops() {
                 <th className="py-3.5 px-4">City</th>
                 <th className="py-3.5 px-4">Plan Type</th>
                 <th className="py-3.5 px-4">Subscription</th>
+                <th className="py-3.5 px-4 text-center">Manage</th>
                 <th className="py-3.5 px-4 text-right">Agent Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
-              {shopsLoading ? (
-                <tr>
-                  <td colSpan="8" className="py-12">
-                    <div className="flex flex-col items-center justify-center gap-2 text-stone-500">
-                      <Loader2 className="w-7 h-7 animate-spin text-rose-500" />
-                      <span className="font-semibold text-xs text-stone-400">Loading shops...</span>
-                    </div>
-                  </td>
-                </tr>
+              {shopsLoading && shopsData.length === 0 ? (
+                <TableSkeleton
+                  variant="dark"
+                  rows={8}
+                  columns={[
+                    { width: 'w-16', label: 'Shop ID' },
+                    { width: 'w-40', label: 'Shop Name' },
+                    { width: 'w-28', label: 'Owner Name' },
+                    { width: 'w-24', label: 'Mobile' },
+                    { width: 'w-28', label: 'City' },
+                    { width: 'w-20', label: 'Plan Type' },
+                    { width: 'w-20', label: 'Subscription' },
+                    { width: 'w-16', label: 'Manage' },
+                    { width: 'w-20', label: 'Agent Status' },
+                  ]}
+                />
               ) : shopsData.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-stone-500 text-sm font-medium">
+                  <td colSpan="9" className="py-12 text-center text-stone-500 text-sm font-medium">
                     No shops found matching your search.
                   </td>
                 </tr>
@@ -137,7 +191,17 @@ export default function AdminShops() {
                         )}
                       </td>
                       <td className="py-4 px-4">
-                        {s.isDemoAccount || pType === 'FREE_TRIAL' ? (
+                        {s.isSuspended ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleShopStatus(s._id, false)}
+                            title="Shop is Suspended. Click to Unfreeze / Activate"
+                            className="inline-flex items-center gap-1.5 bg-rose-950 text-rose-300 hover:bg-rose-900 text-[11px] font-extrabold px-3 py-1 rounded-full border border-rose-800 whitespace-nowrap shadow-xs cursor-pointer transition-all hover:scale-105"
+                          >
+                            <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+                            <span>Suspended (Click to Activate)</span>
+                          </button>
+                        ) : s.isDemoAccount || pType === 'FREE_TRIAL' ? (
                           subStatus === 'Demo Active' || subStatus === 'Active' ? (
                             <span className="inline-flex items-center gap-1.5 bg-amber-950/90 text-amber-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-amber-800/80 shadow-xs whitespace-nowrap">
                               <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
@@ -164,6 +228,18 @@ export default function AdminShops() {
                             <span>{subStatus}</span>
                           </span>
                         )}
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <button
+                          onClick={() => {
+                            setSelectedShop(s)
+                            setModalOpen(true)
+                          }}
+                          className="px-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white border border-stone-800 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <Sliders className="w-3 h-3 text-brand" />
+                          <span>Action</span>
+                        </button>
                       </td>
                       <td className="py-4 px-4 text-right">
                         {isOnline ? (
@@ -215,6 +291,19 @@ export default function AdminShops() {
         )}
       </div>
 
+      {/* Shop Action Modal */}
+      {modalOpen && (
+        <AdminShopActionModal
+          shop={selectedShop}
+          isOpen={modalOpen}
+          onClose={() => {
+            setModalOpen(false)
+            setSelectedShop(null)
+          }}
+        />
+      )}
+
     </div>
   )
 }
+

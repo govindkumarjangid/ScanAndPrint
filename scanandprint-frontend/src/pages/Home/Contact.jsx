@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import SEO from '../../components/common/SEO'
 import {
   Mail,
   Phone,
@@ -34,6 +35,7 @@ export default function Contact() {
 
   return (
     <div className="flex flex-col gap-12 md:gap-16 py-10 px-4 sm:px-6 max-w-300 mx-auto w-full">
+      <SEO path="/contact" />
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto flex flex-col gap-4">
         <span className="text-brand font-bold text-xs uppercase tracking-wider bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full w-max mx-auto flex items-center gap-1.5 shadow-2xs">

@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router'
+import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'react-hot-toast'
 
 import MainLayout from './layouts/MainLayout'
@@ -50,12 +51,14 @@ const OwnerAgentDownload = lazy(() => import('./pages/owner/OwnerAgentDownload')
 const OwnerSettings = lazy(() => import('./pages/owner/OwnerSettings'))
 const OwnerPaymentSetup = lazy(() => import('./pages/owner/OwnerPaymentSetup'))
 const OwnerReview = lazy(() => import('./pages/owner/OwnerReview'))
+const OwnerDevices = lazy(() => import('./pages/owner/OwnerDevices'))
 
 // Lazy Loaded Super Admin Dashboard Pages
 const AdminOverview = lazy(() => import('./pages/admin/AdminOverview'))
 const AdminShops = lazy(() => import('./pages/admin/AdminShops'))
 const AdminTransactions = lazy(() => import('./pages/admin/AdminTransactions'))
 const AdminAgents = lazy(() => import('./pages/admin/AdminAgents'))
+const AdminDevices = lazy(() => import('./pages/admin/AdminDevices'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
 
@@ -157,65 +160,69 @@ function AdaptiveToaster() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ThemeSynchronizer />
-      <AdaptiveToaster />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {/* Main Website Layout */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/features" element={<Features />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/how-to-setup" element={<HowToSetup />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/disclaimer" element={<Disclaimer />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/refund-policy" element={<RefundPolicy />} />
-            <Route path="/terms-and-conditions" element={<TermsConditions />} />
-          </Route>
+    <HelmetProvider>
+      <BrowserRouter>
+        <ThemeSynchronizer />
+        <AdaptiveToaster />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Main Website Layout */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/features" element={<Features />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/how-to-setup" element={<HowToSetup />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
+              <Route path="/terms-and-conditions" element={<TermsConditions />} />
+            </Route>
 
-          {/* Customer Mobile Kiosk Routes (Scanned via QR Code) */}
-          <Route path="/p/:shopCode" element={<CustomerKiosk />} />
-          <Route path="/p" element={<CustomerKiosk />} />
-          <Route path="/kiosk/:shopCode" element={<CustomerKiosk />} />
+            {/* Customer Mobile Kiosk Routes (Scanned via QR Code) */}
+            <Route path="/p/:shopCode" element={<CustomerKiosk />} />
+            <Route path="/p" element={<CustomerKiosk />} />
+            <Route path="/kiosk/:shopCode" element={<CustomerKiosk />} />
 
-          {/* Auth Routes */}
-          <Route path="/register" element={<RegisterShop />} />
-          <Route path="/shop-login" element={<ShopLogin />} />
+            {/* Auth Routes */}
+            <Route path="/register" element={<RegisterShop />} />
+            <Route path="/shop-login" element={<ShopLogin />} />
 
-          {/* Shop Owner Dashboard Routes */}
-          <Route path="/owner" element={<OwnerLayout />}>
-            <Route index element={<Navigate to="/owner/dashboard" replace />} />
-            <Route path="dashboard" element={<OwnerOverview />} />
-            <Route path="jobs" element={<OwnerJobs />} />
-            <Route path="printers" element={<OwnerPrinters />} />
-            <Route path="pricing" element={<OwnerPricing />} />
-            <Route path="qr-code" element={<OwnerQrCode />} />
-            <Route path="agent" element={<OwnerAgentDownload />} />
-            <Route path="settings" element={<OwnerSettings />} />
-            <Route path="payment-setup" element={<OwnerPaymentSetup />} />
-            <Route path="review" element={<OwnerReview />} />
-          </Route>
+            {/* Shop Owner Dashboard Routes */}
+            <Route path="/owner" element={<OwnerLayout />}>
+              <Route index element={<Navigate to="/owner/dashboard" replace />} />
+              <Route path="dashboard" element={<OwnerOverview />} />
+              <Route path="jobs" element={<OwnerJobs />} />
+              <Route path="printers" element={<OwnerPrinters />} />
+              <Route path="pricing" element={<OwnerPricing />} />
+              <Route path="qr-code" element={<OwnerQrCode />} />
+              <Route path="agent" element={<OwnerAgentDownload />} />
+              <Route path="settings" element={<OwnerSettings />} />
+              <Route path="payment-setup" element={<OwnerPaymentSetup />} />
+              <Route path="devices" element={<OwnerDevices />} />
+              <Route path="review" element={<OwnerReview />} />
+            </Route>
 
-          {/* Admin Auth Route */}
-          <Route path="/admin-login" element={<AdminLogin />} />
+            {/* Admin Auth Route */}
+            <Route path="/admin-login" element={<AdminLogin />} />
 
-          {/* Super Admin Dashboard Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="dashboard" element={<AdminOverview />} />
-            <Route path="shops" element={<AdminShops />} />
-            <Route path="transactions" element={<AdminTransactions />} />
-            <Route path="agents" element={<AdminAgents />} />
-            <Route path="settings" element={<AdminSettings />} />
-          </Route>
+            {/* Super Admin Dashboard Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminOverview />} />
+              <Route path="shops" element={<AdminShops />} />
+              <Route path="transactions" element={<AdminTransactions />} />
+              <Route path="agents" element={<AdminAgents />} />
+              <Route path="devices" element={<AdminDevices />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
 
-          {/* 404 Not Found Catch-All Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+            {/* 404 Not Found Catch-All Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </HelmetProvider>
   )
 }

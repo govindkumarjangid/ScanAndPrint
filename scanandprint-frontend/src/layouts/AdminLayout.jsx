@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { AdminLogo } from '../components/ui/AdminLogo'
 import { useAdminStore } from '../store/useAdminStore'
+import { getSocket } from '../lib/socket'
 import toast from 'react-hot-toast'
 
 export default function AdminLayout() {
@@ -29,11 +30,56 @@ export default function AdminLayout() {
   })
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const navigate = useNavigate()
-  const { overviewData, fetchOverview } = useAdminStore()
+  const { overviewData, fetchOverview, fetchShops } = useAdminStore()
 
   useEffect(() => {
     fetchOverview()
   }, [fetchOverview])
+
+  // Real-time Admin Telemetry & Instant Database Sync via WebSockets
+  useEffect(() => {
+    const socket = getSocket()
+    const joinAdmin = () => {
+      socket.emit('JOIN_ADMIN_ROOM')
+    }
+
+    if (socket.connected) {
+      joinAdmin()
+    }
+    socket.on('connect', joinAdmin)
+
+    const handleAdminShopUpdate = (data) => {
+      console.log('📡 [Admin Live Socket Event]:', data)
+      fetchOverview()
+      fetchShops()
+    }
+
+    const handleAdminJobCreated = (data) => {
+      console.log('📡 [Admin Live Job Event]:', data)
+      fetchOverview()
+    }
+
+    const handleAgentStatus = (data) => {
+      console.log('📡 [Admin Agent Status Live Event]:', data)
+      fetchOverview()
+      fetchShops()
+    }
+
+    socket.on('ADMIN_SHOP_UPDATED', handleAdminShopUpdate)
+    socket.on('ADMIN_JOB_CREATED', handleAdminJobCreated)
+    socket.on('AGENT_STATUS_CHANGE', handleAgentStatus)
+    socket.on('ADMIN_DEVICE_UPDATED', fetchOverview)
+    socket.on('ADMIN_NEW_DEVICE_PENDING', fetchOverview)
+
+    return () => {
+      socket.off('connect', joinAdmin)
+      socket.off('ADMIN_SHOP_UPDATED', handleAdminShopUpdate)
+      socket.off('ADMIN_JOB_CREATED', handleAdminJobCreated)
+      socket.off('AGENT_STATUS_CHANGE', handleAgentStatus)
+      socket.off('ADMIN_DEVICE_UPDATED', fetchOverview)
+      socket.off('ADMIN_NEW_DEVICE_PENDING', fetchOverview)
+    }
+  }, [fetchOverview, fetchShops])
 
   const toggleCollapse = () => {
     const nextState = !isCollapsed
@@ -87,60 +133,58 @@ export default function AdminLayout() {
           {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
 
-        <div className="flex flex-col">
-          {/* Logo (No bottom border, icon locked in position and centered) */}
-          <div className="px-3 pt-5 pb-2 flex items-center">
-            <Link to="/admin/dashboard" title="Scan&Print Super Admin" className="flex items-center gap-3.5 group cursor-pointer">
-              <div className="relative shrink-0">
-                <div className="w-12 h-12 rounded-2xl bg-white p-2 flex items-center justify-center shadow-lg shadow-rose-500/20 border border-stone-700/60 group-hover:scale-105 transition-transform duration-200">
-                  <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-brand text-white flex items-center justify-center shadow-sm border border-stone-950">
-                  <ShieldCheck className="w-2.5 h-2.5" />
-                </div>
+        {/* 1. Header / Logo (Pinned at top, shrink-0) */}
+        <div className="px-3 pt-5 pb-2 flex items-center shrink-0">
+          <Link to="/admin/dashboard" title="Scan&Print Super Admin" className="flex items-center gap-3.5 group cursor-pointer">
+            <div className="relative shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-white p-2 flex items-center justify-center shadow-lg shadow-rose-500/20 border border-stone-700/60 group-hover:scale-105 transition-transform duration-200">
+                <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
               </div>
-              <div className={`flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
-                <span className="font-extrabold text-lg tracking-tight text-white leading-none">
-                  Scan<span className="text-brand">&Print</span>
-                </span>
-                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">
-                  Super Admin Panel
-                </span>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-brand text-white flex items-center justify-center shadow-sm border border-stone-950">
+                <ShieldCheck className="w-2.5 h-2.5" />
               </div>
-            </Link>
-          </div>
-
-          {/* Navigation Links (Icons locked in place) */}
-          <nav className="px-3 space-y-1.5 mt-3">
-            {adminNavItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  title={isCollapsed ? item.name : undefined}
-                  className={({ isActive }) =>
-                    `flex items-center h-12 rounded-2xl text-sm font-bold transition-all duration-200 group px-3.5 overflow-hidden ${
-                      isActive
-                        ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
-                        : 'text-stone-400 hover:bg-stone-900 hover:text-stone-100'
-                    }`
-                  }
-                >
-                  <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105" />
-                  <span className={`ml-3.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                    isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
-                  }`}>
-                    {item.name}
-                  </span>
-                </NavLink>
-              )
-            })}
-          </nav>
+            </div>
+            <div className={`flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
+              <span className="font-extrabold text-lg tracking-tight text-white leading-none">
+                Scan<span className="text-brand">&Print</span>
+              </span>
+              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">
+                Super Admin Panel
+              </span>
+            </div>
+          </Link>
         </div>
 
-        {/* Footer Logout Button (Icon exactly matched & locked with nav items) */}
-        <div className="p-3 border-t border-stone-800/80 w-full">
+        {/* 2. Navigation Links (Scrollable flex-1 overflow-y-auto with hidden scrollbar) */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 space-y-1.5 py-3 sidebar-nav no-scrollbar">
+          {adminNavItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                title={isCollapsed ? item.name : undefined}
+                className={({ isActive }) =>
+                  `flex items-center h-12 rounded-2xl text-sm font-bold transition-all duration-200 group px-3.5 overflow-hidden ${
+                    isActive
+                      ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
+                      : 'text-stone-400 hover:bg-stone-900 hover:text-stone-100'
+                  }`
+                }
+              >
+                <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105" />
+                <span className={`ml-3.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                  isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+                }`}>
+                  {item.name}
+                </span>
+              </NavLink>
+            )
+          })}
+        </nav>
+
+        {/* 3. Footer Logout Button (Pinned firmly at bottom, shrink-0, border-t) */}
+        <div className="p-3 border-t border-stone-800/80 w-full shrink-0 bg-stone-950">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
@@ -211,49 +255,52 @@ export default function AdminLayout() {
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="fixed top-0 bottom-0 left-0 w-72 bg-stone-950 z-50 flex flex-col justify-between p-4 border-r border-stone-800 lg:hidden"
             >
-              <div>
-                <div className="flex items-center justify-between pb-4 mb-4 border-b border-stone-800">
-                  <AdminLogo />
-                  <button onClick={() => setSidebarOpen(false)} className="btn btn-ghost btn-sm p-1.5 text-stone-400 hover:bg-stone-800!">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <nav className="space-y-1">
-                  {adminNavItems.map((item) => {
-                    const Icon = item.icon
-                    return (
-                      <NavLink
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setSidebarOpen(false)}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
-                            ? 'bg-brand text-white shadow-md'
-                            : 'text-stone-400 hover:bg-stone-900'
-                          }`
-                        }
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span>{item.name}</span>
-                      </NavLink>
-                    )
-                  })}
-                </nav>
+              {/* Mobile Drawer Header */}
+              <div className="flex items-center justify-between pb-4 mb-2 border-b border-stone-800 shrink-0">
+                <AdminLogo />
+                <button onClick={() => setSidebarOpen(false)} className="btn btn-ghost btn-sm p-1.5 text-stone-400 hover:bg-stone-800!">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="btn btn-outline w-auto text-rose-400! bg-rose-950/40! border-rose-900/40! hover:bg-rose-900/60! flex items-center justify-center gap-2"
-              >
-                {isLoggingOut ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-rose-400" />
-                ) : (
-                  <LogOut className="w-4 h-4" />
-                )}
-                <span>{isLoggingOut ? 'Signing Out...' : 'Admin Sign Out'}</span>
-              </button>
+              {/* Scrollable Mobile Nav (Hidden scrollbar) */}
+              <nav className="flex-1 overflow-y-auto space-y-1 my-2 sidebar-nav no-scrollbar">
+                {adminNavItems.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
+                          ? 'bg-brand text-white shadow-md'
+                          : 'text-stone-400 hover:bg-stone-900'
+                        }`
+                      }
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span>{item.name}</span>
+                    </NavLink>
+                  )
+                })}
+              </nav>
+
+              {/* Mobile Logout Button Pinned to Bottom */}
+              <div className="pt-3 border-t border-stone-800 shrink-0">
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="btn btn-outline w-full text-rose-400! bg-rose-950/40! border-rose-900/40! hover:bg-rose-900/60! flex items-center justify-center gap-2"
+                >
+                  {isLoggingOut ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-rose-400" />
+                  ) : (
+                    <LogOut className="w-4 h-4" />
+                  )}
+                  <span>{isLoggingOut ? 'Signing Out...' : 'Admin Sign Out'}</span>
+                </button>
+              </div>
             </motion.aside>
           </>
         )}

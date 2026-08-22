@@ -321,30 +321,30 @@ export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-stone-950/90 backdrop-blur-md select-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-stone-950/90 backdrop-blur-md select-none touch-none">
         <motion.div
           initial={{ opacity: 0, scale: 0.98, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.98, y: 10 }}
-          className="bg-white w-full h-full sm:h-[94vh] sm:max-h-215 sm:max-w-4xl sm:rounded-3xl rounded-none overflow-hidden shadow-2xl flex flex-col border-0 sm:border sm:border-stone-200"
+          className="bg-white w-full h-[100dvh] sm:h-[94vh] sm:max-h-215 sm:max-w-4xl sm:rounded-3xl rounded-none overflow-hidden shadow-2xl flex flex-col border-0 sm:border sm:border-stone-200"
         >
           {/* Header */}
-          <div className="px-3 sm:px-6 py-2.5 sm:py-3 border-b border-stone-200 flex items-center justify-between bg-stone-50 shrink-0">
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="px-3 sm:px-6 py-2 sm:py-3 border-b border-stone-200 flex items-center justify-between gap-2 bg-stone-50 shrink-0">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-brand text-white flex items-center justify-center shadow-xs shrink-0">
                 <Crop className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col min-w-0 flex-1">
                 <h3 className="font-extrabold text-xs sm:text-base text-stone-900 leading-tight truncate">
-                  Page Layout & Aadhaar Editor
+                  Page Layout & Aadhaar
                 </h3>
-                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium truncate">
-                  Drag corner dots to resize · Add Front & Back on 1 sheet
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium truncate hidden xs:inline">
+                  Drag corner dots to resize · Multiple photos on 1 sheet
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* Hidden Additional File Input */}
               <input
                 type="file"
@@ -358,7 +358,7 @@ export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="btn py-1.5 px-3 rounded-xl text-xs font-extrabold flex items-center gap-1.5 bg-brand text-white hover:bg-rose-600 active:bg-rose-700 shadow-xs hover:shadow-md transition-all cursor-pointer border-none"
+                className="btn py-1.5 px-2.5 sm:px-3 rounded-xl text-xs font-extrabold flex items-center gap-1 bg-brand text-white hover:bg-rose-600 active:bg-rose-700 shadow-xs transition-all cursor-pointer border-none shrink-0 whitespace-nowrap"
                 title="Add Front or Back Image"
               >
                 <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
@@ -368,7 +368,7 @@ export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="btn btn-ghost p-1.5 text-stone-400 hover:text-stone-800 rounded-full hover:bg-stone-200/60"
+                className="btn btn-ghost p-1.5 text-stone-400 hover:text-stone-800 rounded-full hover:bg-stone-200/60 shrink-0"
                 title="Close"
               >
                 <X className="w-5 h-5" />
@@ -376,17 +376,17 @@ export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Preset Quick Actions Bar */}
-          <div className="px-3 sm:px-4 py-2 bg-stone-100/90 border-b border-stone-200 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs">
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-[10px] sm:text-[11px] text-stone-500 uppercase mr-0.5 shrink-0">
+          {/* Preset Quick Actions Bar (Wrap-safe & Horizontally Scrollable on Mobile) */}
+          <div className="px-3 sm:px-4 py-2 bg-stone-100/95 border-b border-stone-200 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs whitespace-nowrap">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="font-extrabold text-[10px] sm:text-[11px] text-stone-500 uppercase tracking-wider shrink-0">
                 Presets:
               </span>
               <button
                 type="button"
                 onClick={applyAadhaarPreset}
                 disabled={items.length < 2}
-                className="py-1 px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-200 hover:bg-rose-50 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer shadow-2xs shrink-0"
+                className="py-1 px-2 sm:px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-200 hover:bg-rose-50 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer shadow-2xs shrink-0 text-[11px] sm:text-xs"
               >
                 Aadhaar (Top & Bottom)
               </button>
@@ -394,32 +394,32 @@ export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
                 type="button"
                 onClick={applySideBySidePreset}
                 disabled={items.length < 2}
-                className="py-1 px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-200 hover:bg-rose-50 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer shadow-2xs shrink-0"
+                className="py-1 px-2 sm:px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-200 hover:bg-rose-50 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer shadow-2xs shrink-0 text-[11px] sm:text-xs"
               >
                 Side by Side
               </button>
             </div>
 
             {selectedId && (
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0 pl-1">
+                <div className="h-4 w-px bg-stone-300 mx-0.5 shrink-0" />
                 <button
                   type="button"
                   onClick={handleRotateSelected}
-                  className="py-1 px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-200 hover:bg-stone-50 flex items-center gap-1 cursor-pointer shadow-2xs"
+                  className="py-1 px-2 sm:px-2.5 rounded-lg font-bold bg-white text-stone-800 border border-stone-300 hover:bg-stone-50 flex items-center gap-1 cursor-pointer shadow-2xs text-[11px] sm:text-xs shrink-0"
                 >
                   <RotateCw className="w-3.5 h-3.5 text-brand" />
                   <span>Rotate</span>
                 </button>
-                {items.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteSelected}
-                    className="py-1 px-2 rounded-lg font-bold bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 flex items-center gap-1 cursor-pointer shadow-2xs"
-                    title="Remove selected image"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleDeleteSelected}
+                  className="py-1 px-2 sm:px-2.5 rounded-lg font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 flex items-center gap-1 cursor-pointer shadow-2xs text-[11px] sm:text-xs shrink-0"
+                  title="Delete selected image"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Delete</span>
+                </button>
               </div>
             )}
           </div>
@@ -440,7 +440,7 @@ export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
               {/* Subtle A4 Print Margins */}
               <div className="absolute inset-1 sm:inset-2 border border-dashed border-stone-200 pointer-events-none rounded-xs" />
 
-              {/* Rendered Items with Always-Visible Corner Scaling Handles */}
+              {/* Rendered Items with Active Selection & Corner Scaling Handles */}
               {items.map((item) => {
                 const isSelected = selectedId === item.id
 
@@ -448,8 +448,15 @@ export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
                   <div
                     key={item.id}
                     onPointerDown={(e) => handlePointerDown(e, item, 'move')}
-                    className={`absolute cursor-move select-none touch-none ${isSelected ? 'ring-2 ring-brand ring-offset-1 z-20' : 'hover:ring-1 hover:ring-stone-400 z-10'
-                      }`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedId(item.id)
+                    }}
+                    className={`absolute cursor-move select-none touch-none ${
+                      isSelected
+                        ? 'ring-2 ring-brand ring-offset-2 ring-offset-white shadow-xl z-30'
+                        : 'hover:ring-1 hover:ring-stone-400 z-10'
+                    }`}
                     style={{
                       left: `${item.x}%`,
                       top: `${item.y}%`,
@@ -466,42 +473,42 @@ export default function ImageCropModal({ imageFile, isOpen, onClose, onSave }) {
                       draggable={false}
                     />
 
-                    {/* Corner Resize Handles (Dots) - ALWAYS VISIBLE */}
-                    <div
-                      onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'tl')}
-                      className={`absolute -top-3 -left-3 sm:-top-2.5 sm:-left-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 ${isSelected ? 'border-brand scale-115 shadow-md ring-2 ring-brand/40' : 'border-stone-700 shadow-xs'
-                        } rounded-full cursor-nwse-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none`}
-                      title="Drag to resize"
-                    >
-                      <div className={`w-2 h-2 sm:w-1.5 sm:h-1.5 ${isSelected ? 'bg-brand' : 'bg-stone-700'} rounded-full`} />
-                    </div>
+                    {/* Corner Resize Handles (Dots) - ONLY VISIBLE WHEN SELECTED */}
+                    {isSelected && (
+                      <>
+                        <div
+                          onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'tl')}
+                          className="absolute -top-3 -left-3 sm:-top-2.5 sm:-left-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 border-brand scale-115 shadow-md ring-2 ring-brand/40 rounded-full cursor-nwse-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none"
+                          title="Drag to resize"
+                        >
+                          <div className="w-2 h-2 sm:w-1.5 sm:h-1.5 bg-brand rounded-full" />
+                        </div>
 
-                    <div
-                      onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'tr')}
-                      className={`absolute -top-3 -right-3 sm:-top-2.5 sm:-right-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 ${isSelected ? 'border-brand scale-115 shadow-md ring-2 ring-brand/40' : 'border-stone-700 shadow-xs'
-                        } rounded-full cursor-nesw-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none`}
-                      title="Drag to resize"
-                    >
-                      <div className={`w-2 h-2 sm:w-1.5 sm:h-1.5 ${isSelected ? 'bg-brand' : 'bg-stone-700'} rounded-full`} />
-                    </div>
+                        <div
+                          onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'tr')}
+                          className="absolute -top-3 -right-3 sm:-top-2.5 sm:-right-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 border-brand scale-115 shadow-md ring-2 ring-brand/40 rounded-full cursor-nesw-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none"
+                          title="Drag to resize"
+                        >
+                          <div className="w-2 h-2 sm:w-1.5 sm:h-1.5 bg-brand rounded-full" />
+                        </div>
 
-                    <div
-                      onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'bl')}
-                      className={`absolute -bottom-3 -left-3 sm:-bottom-2.5 sm:-left-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 ${isSelected ? 'border-brand scale-115 shadow-md ring-2 ring-brand/40' : 'border-stone-700 shadow-xs'
-                        } rounded-full cursor-nesw-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none`}
-                      title="Drag to resize"
-                    >
-                      <div className={`w-2 h-2 sm:w-1.5 sm:h-1.5 ${isSelected ? 'bg-brand' : 'bg-stone-700'} rounded-full`} />
-                    </div>
+                        <div
+                          onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'bl')}
+                          className="absolute -bottom-3 -left-3 sm:-bottom-2.5 sm:-left-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 border-brand scale-115 shadow-md ring-2 ring-brand/40 rounded-full cursor-nesw-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none"
+                          title="Drag to resize"
+                        >
+                          <div className="w-2 h-2 sm:w-1.5 sm:h-1.5 bg-brand rounded-full" />
+                        </div>
 
-                    <div
-                      onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'br')}
-                      className={`absolute -bottom-3 -right-3 sm:-bottom-2.5 sm:-right-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 ${isSelected ? 'border-brand scale-115 shadow-md ring-2 ring-brand/40' : 'border-stone-700 shadow-xs'
-                        } rounded-full cursor-nwse-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none`}
-                      title="Drag to resize"
-                    >
-                      <div className={`w-2 h-2 sm:w-1.5 sm:h-1.5 ${isSelected ? 'bg-brand' : 'bg-stone-700'} rounded-full`} />
-                    </div>
+                        <div
+                          onPointerDown={(e) => handlePointerDown(e, item, 'resize', 'br')}
+                          className="absolute -bottom-3 -right-3 sm:-bottom-2.5 sm:-right-2.5 w-6 h-6 sm:w-5 sm:h-5 bg-white border-2 border-brand scale-115 shadow-md ring-2 ring-brand/40 rounded-full cursor-nwse-resize z-30 flex items-center justify-center hover:scale-125 transition-transform touch-none"
+                          title="Drag to resize"
+                        >
+                          <div className="w-2 h-2 sm:w-1.5 sm:h-1.5 bg-brand rounded-full" />
+                        </div>
+                      </>
+                    )}
                   </div>
                 )
               })}

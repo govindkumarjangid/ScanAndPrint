@@ -11,7 +11,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   reconnectSocket: () => ipcRenderer.invoke('reconnect-socket'),
   minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
   exitApp: () => ipcRenderer.invoke('exit-app'),
-  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   onStatusUpdate: (callback) => ipcRenderer.on('agent-status-update', (event, data) => callback(data)),
   onIncomingJob: (callback) => ipcRenderer.on('incoming-job', (event, data) => callback(data)),
+  onCounterOrder: (callback) => ipcRenderer.on('counter-order-data', (event, data) => callback(data)),
+  getCounterOrder: () => ipcRenderer.invoke('get-counter-order'),
+  approveCounterOrder: (jobId) => ipcRenderer.invoke('approve-counter-order', jobId),
+  denyCounterOrder: (jobId) => ipcRenderer.invoke('deny-counter-order', jobId),
 })

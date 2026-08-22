@@ -1,23 +1,34 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, AlertCircle, Store, RefreshCw, ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { AlertCircle, Store, RefreshCw, ArrowLeft } from 'lucide-react'
 
 import KioskHeader from '../../components/kiosk/KioskHeader'
 import FileUploadStage from '../../components/kiosk/FileUploadStage'
 import ImageCropModal from '../../components/kiosk/ImageCropModal'
+import ImageEditorModal from '../../components/kiosk/ImageEditorModal'
 import PrintOptionsStage from '../../components/kiosk/PrintOptionsStage'
 import PaymentStage from '../../components/kiosk/PaymentStage'
 import PrintTrackingStage from '../../components/kiosk/PrintTrackingStage'
 import { useKioskStore } from '../../store/useKioskStore'
 import { getExactPageCount } from '../../lib/pdfUtil'
 import { getSocket } from '../../lib/socket'
+import KioskSkeleton from '../../components/skeleton/KioskSkeleton'
 
 export default function CustomerKiosk() {
   const { shopCode: paramShopCode } = useParams()
   const shopCode = paramShopCode || 'DEMO_SHOP'
 
-  const { shopInfo: storeShopInfo, isLoadingShop, error, fetchShopInfo, resetJobFlow } = useKioskStore()
+  const {
+    shopInfo: storeShopInfo,
+    isLoadingShop,
+    error,
+    tempId,
+    isPreUploading,
+    preUploadFile,
+    fetchShopInfo,
+    resetJobFlow,
+  } = useKioskStore()
 
   const [shopInfo, setShopInfo] = useState(storeShopInfo)
   const [step, setStep] = useState(1)
@@ -32,6 +43,7 @@ export default function CustomerKiosk() {
   const [isDuplex, setIsDuplex] = useState(false)
   const [customerPhone, setCustomerPhone] = useState('')
   const [cropModalOpen, setCropModalOpen] = useState(false)
+  const [editorModalOpen, setEditorModalOpen] = useState(false)
 
   useEffect(() => {
     fetchShopInfo(shopCode).then((info) => {
@@ -45,13 +57,20 @@ export default function CustomerKiosk() {
     }
   }, [storeShopInfo])
 
-  // Live Socket.IO Synchronization for Printer Online Status
+  // Live Socket.IO Synchronization for Printer Online Status & Real-time Kiosk Events
   useEffect(() => {
     const socket = getSocket()
     if (!socket || !shopCode) return
 
-    const room = `shop:${shopCode}`
-    socket.emit('JOIN_KIOSK', { shopCode })
+    const joinKioskRoom = () => {
+      socket.emit('JOIN_KIOSK', { shopCode })
+      socket.emit('JOIN_SHOP_DASHBOARD', { shopCode })
+    }
+
+    if (socket.connected) {
+      joinKioskRoom()
+    }
+    socket.on('connect', joinKioskRoom)
 
     const handleStatusChange = (data) => {
       if (data && data.shopCode === shopCode) {
@@ -59,17 +78,55 @@ export default function CustomerKiosk() {
       }
     }
 
+    const handleShopStatus = (data) => {
+      if (data && String(data.shopCode).toUpperCase() === String(shopCode).toUpperCase()) {
+        setShopInfo((prev) => (prev ? { ...prev, isSuspended: Boolean(data.isSuspended) } : prev))
+      }
+    }
+
+    const handleRatesUpdated = (data) => {
+      if (data && String(data.shopCode).toUpperCase() === String(shopCode).toUpperCase()) {
+        setShopInfo((prev) =>
+          prev ? { ...prev, bwRate: data.bwRate, colorRate: data.colorRate } : prev
+        )
+      }
+    }
+
+    const handlePaymentSettings = (data) => {
+      if (data && String(data.shopCode).toUpperCase() === String(shopCode).toUpperCase()) {
+        setShopInfo((prev) =>
+          prev
+            ? {
+                ...prev,
+                paymentSettings: data.paymentSettings,
+                upiId: data.upiId || data.paymentSettings?.upiId || '',
+              }
+            : prev
+        )
+      }
+    }
+
     socket.on('AGENT_STATUS_CHANGE', handleStatusChange)
+    socket.on('SHOP_STATUS_UPDATED', handleShopStatus)
+    socket.on('SHOP_RATES_UPDATED', handleRatesUpdated)
+    socket.on('PAYMENT_SETTINGS_UPDATED', handlePaymentSettings)
 
     return () => {
       socket.off('AGENT_STATUS_CHANGE', handleStatusChange)
+      socket.off('SHOP_STATUS_UPDATED', handleShopStatus)
+      socket.off('SHOP_RATES_UPDATED', handleRatesUpdated)
+      socket.off('PAYMENT_SETTINGS_UPDATED', handlePaymentSettings)
     }
   }, [shopCode])
 
-  // Exact PDF Page Count Detection
+  // Exact PDF Page Count Detection & Instant Optimistic Pre-Upload
   const handleFileSelect = async (file) => {
     setSelectedFile(file)
     setIsAnalyzingPdf(true)
+
+    // Trigger non-blocking optimistic pre-upload immediately in background
+    preUploadFile(file)
+
     try {
       const realCount = await getExactPageCount(file)
       setTotalDocPages(realCount)
@@ -92,6 +149,59 @@ export default function CustomerKiosk() {
   const handleSaveEditedImage = (editedFile) => {
     setSelectedFile(editedFile)
     setCropModalOpen(false)
+    // Pre-upload edited crop
+    preUploadFile(editedFile)
+  }
+
+  // Suspended Shop State Screen
+  if (shopInfo?.isSuspended) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex flex-col justify-between p-4 font-sans text-stone-800">
+        <header className="max-w-md w-full mx-auto flex items-center justify-between py-2">
+          <Link to="/" className="inline-block">
+            <span className="text-xl font-black tracking-tight text-stone-900 font-heading">
+              Scan<span className="text-brand">&</span>Print
+            </span>
+          </Link>
+        </header>
+
+        <main className="max-w-md w-full mx-auto my-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl p-7 border border-rose-200 shadow-xl flex flex-col items-center text-center gap-5"
+          >
+            <div className="w-16 h-16 rounded-3xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500">
+              <AlertCircle className="w-8 h-8 stroke-[2.2]" />
+            </div>
+
+            <div>
+              <div className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-rose-100 text-rose-700 mb-2">
+                <AlertCircle className="w-3.5 h-3.5" /> Service Temporarily Paused
+              </div>
+              <h2 className="text-2xl font-extrabold text-stone-900 font-heading">
+                Shop Suspended
+              </h2>
+              <p className="text-stone-500 text-xs sm:text-sm mt-2 leading-relaxed font-medium">
+                This print kiosk for <strong className="text-stone-800">{shopInfo?.shopName || shopCode}</strong> is temporarily unavailable or suspended. Please contact the shopkeeper.
+              </p>
+            </div>
+
+            <div className="w-full pt-2">
+              <Link to="/" className="w-full">
+                <button className="btn btn-primary w-full flex items-center justify-center gap-2 py-3 text-xs font-bold">
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
+                </button>
+              </Link>
+            </div>
+          </motion.div>
+        </main>
+
+        <footer className="text-center text-xs font-semibold text-stone-400 py-4">
+          Powered by <span className="text-stone-700 font-extrabold">Scan&Print</span>
+        </footer>
+      </div>
+    )
   }
 
   const ratePerPage = colorType === 'COLOR' ? (shopInfo?.colorRate ?? 10) : (shopInfo?.bwRate ?? 5)
@@ -108,6 +218,10 @@ export default function CustomerKiosk() {
     formData.append('colorType', colorType)
     formData.append('copies', String(copies))
     formData.append('isDuplex', String(isDuplex))
+
+    if (tempId) {
+      formData.append('tempId', tempId)
+    }
 
     if (selectedFile) {
       formData.append('file', selectedFile, selectedFile.name || 'document.pdf')
@@ -131,19 +245,7 @@ export default function CustomerKiosk() {
 
   // Loading state
   if (isLoadingShop && !shopInfo) {
-    return (
-      <div className="min-h-screen bg-stone-100/80 flex flex-col items-center justify-center font-sans text-stone-800 p-4">
-        <div className="bg-white p-8 rounded-3xl border border-stone-200 shadow-xl max-w-sm w-full flex flex-col items-center text-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-brand">
-            <Loader2 className="w-7 h-7 animate-spin" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-stone-900 font-heading">Connecting to Print Shop...</h2>
-            <p className="text-xs text-stone-500 mt-1 font-medium">Fetching shop details & live print pricing</p>
-          </div>
-        </div>
-      </div>
-    )
+    return <KioskSkeleton />
   }
 
   // Shop Not Found / Error State
@@ -256,7 +358,9 @@ export default function CustomerKiosk() {
             selectedFile={selectedFile}
             totalPages={totalDocPages}
             isAnalyzingPdf={isAnalyzingPdf}
+            isPreUploading={isPreUploading}
             onFileSelect={handleFileSelect}
+            onOpenImageEditor={() => setEditorModalOpen(true)}
             onOpenCropModal={() => setCropModalOpen(true)}
             onProceed={() => setStep(2)}
           />
@@ -266,6 +370,7 @@ export default function CustomerKiosk() {
         {step === 2 && (
           <PrintOptionsStage
             shopInfo={shopInfo}
+            selectedFile={selectedFile}
             colorType={colorType}
             setColorType={setColorType}
             copies={copies}
@@ -282,6 +387,8 @@ export default function CustomerKiosk() {
             selectedPagesCount={selectedPagesCount}
             setSelectedPagesCount={setSelectedPagesCount}
             totalAmount={totalAmount}
+            onOpenImageEditor={() => setEditorModalOpen(true)}
+            onOpenCropModal={() => setCropModalOpen(true)}
             onBack={() => setStep(1)}
             onProceedToPayment={() => setStep(3)}
           />
@@ -317,7 +424,19 @@ export default function CustomerKiosk() {
         )}
       </main>
 
-      {/* In-App Image Cropper Modal */}
+      {/* 1. Precision Image Crop & Rotate Editor Modal */}
+      <ImageEditorModal
+        imageFile={selectedFile && selectedFile.type?.startsWith('image/') ? selectedFile : null}
+        isOpen={editorModalOpen}
+        onClose={() => setEditorModalOpen(false)}
+        onSave={(editedFile) => {
+          setSelectedFile(editedFile)
+          setEditorModalOpen(false)
+          preUploadFile(editedFile)
+        }}
+      />
+
+      {/* 2. Aadhaar / Multi-Image A4 Layout Cropper Modal */}
       <ImageCropModal
         imageFile={selectedFile && selectedFile.type?.startsWith('image/') ? selectedFile : null}
         isOpen={cropModalOpen}

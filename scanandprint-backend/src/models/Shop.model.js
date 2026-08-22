@@ -138,6 +138,7 @@ const shopSchema = new mongoose.Schema(
       razorpayKeyId: { type: String, default: '' },
       razorpayKeySecret: { type: String, default: '' }, // bcrypt hashed
       isRazorpayConfigured: { type: Boolean, default: false },
+      upiId: { type: String, default: '', trim: true },
     },
     reviews: [
       {
@@ -156,6 +157,11 @@ const shopSchema = new mongoose.Schema(
     lastHeartbeatAt: {
       type: Date,
       default: null,
+    },
+    isSuspended: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
   },
   {

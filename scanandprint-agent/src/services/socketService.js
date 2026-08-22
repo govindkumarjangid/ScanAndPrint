@@ -1,22 +1,85 @@
 import { io } from 'socket.io-client'
 import os from 'os'
+import https from 'https'
 import configStore from '../store/configStore.js'
 import printService from './printService.js'
 import printerManager from './printerManager.js'
+import { getDeviceFingerprint, getAccuratePhysicalIp } from './deviceFingerprint.js'
 
-// Extract active local network IPv4 address
+// Extract active local physical network IPv4 address (filters out virtual VMware, VirtualBox, WSL, Hyper-V adapters)
 function getRealLocalIp() {
   try {
     const interfaces = os.networkInterfaces()
+    const virtualKeywords = [
+      'vmware', 'virtualbox', 'vbox', 'vethernet', 'wsl', 'hyper-v',
+      'loopback', 'pseudo', 'teredo', 'isatap', 'tunnel', 'tap', 'tun',
+      'npcap', 'pcap', 'bluetooth', 'tailscale', 'zerotier', 'wireguard',
+      'vmnet'
+    ]
+
+    const candidates = []
+
     for (const name of Object.keys(interfaces)) {
+      const lowerName = name.toLowerCase()
+      const isVirtual = virtualKeywords.some((kw) => lowerName.includes(kw))
+
       for (const net of interfaces[name]) {
-        if (net.family === 'IPv4' && !net.internal && net.address !== '127.0.0.1') {
-          return net.address
+        if (net.family === 'IPv4' && !net.internal && net.address && net.address !== '127.0.0.1') {
+          // Avoid APIPA autoconfiguration subnet (169.254.x.x) and common host-only subnet ranges
+          if (!net.address.startsWith('169.254.')) {
+            const isPhysical = lowerName.includes('wi-fi') || lowerName.includes('wifi') || lowerName.includes('ethernet') || lowerName.includes('wlan') || lowerName.includes('eth') || lowerName.includes('en') || lowerName.includes('local area connection')
+            candidates.push({
+              name,
+              address: net.address,
+              isVirtual,
+              isPhysical,
+            })
+          }
         }
       }
     }
+
+    // 1. Primary Priority: Active Physical Adapter (Wi-Fi / Ethernet)
+    const physical = candidates.find((c) => !c.isVirtual && c.isPhysical)
+    if (physical) return physical.address
+
+    // 2. Secondary Priority: Any non-virtual adapter
+    const nonVirtual = candidates.find((c) => !c.isVirtual)
+    if (nonVirtual) return nonVirtual.address
+
+    // 3. Fallback
+    if (candidates.length > 0) return candidates[0].address
   } catch (e) {}
   return '127.0.0.1'
+}
+
+// Quick async fetch for public IP with 1.5s timeout
+async function fetchPublicIp() {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 1500)
+    try {
+      https.get('https://api.ipify.org?format=json', { timeout: 1500 }, (res) => {
+        let raw = ''
+        res.on('data', (chunk) => { raw += chunk })
+        res.on('end', () => {
+          clearTimeout(timer)
+          try {
+            const json = JSON.parse(raw)
+            if (json?.ip) resolve(json.ip)
+            else resolve(null)
+          } catch {
+            resolve(null)
+          }
+        })
+      }).on('error', () => {
+        clearTimeout(timer)
+        resolve(null)
+      })
+    } catch {
+      clearTimeout(timer)
+      resolve(null)
+    }
+  })
 }
 
 class SocketService {
@@ -25,6 +88,14 @@ class SocketService {
     this.isConnected = false
     this.statusListeners = []
     this.hasLoggedOffline = false
+    this.counterPopupHandler = null
+    this.heldJobs = new Map()
+    this.deviceInfo = null
+    this.approvalPollTimer = null
+  }
+
+  setCounterPopupHandler(handler) {
+    this.counterPopupHandler = handler
   }
 
   onStatusChange(callback) {
@@ -35,7 +106,44 @@ class SocketService {
     this.statusListeners.forEach((cb) => cb(status, details))
   }
 
-  connect() {
+  stopApprovalPolling() {
+    if (this.approvalPollTimer) {
+      clearInterval(this.approvalPollTimer)
+      this.approvalPollTimer = null
+    }
+  }
+
+  startApprovalPolling(targetServerUrl, shopId, fingerprint) {
+    if (this.approvalPollTimer || !fingerprint) return
+
+    console.log(`[SocketService] ⏳ Starting auto-approval polling for PC fingerprint (${fingerprint.slice(0, 12)}...)...`)
+    this.approvalPollTimer = setInterval(async () => {
+      try {
+        const cleanServer = targetServerUrl.replace(/\/+$/, '')
+        const checkUrl = `${cleanServer}/api/devices/check-status?shopCode=${encodeURIComponent(shopId)}&fingerprint=${encodeURIComponent(fingerprint)}`
+        
+        const res = await fetch(checkUrl)
+        const json = await res.json()
+        
+        if (json?.success && json?.data?.isApproved) {
+          console.log(`[SocketService] 🎉 PC Device APPROVED by Shop Owner! Establishing live connection...`)
+          this.stopApprovalPolling()
+          this.connect()
+        } else if (json?.data?.status === 'REJECTED' || json?.data?.status === 'REVOKED') {
+          console.warn(`[SocketService] ❌ PC Device request was ${json.data.status}`)
+          this.stopApprovalPolling()
+          this.notifyStatusChange('DEVICE_REVOKED', {
+            message: `This PC was ${json.data.status.toLowerCase()} by the Shop Owner.`,
+            shopId,
+          })
+        }
+      } catch (err) {
+        // Silent network retry
+      }
+    }, 4000)
+  }
+
+  async connect() {
     const config = configStore.getAll()
     const { shopId, secretKey, serverUrl } = config
 
@@ -46,8 +154,11 @@ class SocketService {
       return
     }
 
-    const targetServerUrl = serverUrl || 'https://scanandprint.onrender.com'
-    console.log(`[SocketService] Target Cloud Server: ${targetServerUrl} (Shop: ${shopId})`)
+    let targetServerUrl = serverUrl || 'http://localhost:5000'
+    if (targetServerUrl === 'https://scanandprint.onrender.com') {
+      targetServerUrl = 'http://localhost:5000'
+    }
+    console.log(`[SocketService] Target Server: ${targetServerUrl} (Shop: ${shopId})`)
 
     if (this.socket) {
       this.socket.disconnect()
@@ -55,11 +166,21 @@ class SocketService {
 
     this.hasLoggedOffline = false
 
+    // 1. Generate multi-signal SHA-256 hardware device fingerprint
+    try {
+      this.deviceInfo = await getDeviceFingerprint()
+    } catch (err) {
+      console.error('[SocketService] Hardware fingerprint error:', err)
+      this.deviceInfo = { fingerprint: 'FALLBACK_FINGERPRINT_' + shopId, meta: {} }
+    }
+
     this.socket = io(targetServerUrl, {
       auth: {
         shopId: shopId.trim(),
         secretKey: secretKey.trim(),
         agentType: 'DESKTOP_WIN_AGENT',
+        deviceFingerprint: this.deviceInfo.fingerprint,
+        deviceMeta: this.deviceInfo.meta,
       },
       reconnection: true,
       reconnectionAttempts: Infinity,
@@ -69,7 +190,8 @@ class SocketService {
     })
 
     this.socket.on('connect', async () => {
-      console.log(`[SocketService] 🟢 Connected! Socket ID: ${this.socket.id}`)
+      console.log(`[SocketService] 🟢 Connected & Authorized! Socket ID: ${this.socket.id}`)
+      this.stopApprovalPolling()
       
       // Auto detect installed printers on this PC and register with Cloud Server
       let availablePrinters = []
@@ -83,7 +205,13 @@ class SocketService {
       // Detect Real OS Info & Live System Telemetry
       const platformName = process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux'
       const osPlatform = `${platformName} ${os.release()} (${process.arch}) - ${os.hostname()}`
-      const realLocalIp = getRealLocalIp()
+      const realLocalIp = await getAccuratePhysicalIp()
+      let publicWanIp = null
+      try {
+        publicWanIp = await fetchPublicIp()
+      } catch (e) {}
+
+      const effectiveIp = realLocalIp || publicWanIp || '127.0.0.1'
       
       // Emit handshake with detected printers and real live system info
       this.socket.emit('AGENT_REGISTER', { 
@@ -93,14 +221,27 @@ class SocketService {
         osArch: `${process.platform} (${process.arch})`,
         platform: process.platform,
         osPlatform,
-        ipAddress: realLocalIp,
+        ipAddress: effectiveIp,
+        localIp: realLocalIp,
+        publicIp: publicWanIp,
         hostname: os.hostname(),
         printers: availablePrinters,
+        deviceFingerprint: this.deviceInfo.fingerprint,
+        deviceMeta: {
+          ...this.deviceInfo.meta,
+          ipAddress: effectiveIp,
+          localIp: realLocalIp,
+        },
       })
       
       this.isConnected = true
       this.hasLoggedOffline = false
-      this.notifyStatusChange('CONNECTED', { socketId: this.socket.id, shopId })
+      this.notifyStatusChange('CONNECTED', { 
+        socketId: this.socket.id, 
+        shopId,
+        deviceFingerprint: this.deviceInfo.fingerprint,
+        hostname: os.hostname(),
+      })
 
       // Fetch queued jobs for offline sync recovery
       this.fetchQueuedJobs(targetServerUrl, shopId.trim(), secretKey.trim())
@@ -139,7 +280,49 @@ class SocketService {
           printers,
         })
       } catch (err) {
-        console.error('[SocketService] Failed to rescan printers:', err.message)
+        console.error('[SocketService] Failed to rescan printers on remote request:', err.message)
+      }
+    })
+
+    // Remote Print Cancel Event
+    this.socket.on('CANCEL_HELD_JOB', (data) => {
+      const jobId = data?.jobId
+      if (jobId && this.heldJobs.has(jobId)) {
+        this.heldJobs.delete(jobId)
+        console.log(`[SocketService] 🗑️ Held Job #${jobId} cancelled remotely by owner.`)
+      }
+    })
+
+    this.socket.on('AGENT_AUTH_ERROR', (data) => {
+      console.error(`[SocketService] ⛔ Authentication Refused: ${data?.message}`)
+      this.isConnected = false
+      this.notifyStatusChange('DISCONNECTED', { error: data?.message || 'Authentication error' })
+    })
+
+    this.socket.on('FORCE_SHOP_LOGOUT', (data) => {
+      console.warn(`[SocketService] 🚨 Force Logout Signal: ${data?.reason}`)
+      this.isConnected = false
+      this.notifyStatusChange('DISCONNECTED', { error: data?.reason || 'Account suspended' })
+      this.disconnect()
+    })
+
+    this.socket.on('AGENT_KICKED', (data) => {
+      console.warn(`[SocketService] 🚨 Agent Kicked by Server:`, data?.reason)
+      this.isConnected = false
+      this.stopApprovalPolling()
+      this.notifyStatusChange('DEVICE_REVOKED', {
+        message: data?.reason || 'Another PC was approved for this shop. This device has been unlinked.',
+        kicked: true,
+      })
+      this.disconnect()
+    })
+
+    this.socket.on('SHOP_STATUS_UPDATED', (data) => {
+      if (data?.isSuspended) {
+        console.warn(`[SocketService] 🚨 Shop Suspended via live update:`, data)
+        this.isConnected = false
+        this.notifyStatusChange('DISCONNECTED', { error: 'Shop account suspended' })
+        this.disconnect()
       }
     })
 
@@ -151,21 +334,75 @@ class SocketService {
 
     this.socket.on('connect_error', (err) => {
       this.isConnected = false
+      const errorMsg = String(err?.message || '')
+
+      if (errorMsg === 'DEVICE_NOT_APPROVED') {
+        console.warn(`[SocketService] 🔒 Device is PENDING_APPROVAL. Waiting for Shop Owner approval from Dashboard...`)
+        this.notifyStatusChange('DEVICE_NOT_APPROVED', {
+          message: 'Device Approval Required: Please approve this PC from your Shop Owner Dashboard (Devices section).',
+          shopId,
+          fingerprint: this.deviceInfo?.fingerprint,
+          hostname: this.deviceInfo?.meta?.hostname || os.hostname(),
+        })
+        this.startApprovalPolling(targetServerUrl, shopId.trim(), this.deviceInfo?.fingerprint)
+        return
+      }
+
+      if (errorMsg === 'DEVICE_MISMATCH' || errorMsg === 'DEVICE_REVOKED') {
+        console.warn(`[SocketService] 🔒 Device binding error: ${errorMsg}`)
+        this.stopApprovalPolling()
+        this.notifyStatusChange('DEVICE_REVOKED', {
+          message: 'This PC is not authorized or was revoked by the Shop Owner.',
+          shopId,
+          fingerprint: this.deviceInfo?.fingerprint,
+        })
+        return
+      }
+
+      if (errorMsg === 'INVALID_SHOP_CREDENTIALS') {
+        this.stopApprovalPolling()
+        this.notifyStatusChange('AUTH_ERROR', {
+          message: 'Invalid Shop ID or Secret Key. Please reconfigure.',
+          shopId,
+        })
+        return
+      }
+
       if (!this.hasLoggedOffline) {
-        console.log(`[SocketService] 🟡 Server offline (${targetServerUrl}). Waiting for server...`)
+        console.log(`[SocketService] 🟡 Server connection issue (${errorMsg || 'Server offline'}). Retrying...`)
         this.hasLoggedOffline = true
       }
-      this.notifyStatusChange('DISCONNECTED', { error: 'Server offline' })
+      this.notifyStatusChange('DISCONNECTED', { error: errorMsg || 'Server offline' })
     })
 
-    // Real-time Print Job Dispatch Event: Auto-Print Immediately to Hardware Spooler!
+    // Real-time Print Job Dispatch Event
     this.socket.on('PRINT_JOB_DISPATCH', async (jobData) => {
       const jobId = jobData?.jobId
-      console.log(`[SocketService] 🖨️ Auto-Printing Job #${jobId} directly (Zero-Click Auto Print)...`)
-
       if (jobId) {
         this.heldJobs.set(jobId, jobData)
       }
+
+      console.log(`[SocketService] 📩 Received PRINT_JOB_DISPATCH for Job #${jobId}:`, {
+        paymentMethod: jobData?.paymentMethod,
+        totalAmount: jobData?.totalAmount,
+        originalFileName: jobData?.originalFileName,
+      })
+
+      const paymentMethod = String(jobData?.paymentMethod || '').toUpperCase().trim()
+      const isAutoOnlineGateway = paymentMethod === 'RAZORPAY' || paymentMethod === 'ONLINE_GATEWAY' || paymentMethod === 'DEMO_BYPASS'
+      const isCounterOrder = !isAutoOnlineGateway
+
+      // If Counter / Cash / UPI QR: Show bottom-right native confirmation popup and wait for shopkeeper approval
+      if (isCounterOrder) {
+        console.log(`[SocketService] 💵 Counter/Cash Order #${jobId} (Method: ${paymentMethod || 'COUNTER'}) -> Opening approval popup window...`)
+        if (typeof this.counterPopupHandler === 'function') {
+          this.counterPopupHandler(jobData)
+        }
+        return
+      }
+
+      // If Razorpay Verified Gateway: Auto-Print directly to Hardware Spooler (Zero-Click Auto Print)
+      console.log(`[SocketService] 🖨️ Auto-Printing Verified Gateway Job #${jobId} directly...`)
 
       try {
         const result = await printService.executePrintJob(jobData)
@@ -249,25 +486,14 @@ class SocketService {
       if (response.data && response.data.data && response.data.data.jobs) {
         const queuedJobs = response.data.data.jobs
         if (queuedJobs.length > 0) {
-          console.log(`[SocketService] Recovered ${queuedJobs.length} queued jobs`)
+          console.log(`[SocketService] Synced ${queuedJobs.length} queued job(s) from server`)
           for (const job of queuedJobs) {
-            // Re-emit internally
-            this.socket.emit('PRINT_JOB_DISPATCH', {
-              jobId: job.jobId,
-              shopCode: job.shopCode,
-              fileUrl: job.fileUrl,
-              originalFileName: job.originalFileName,
-              totalPages: job.totalPages,
-              colorType: job.colorType,
-              copies: job.copies,
-              isDuplex: job.isDuplex,
-              totalAmount: job.totalAmount,
-            })
+            this.heldJobs.set(job.jobId, job)
           }
         }
       }
     } catch (err) {
-      console.error('[SocketService] Failed to fetch queued jobs:', err.message)
+      console.warn('[SocketService] Queued jobs sync note:', err.message)
     }
   }
 }

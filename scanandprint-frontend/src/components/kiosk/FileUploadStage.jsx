@@ -12,13 +12,16 @@ import {
   Loader2,
   FileCheck2,
   Image as ImageIcon,
+  CheckCircle2,
 } from 'lucide-react'
 
 export default function FileUploadStage({
   selectedFile,
   totalPages,
   isAnalyzingPdf,
+  isPreUploading,
   onFileSelect,
+  onOpenImageEditor,
   onOpenCropModal,
   onProceed,
 }) {
@@ -160,32 +163,39 @@ export default function FileUploadStage({
         </div>
       </div>
 
-      {/* Selected File Details Card */}
+      {/* Selected File Details Card (Fully Responsive & Wrap-Safe) */}
       {selectedFile && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-3xl p-4 sm:p-5 border border-stone-200 shadow-md flex flex-col gap-3"
+          className="bg-white rounded-3xl p-3.5 sm:p-5 border border-stone-200 shadow-md flex flex-col gap-3"
         >
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-brand flex items-center justify-center shrink-0 font-bold text-xs shadow-xs">
+          <div className="flex items-center justify-between gap-2.5 sm:gap-3.5">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-brand flex items-center justify-center shrink-0 font-bold text-xs shadow-xs">
                 {isImage ? <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6" /> : <FileText className="w-5 h-5 sm:w-6 sm:h-6" />}
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="font-extrabold text-xs sm:text-sm text-stone-900 truncate">
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="font-extrabold text-xs sm:text-sm text-stone-900 truncate" title={selectedFile.name}>
                   {selectedFile.name}
                 </span>
-                <div className="flex items-center gap-2 text-[11px] text-stone-500 font-semibold mt-0.5">
-                  <span>{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                  <span>·</span>
+                <div className="flex flex-wrap items-center gap-1.5 mt-0.5 sm:mt-1">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-stone-600 whitespace-nowrap bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200/80">
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </span>
                   {isAnalyzingPdf ? (
-                    <span className="inline-flex items-center gap-1 text-brand font-bold">
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-brand font-extrabold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 whitespace-nowrap">
                       <Loader2 className="w-3 h-3 animate-spin" /> Counting Pages...
                     </span>
                   ) : (
-                    <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                      {totalPages} {totalPages === 1 ? 'Page' : 'Pages'} Detected
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 whitespace-nowrap">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                      {totalPages} {totalPages === 1 ? 'Page' : 'Pages'}
+                    </span>
+                  )}
+                  {isPreUploading && (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200 whitespace-nowrap">
+                      <Loader2 className="w-2.5 h-2.5 animate-spin" /> Pre-caching...
                     </span>
                   )}
                 </div>
@@ -196,23 +206,43 @@ export default function FileUploadStage({
               type="button"
               onClick={onProceed}
               disabled={isAnalyzingPdf}
-              className="btn btn-primary px-4 sm:px-5 py-2.5 sm:py-3 shadow-md shrink-0 flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              className="btn btn-primary px-4 sm:px-5 py-2.5 sm:py-3 shadow-md shrink-0 flex items-center justify-center gap-1.5 text-xs font-extrabold cursor-pointer disabled:opacity-50"
             >
-              <span>Next</span>
-              <ArrowRight className="w-4 h-4" />
+              {isAnalyzingPdf ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span className="hidden sm:inline">Checking...</span>
+                </>
+              ) : (
+                <>
+                  <span>Next</span>
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </>
+              )}
             </button>
           </div>
 
-          {/* Edit / Aadhaar Card Layout Button if file is an image */}
+          {/* Image Action Buttons (Crop & Adjust / Aadhaar Layout) */}
           {isImage && (
-            <button
-              type="button"
-              onClick={onOpenCropModal}
-              className="btn btn-outline w-full text-brand! bg-rose-50/70! hover:bg-rose-100! border-rose-200! flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-2xl cursor-pointer shadow-2xs transition-all"
-            >
-              <Crop className="w-4 h-4 text-brand" />
-              <span>Aadhaar Layout / Add 2nd Side / Resize Page</span>
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={onOpenImageEditor}
+                className="btn btn-outline w-full text-brand! bg-rose-50/80! hover:bg-rose-100! border-rose-200! flex items-center justify-center gap-2 text-xs font-extrabold py-2.5 rounded-2xl cursor-pointer shadow-2xs transition-all"
+              >
+                <Crop className="w-4 h-4 text-brand" />
+                <span>✂️ Crop & Adjust Image</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onOpenCropModal}
+                className="btn btn-outline w-full text-stone-700! bg-stone-50! hover:bg-stone-100! border-stone-200! flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-2xl cursor-pointer shadow-2xs transition-all"
+              >
+                <FileCheck2 className="w-4 h-4 text-emerald-600" />
+                <span>📄 Aadhaar / 2nd Side Layout</span>
+              </button>
+            </div>
           )}
         </motion.div>
       )}

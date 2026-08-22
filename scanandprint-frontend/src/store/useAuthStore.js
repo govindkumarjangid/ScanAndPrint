@@ -305,12 +305,20 @@ export const useAuthStore = create((set, get) => ({
       const res = await api.get('/auth/me')
       if (res.data.success && res.data.data?.shop) {
         const shop = res.data.data.shop
+        if (shop.isSuspended) {
+          toast.error('⚠️ Your shop account has been suspended by Administrator.', { id: 'susp-logout' })
+          get().logout()
+          return null
+        }
         localStorage.setItem('shopData', JSON.stringify(shop))
         set({ currentShop: shop, isAuthenticated: true })
         return shop
       }
     } catch (error) {
-      if (error.response?.status === 401 && !localStorage.getItem('shopData')) {
+      if (error.response?.status === 403 && String(error.response?.data?.message || '').toLowerCase().includes('suspend')) {
+        toast.error('⚠️ Your shop account has been suspended by Administrator.', { id: 'susp-logout' })
+        get().logout()
+      } else if (error.response?.status === 401 && !localStorage.getItem('shopData')) {
         set({ currentShop: null, isAuthenticated: false })
       }
     } finally {

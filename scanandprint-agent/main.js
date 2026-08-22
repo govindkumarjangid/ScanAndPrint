@@ -1,9 +1,10 @@
-import { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, shell } from 'electron'
+import { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, shell, screen } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
 import configStore from './src/store/configStore.js'
 import printerManager from './src/services/printerManager.js'
+import printService from './src/services/printService.js'
 import socketService from './src/services/socketService.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -12,6 +13,7 @@ const __dirname = path.dirname(__filename)
 let mainWindow = null
 let tray = null
 let agentStatus = { status: 'DISCONNECTED', details: {} }
+const counterPopupWindows = new Map()
 
 // Prevent multiple instances of the Print Agent from running simultaneously
 const gotTheLock = app.requestSingleInstanceLock()
@@ -98,6 +100,9 @@ function createMainWindow() {
       contextIsolation: true,
     },
   })
+
+  mainWindow.setMenu(null)
+  mainWindow.setMenuBarVisibility(false)
 
   mainWindow.loadFile(path.join(__dirname, 'src/ui/index.html'))
 
@@ -281,9 +286,158 @@ function setupIpcHandlers() {
   ipcMain.handle('get-app-version', () => {
     return app.getVersion() || '1.0.3'
   })
+
+  // Counter Payment Approval & Denial IPC Handlers
+  ipcMain.handle('approve-counter-order', async (event, jobId) => {
+    console.log(`[Main] ✅ Shopkeeper Approved Counter Order #${jobId}`)
+    const entry = counterPopupWindows.get(jobId)
+    const jobData = entry?.jobData || socketService.heldJobs?.get(jobId)
+
+    if (entry?.win && !entry.win.isDestroyed()) {
+      entry.win.close()
+    }
+    counterPopupWindows.delete(jobId)
+
+    if (jobData) {
+      try {
+        const result = await printService.executePrintJob(jobData)
+        if (socketService.socket && socketService.socket.connected) {
+          socketService.socket.emit('JOB_SUCCESS', {
+            jobId: jobId,
+            printedOn: result?.printedOn,
+            timestamp: result?.timestamp || new Date().toISOString(),
+          })
+        }
+        return { success: true }
+      } catch (err) {
+        console.error(`[Main] ❌ Failed to print counter job #${jobId}:`, err.message)
+        if (socketService.socket && socketService.socket.connected) {
+          socketService.socket.emit('JOB_FAILED', {
+            jobId: jobId,
+            error: err.message,
+          })
+        }
+        return { success: false, error: err.message }
+      }
+    }
+    return { success: false, error: 'Job data not found' }
+  })
+
+  ipcMain.handle('deny-counter-order', async (event, jobId) => {
+    console.log(`[Main] ❌ Shopkeeper Denied/Rejected Counter Order #${jobId}`)
+    const entry = counterPopupWindows.get(jobId)
+
+    if (entry?.win && !entry.win.isDestroyed()) {
+      entry.win.close()
+    }
+    counterPopupWindows.delete(jobId)
+
+    if (socketService.heldJobs) {
+      socketService.heldJobs.delete(jobId)
+    }
+
+    if (socketService.socket && socketService.socket.connected) {
+      socketService.socket.emit('JOB_FAILED', {
+        jobId: jobId,
+        error: 'Cancelled by Shopkeeper at Counter',
+      })
+    }
+    return { success: true }
+  })
+
+  ipcMain.handle('get-counter-order', (event) => {
+    for (const [jobId, entry] of counterPopupWindows.entries()) {
+      if (entry.win?.webContents?.id === event.sender.id) {
+        return entry.jobData
+      }
+    }
+    const entries = Array.from(counterPopupWindows.values())
+    return entries[entries.length - 1]?.jobData || null
+  })
+}
+
+// Show native bottom-right counter order popup window
+function showCounterOrderPopup(jobData) {
+  if (!jobData?.jobId) return
+
+  console.log(`[Main] 🪟 Triggering Counter Order Approval Popup for Job #${jobData.jobId}`)
+
+  // If a popup for this job is already open, focus it
+  const existing = counterPopupWindows.get(jobData.jobId)
+  if (existing?.win && !existing.win.isDestroyed()) {
+    existing.win.show()
+    existing.win.focus()
+    return
+  }
+
+  let popupWidth = 440
+  let popupHeight = 355
+  let x = 100
+  let y = 100
+
+  try {
+    const primaryDisplay = screen.getPrimaryDisplay()
+    const { width, height } = primaryDisplay.workAreaSize
+    x = Math.max(10, width - popupWidth - 25)
+    y = Math.max(10, height - popupHeight - 25)
+  } catch (sErr) {
+    console.warn('[Main] Screen geometry note:', sErr.message)
+  }
+
+  const icoPath = path.join(__dirname, 'assets/icon.ico')
+  const pngPath = path.join(__dirname, 'assets/icon.png')
+  const iconPath = fs.existsSync(icoPath) ? icoPath : pngPath
+
+  const popupWin = new BrowserWindow({
+    width: popupWidth,
+    height: popupHeight,
+    x,
+    y,
+    show: true,
+    alwaysOnTop: true,
+    resizable: false,
+    maximizable: false,
+    minimizable: true,
+    autoHideMenuBar: true,
+    skipTaskbar: false,
+    title: 'Scan&Print — Counter Order',
+    icon: iconPath,
+    backgroundColor: '#09090b',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  })
+
+  // Completely remove top menu bar (File, Edit, View, Window)
+  popupWin.setMenu(null)
+  popupWin.setMenuBarVisibility(false)
+  if (typeof popupWin.removeMenu === 'function') {
+    popupWin.removeMenu()
+  }
+
+  popupWin.loadFile(path.join(__dirname, 'src/ui/counter-popup.html'))
+
+  popupWin.webContents.on('did-finish-load', () => {
+    popupWin.show()
+    popupWin.focus()
+    popupWin.setAlwaysOnTop(true, 'screen-saver')
+    popupWin.flashFrame(true)
+    popupWin.webContents.send('counter-order-data', jobData)
+  })
+
+  popupWin.on('closed', () => {
+    counterPopupWindows.delete(jobData.jobId)
+  })
+
+  counterPopupWindows.set(jobData.jobId, { win: popupWin, jobData })
 }
 
 app.whenReady().then(() => {
+  // Disable default Electron menu bar across the entire application
+  Menu.setApplicationMenu(null)
+
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.scanandprint.agent')
     // Automatically create / guarantee Windows desktop icon on every startup
@@ -293,6 +447,11 @@ app.whenReady().then(() => {
   setupIpcHandlers()
   createMainWindow()
   setupTray()
+
+  // Register counter popup handler with socket service
+  socketService.setCounterPopupHandler((jobData) => {
+    showCounterOrderPopup(jobData)
+  })
 
   // Apply auto-start-on-boot setting (Windows/macOS)
   const { autoStartOnBoot } = configStore.getAll()

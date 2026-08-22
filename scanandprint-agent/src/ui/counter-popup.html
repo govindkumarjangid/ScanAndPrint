@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan&Print — Counter Order</title>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
+
+    :root {
+      --bg-main: #09090b;
+      --bg-card: #121113;
+      --bg-card-hover: #18171a;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #F0245C;
+      --brand: #F0245C;
+      --brand-gradient: linear-gradient(135deg, #F0245C 0%, #e11d48 100%);
+      --emerald: #10B981;
+      --emerald-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      --emerald-glow: rgba(16, 185, 129, 0.35);
+      --rose: #F43F5E;
+      --rose-gradient: linear-gradient(135deg, #F43F5E 0%, #e11d48 100%);
+      --rose-glow: rgba(244, 63, 94, 0.35);
+      --text-primary: #FAFAFA;
+      --text-secondary: #A1A1AA;
+      --text-muted: #71717A;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      justify-content: space-between;
+      overflow: hidden;
+      -webkit-app-region: drag;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .header-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 3px;
+    }
+
+    .header-icon-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .icon-badge {
+      width: 30px;
+      height: 30px;
+      background: rgba(240, 36, 92, 0.15);
+      color: var(--brand);
+      border: 1px solid rgba(240, 36, 92, 0.3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .info-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 13px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 8px 0;
+      -webkit-app-region: no-drag;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .info-row {
+      display: flex;
+      font-size: 12.5px;
+      line-height: 1.4;
+      align-items: center;
+    }
+
+    .info-label {
+      width: 75px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .info-value {
+      color: var(--text-primary);
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .amount-highlight {
+      color: var(--emerald);
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .amount-note {
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+
+    .actions-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      outline: none;
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .btn-approve {
+      background: var(--emerald-gradient);
+      box-shadow: 0 4px 14px var(--emerald-glow);
+    }
+
+    .btn-approve:hover {
+      filter: brightness(1.12);
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-deny {
+      background: var(--rose-gradient);
+      box-shadow: 0 4px 14px var(--rose-glow);
+    }
+
+    .btn-deny:hover {
+      filter: brightness(1.12);
+      box-shadow: 0 6px 18px rgba(244, 63, 94, 0.5);
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-icon-title">
+      <div class="icon-badge"><i class='bx bx-printer'></i></div>
+      <h1 class="title">Counter Payment Order</h1>
+    </div>
+    <p class="subtitle">Customer counter par cash dega — print approve karein?</p>
+  </div>
+
+  <!-- Order Details Box -->
+  <div class="info-card">
+    <div class="info-row">
+      <span class="info-label">Print</span>
+      <span class="info-value" id="val-print">⚫ B&W • 1 page (pages: 1) • 1 copy</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Amount</span>
+      <span class="info-value" id="val-amount">
+        <span class="amount-highlight">₹5</span>
+        <span class="amount-note">(counter par lena hai)</span>
+      </span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">File</span>
+      <span class="info-value" id="val-file" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #e4e4e7;">document.pdf</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Time</span>
+      <span class="info-value" id="val-time" style="color: var(--text-secondary); font-size: 12px;">--:--</span>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="actions-container">
+    <div class="button-group">
+      <button class="btn-approve" id="btn-approve" type="button">
+        <i class='bx bx-check-circle'></i>
+        <span>Approve & Print</span>
+      </button>
+      <button class="btn-deny" id="btn-deny" type="button">
+        <i class='bx bx-x-circle'></i>
+        <span>Deny</span>
+      </button>
+    </div>
+    <p class="footer-note">Deny karne par order cancel + file delete ho jayegi</p>
+  </div>
+
+  <script>
+    let currentJobId = null
+
+    // Play notification alert chime
+    function playAlertChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        const osc = audioCtx.createOscillator()
+        const gain = audioCtx.createGain()
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime) // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.12) // A5
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5)
+        osc.connect(gain)
+        gain.connect(audioCtx.destination)
+        osc.start()
+        osc.stop(audioCtx.currentTime + 0.5)
+      } catch (e) {}
+    }
+
+    // Format current time (e.g. 10:27 PM)
+    function formatTime(dateObj = new Date()) {
+      return dateObj.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      })
+    }
+
+    function renderJobData(jobData) {
+      if (!jobData) return
+      currentJobId = jobData?.jobId
+      playAlertChime()
+
+      const isColor = jobData?.colorType === 'COLOR'
+      const printTypeIcon = isColor ? '🌈 Color' : '⚫ B&W'
+      const pages = Number(jobData?.totalPages) || 1
+      const copies = Number(jobData?.copies) || 1
+      const amount = Number(jobData?.totalAmount) || 0
+      const fileName = jobData?.originalFileName || 'document.pdf'
+      const timeStr = formatTime(jobData?.createdAt ? new Date(jobData.createdAt) : new Date())
+
+      document.getElementById('val-print').textContent = `${printTypeIcon} • ${pages} page (pages: ${pages}) • ${copies} copy`
+      document.getElementById('val-amount').innerHTML = `<span class="amount-highlight">₹${amount}</span><span class="amount-note">(counter par lena hai)</span>`
+      document.getElementById('val-file').textContent = fileName
+      document.getElementById('val-time').textContent = timeStr
+    }
+
+    window.electronAPI?.onCounterOrder((jobData) => {
+      renderJobData(jobData)
+    })
+
+    // Pull immediately on load as well
+    if (window.electronAPI?.getCounterOrder) {
+      window.electronAPI.getCounterOrder().then((jobData) => {
+        if (jobData) renderJobData(jobData)
+      })
+    }
+
+    document.getElementById('btn-approve').addEventListener('click', () => {
+      document.getElementById('btn-approve').disabled = true
+      document.getElementById('btn-approve').innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Printing..."
+      window.electronAPI?.approveCounterOrder(currentJobId)
+    })
+
+    document.getElementById('btn-deny').addEventListener('click', () => {
+      document.getElementById('btn-deny').disabled = true
+      document.getElementById('btn-deny').innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Cancelling..."
+      window.electronAPI?.denyCounterOrder(currentJobId)
+    })
+
+    playAlertChime()
+  </script>
+</body>
+</html>
