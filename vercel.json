@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd scanandprint-frontend && npm install && npm run build",
+  "outputDirectory": "scanandprint-frontend/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
