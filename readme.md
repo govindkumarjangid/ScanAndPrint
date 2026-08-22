@@ -1,443 +1,462 @@
-# 🖨️ QR Se Print
+# 🖨️ Scan & Print
 
-**Smart Printing, Made Simple.**
-`Scan → Upload → Pay → Auto Print`
+> **Automated QR-Based Cloud Printing & Counter PC Hardware Spooling System**  
+> `Customer Scans QR → Uploads Document → Configures Print Settings → Pays via UPI → Auto-Printed on Counter PC in Seconds`
 
-QR Se Print is a Smart Printing Platform built for Cyber Cafes, Print/Xerox Shops, CSC Centers, and Digital Service businesses. It removes manual file handling, manual payment collection, and manual print triggering — customers scan a shop's QR code, upload a document, pay online, and the file is automatically routed to the correct printer (Black & White or Colour).
-
-Born from a real problem at a Cyber Cafe in Jharkhand (not designed in a boardroom), every feature exists because it was needed on the shop floor.
+[![React](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite%208-blue.svg)](https://vitejs.dev/)
+[![Tailwind](https://img.shields.io/badge/Styling-Tailwind%20CSS%20v4-38bdf8.svg)](https://tailwindcss.com/)
+[![Node](https://img.shields.io/badge/Backend-Node.js%20(ESM)%20%2B%20Express-green.svg)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20%2B%20Mongoose%209-brightgreen.svg)](https://www.mongodb.com/)
+[![Socket.IO](https://img.shields.io/badge/Real--Time-Socket.IO%204.8-orange.svg)](https://socket.io/)
+[![Electron](https://img.shields.io/badge/Desktop%20Agent-Electron%2035-9feaf9.svg)](https://www.electronjs.org/)
 
 ---
 
 ## 📋 Table of Contents
 
-1. [About](#about)
-2. [Core Problem & Features](#core-problem--features)
-3. [Tech Stack](#tech-stack)
-4. [System Architecture](#system-architecture)
-5. [Monorepo Structure](#monorepo-structure)
-6. [All Pages / Screens](#all-pages--screens)
-7. [Installation & Setup](#installation--setup)
-8. [Environment Variables](#environment-variables)
-9. [Core API Endpoints](#core-api-endpoints)
-10. [Real-time Events (Socket.io)](#real-time-events-socketio)
-11. [Desktop Print Agent](#desktop-print-agent)
-12. [Deployment](#deployment)
-13. [Roadmap](#roadmap)
-14. [Support](#support)
+1. [About the Project](#-about-the-project)
+2. [Why Scan & Print? (Problems Solved)](#-why-scan--print-problems-solved)
+3. [System Architecture](#-system-architecture)
+4. [Monorepo Folder Structure](#-monorepo-folder-structure)
+5. [Core Features & Modules](#-core-features--modules)
+   - [1. Customer Web Kiosk](#1-customer-web-kiosk-kioskshopcode)
+   - [2. Shop Owner Portal](#2-shop-owner-portal-owner)
+   - [3. Super Admin Portal](#3-super-admin-portal-admin)
+   - [4. Desktop Print Agent](#4-desktop-print-agent-windows-electron-app)
+   - [5. Production SEO & Static Prerendering](#5-production-seo--static-prerendering)
+6. [Tech Stack & Tools](#-tech-stack--tools)
+7. [Installation & Local Setup](#-installation--local-setup)
+8. [Environment Variables](#-environment-variables)
+9. [Core API Endpoints](#-core-api-endpoints)
+10. [Socket.IO Real-Time Events](#-socketio-real-time-events)
+11. [Hardware Device Binding & Security](#-hardware-device-binding--security)
+12. [Production Deployment](#-production-deployment)
 
 ---
 
-## About
+## 📖 About the Project
 
-QR Se Print exists so a shop owner never has to think about **hardware or complicated setup** to offer a self-service printing experience. The platform's goal is not to "sell software" — it's to make every print shop's business more professional, faster, and efficient.
+**Scan & Print** is an end-to-end cloud printing automation ecosystem designed specifically for Cyber Cafes, Print & Xerox Shops, CSC Centers, Digital Service Points, Universities, and Corporate Desks.
 
-**Who it's for:**
-- Cyber Cafes
-- Print & Xerox Shops
-- CSC Centers
-- Digital Service Centres
-- Schools & Colleges
-- Coaching Institutes
-- Libraries & Offices
-- Small & Medium printing businesses
+Traditional print shops suffer from constant friction: customers sending files via personal WhatsApp numbers, sharing virus-infected USB flash drives, arguing over pricing, and creating long queues at the counter while the operator manually downloads, opens, configures, and spools each file.
+
+**Scan & Print solves this entirely:**
+- Each print shop gets a branded **Counter QR Standee**.
+- Customers scan the QR on their smartphones, upload their documents (PDF, Word, Images), select exact print specifications (B&W / Color, Single / Double-sided, Copies, Custom Page Ranges), and pay directly via UPI.
+- The cloud server instantly dispatches the job over real-time WebSockets to the shop's **Desktop Print Agent**, which silently routes and spools the file to the connected physical printer in seconds without any manual operator intervention.
 
 ---
 
-## Core Problem & Features
+## ⚡ Why Scan & Print? (Problems Solved)
 
-### Problems it solves
-- Customers sending files over WhatsApp / carrying pendrives
-- Manual cash/payment collection at the counter
-- No automated print triggering → queues during peak hours
-- No separate routing for B&W vs Colour print jobs
-- No order or income tracking for the shop owner
-- Dependency on expensive WiFi-enabled printers
-
-### Customer-side features
-- QR-based ordering — each shop gets a unique QR code
-- Upload documents (PDF, DOCX, images, etc.)
-- Choose print options — B&W / Colour, copies, page range, paper size
-- Online payment (UPI / Cards / Netbanking)
-- **Auto-print** — no manual staff intervention needed
-- Works with **any printer** — no WiFi-printer requirement
-
-### Shop owner features
-- Owner Dashboard — orders, income, live stats
-- Separate printer selection for B&W and Colour jobs
-- Order & income management
-- Easy one-time software (Print Agent) installation
-- Secure document processing (auto-deleted after printing)
-- Regular product updates & improvements
-
-### Support model
-Direct WhatsApp support from the QR Se Print team — no third-party ticketing middlemen.
+| Traditional Print Shop Problem | Scan & Print Solution |
+| :--- | :--- |
+| **Privacy & WhatsApp Spam**: Customers need shop owner's personal number to send files. | Zero phone numbers shared. Direct in-browser upload via QR code. |
+| **Malware & Virus Risks**: USB flash drives plugged into counter PCs spread viruses. | Secure sandboxed cloud upload with automated PDF conversion & temporary file purging. |
+| **Payment Leakage & Disputes**: Operators forget to collect small change or argue over page counts. | Exact dynamic pricing calculated per page & color mode; upfront automated UPI collection. |
+| **Long Counter Queues**: Operator spends 2–4 minutes per customer downloading and opening files. | 100% silent background automated printing directly through local OS spoolers. |
+| **Printer Routing Confusion**: Operator accidentally prints B&W jobs on expensive color inkjets. | Intelligent dual-routing: B&W jobs go to B&W laser printers, Color jobs go to Color inkjets. |
+| **Credential Sharing & Theft**: Staff copying credentials to run unauthorized shops. | Cryptographic Hardware Device Binding: PC locked to authorized CPU, Motherboard & UUID. |
 
 ---
 
-## Tech Stack
+## 🏗️ System Architecture
 
-### Recommended: **MERN** (MongoDB, Express.js, React, Node.js)
+```mermaid
+flowchart TD
+    subgraph Customer["📱 Customer Flow (Mobile / Web)"]
+        A[Scan Shop QR Code] --> B[Customer Kiosk Web App]
+        B --> C[Upload Documents & Configure Pages/Copies/Color]
+        C --> D[Pay Online via UPI / Razorpay Gateway]
+    end
 
-**Why MERN over MEAN for this product:**
-- Customer flow is scanned on a phone, often on shop WiFi/mobile data → React's lighter bundle and faster hydration matter more than Angular's opinionated structure.
-- The product iterates fast ("build → test on real shop → keep what works") — React's unopinionated, library-driven approach fits an MVP-to-scale journey better than Angular's heavier conventions.
-- Payment gateways (Razorpay/UPI) and QR libraries have the most mature React ecosystem in India.
-- Larger hiring pool and community support for React/Node in India vs Angular.
-- Angular's strength (strict structure, powerful forms module) is more valuable for large internal enterprise tools — not required at this stage.
+    subgraph Cloud["☁️ Scan & Print Cloud Platform"]
+        D --> E[Backend REST API & Validation Engine]
+        E --> F[(MongoDB Atlas Database)]
+        E --> G[Cloud File Storage / Cloudinary]
+        E --> H[Socket.IO Real-Time Event Dispatcher]
+    end
 
-### Frontend (all 3 web apps share this stack)
-| Purpose | Package |
-|---|---|
-| Build tool | `vite` |
-| UI Library | `react`, `react-dom` |
-| Routing | `react-router-dom` |
-| Styling | `tailwindcss`, `postcss`, `autoprefixer` |
-| Data fetching / cache | `@tanstack/react-query`, `axios` |
-| Global state | `zustand` (or `@reduxjs/toolkit` if state grows complex) |
-| Forms & validation | `react-hook-form`, `zod` |
-| File upload UI | `react-dropzone` |
-| QR code generation | `qrcode.react` |
-| Payments (checkout) | Razorpay Checkout script + `react-razorpay` |
-| Real-time updates | `socket.io-client` |
-| Charts (dashboard) | `recharts` |
-| Icons | `lucide-react` |
-| Notifications/toasts | `react-hot-toast` |
-| PWA support (customer app) | `vite-plugin-pwa` |
+    subgraph Shop["🏪 Shop Counter (Physical Hardware)"]
+        H -- Real-Time Job Dispatch --> I[Windows Desktop Print Agent]
+        I -- Hardware Verification --> H
+        I --> J{Intelligent Routing}
+        J -- B&W Jobs --> K[Physical B&W Laser Printer]
+        J -- Color Jobs --> L[Physical Color Inkjet Printer]
+    end
+
+    subgraph Management["🖥️ Management Portals"]
+        M[Shop Owner Dashboard] <--> E
+        N[Super Admin Security & Telemetry Portal] <--> E
+        H <--> M
+        H <--> N
+    end
+```
+
+---
+
+## 📁 Monorepo Folder Structure
+
+```
+ScanAndPrint/
+├── scanandprint-backend/           # Node.js + Express + Socket.IO REST & Real-Time Engine
+│   ├── src/
+│   │   ├── configs/                # DB connection, Cloudinary, Environment variables
+│   │   │   ├── cloudinary.config.js
+│   │   │   ├── db.configs.js
+│   │   │   └── env.config.js
+│   │   ├── controllers/            # Route controllers
+│   │   │   ├── admin.controller.js
+│   │   │   ├── agent.controller.js
+│   │   │   ├── auth.controller.js
+│   │   │   ├── device.controller.js
+│   │   │   ├── job.controller.js
+│   │   │   ├── kiosk.controller.js
+│   │   │   └── upload.controller.js
+│   │   ├── middlewares/            # Auth, validation, error handler, Socket Device Guard
+│   │   │   ├── auth.middleware.js
+│   │   │   ├── error.middleware.js
+│   │   │   ├── socketDeviceBinding.middleware.js
+│   │   │   ├── upload.middleware.js
+│   │   │   └── validate.middleware.js
+│   │   ├── models/                 # Mongoose schema models
+│   │   │   ├── Admin.model.js
+│   │   │   ├── AdminSettings.model.js
+│   │   │   ├── Device.model.js
+│   │   │   ├── PrintAgent.model.js
+│   │   │   ├── PrintJob.model.js
+│   │   │   ├── Shop.model.js
+│   │   │   └── SubscriptionPayment.model.js
+│   │   ├── repositories/          # Data Access Layer (Repository Pattern)
+│   │   │   ├── agent.repository.js
+│   │   │   ├── device.repository.js
+│   │   │   ├── job.repository.js
+│   │   │   └── shop.repository.js
+│   │   ├── routes/                 # Express REST route definitions
+│   │   │   ├── admin.route.js
+│   │   │   ├── agent.routes.js
+│   │   │   ├── auth.routes.js
+│   │   │   ├── device.routes.js
+│   │   │   ├── job.routes.js
+│   │   │   └── kiosk.routes.js
+│   │   ├── services/               # Business logic services
+│   │   │   ├── agent.service.js
+│   │   │   ├── auth.service.js
+│   │   │   ├── job.service.js
+│   │   │   ├── kiosk.service.js
+│   │   │   └── upload.service.js
+│   │   ├── socket.js               # Socket.IO lifecycle & live in-memory registry
+│   │   ├── utils/                  # Helper utilities (JWT, Password, ShopCode, PDF, Cloudinary)
+│   │   └── index.js                # Server entry point
+│   ├── package.json
+│   └── .env
+│
+├── scanandprint-frontend/          # React 19 + Vite 8 + Tailwind CSS v4 Web Client
+│   ├── public/                     # Public static assets, sitemap.xml, robots.txt, OG images
+│   ├── scripts/
+│   │   ├── generate-og-images.js   # Dynamic social preview card generator
+│   │   └── generate-seo.js         # Production static HTML prerender & SEO injector
+│   ├── src/
+│   │   ├── assets/                 # SVGs, icons, and image assets
+│   │   ├── components/             # Modular reusable UI components
+│   │   │   ├── admin/              # Super Admin charts, metrics, demo timers
+│   │   │   ├── common/             # Modals, buttons, badges, accordions
+│   │   │   ├── kiosk/              # File upload dropzone, page selector, payment preview
+│   │   │   ├── owner/              # QR code downloader, printer selector, job lists
+│   │   │   ├── skeleton/           # Custom shimmer & pulse skeleton loading states
+│   │   │   └── ui/                 # Core UI building blocks
+│   │   ├── data/                   # Static SEO configurations & metadata
+│   │   ├── layouts/                # AdminLayout, OwnerLayout, MainLayout
+│   │   ├── lib/                    # Axios interceptors, Socket client, Razorpay, PDF tools
+│   │   ├── pages/                  # Page views
+│   │   │   ├── admin/              # AdminOverview, AdminShops, AdminAgents, AdminDevices, etc.
+│   │   │   ├── Home/               # Landing page, Features, Pricing, HowToSetup, Legal
+│   │   │   ├── kiosk/              # CustomerKiosk.jsx
+│   │   │   └── owner/              # OwnerOverview, OwnerJobs, OwnerPrinters, OwnerDevices, etc.
+│   │   ├── store/                  # Zustand global state stores (Auth, Kiosk, Jobs, Admin)
+│   │   ├── App.jsx                 # App root & React Router DOM configuration
+│   │   └── main.jsx                # DOM mount entry
+│   ├── package.json
+│   └── vite.config.js
+│
+└── scanandprint-agent/             # Electron 35 Windows Automated Desktop Print Agent
+    ├── assets/                     # App icons (.ico, .png, .svg), tray icons (.png, .svg)
+    ├── scripts/                    # Icon rendering scripts
+    ├── src/
+    │   ├── services/
+    │   │   ├── deviceFingerprint.js # SHA-256 hardware signature & physical network IP resolver
+    │   │   ├── printerManager.js    # Windows PowerShell printer spooler query
+    │   │   ├── printService.js      # pdf-to-printer silent spooling & cloud downloader
+    │   │   └── socketService.js     # Real-time WebSocket connection & auto-reconnect
+    │   ├── store/
+    │   │   └── configStore.js       # AppData JSON storage for credentials & server URL
+    │   ├── ui/
+    │   │   ├── counter-popup.html   # Real-time counter order alert overlay
+    │   │   ├── index.html           # Agent dashboard & setup UI
+    │   │   ├── renderer.js          # Client-side UI controller & sound chime triggers
+    │   │   └── styles.css           # Modern dark-mode glassmorphic interface
+    │   └── utils/
+    │       └── pdfConverter.js      # Image-to-PDF standard conversion for direct printing
+    ├── main.js                     # Electron main process, tray menu, window manager
+    ├── preload.cjs                 # Secure context bridge IPC API
+    └── package.json
+```
+
+---
+
+## 🎯 Core Features & Modules
+
+### 1. Customer Web Kiosk (`/kiosk/:shopCode`)
+- **Zero App Download**: Works directly in any mobile browser (Chrome, Safari, Firefox).
+- **Multi-Format Document Upload**: Supports PDF, DOCX, PNG, JPG, and WEBP.
+- **Client-Side PDF Page Rendering**: Uses `pdfjs-dist` to render thumbnails and accurately extract page counts.
+- **Fine-Grained Print Configuration**:
+  - Color mode: Black & White vs Full Color.
+  - Page selection: All pages, Odd pages, Even pages, or custom ranges (e.g., `1, 3-5, 8`).
+  - Print layout: Single-sided (Simplex) vs Double-sided (Duplex).
+  - Copies count with automatic total price recalculation.
+- **Seamless UPI / Online Payment**: Razorpay integration with instant Webhook/Socket confirmation.
+- **Live Print Status Tracker**: Step-by-step real-time progress bar (`Payment Verified → Spooling → Printed Successfully`).
+
+### 2. Shop Owner Portal (`/owner/...`)
+- **Live Overview Dashboard**: Today's revenue, completed prints, ink/paper analytics, and recent transactions.
+- **Live Print Job Manager**: Complete history with filters (Completed, Pending, Failed), 1-click **Re-Print**, and job details.
+- **Dual Hardware Printer Routing**: Map separate default physical printers for Black & White and Color jobs.
+- **Custom QR Standee Generator**: Download high-resolution print-ready counter posters with embedded Shop QR codes.
+- **Hardware Device Binding Management (`/owner/devices`)**:
+  - Read-only real-time view of the active authorized counter PC.
+  - Pending approval notification banner when setting up a new PC.
+  - Strict Super Admin security notice preventing unauthorized multi-PC usage.
+- **Trial & Plan Management**: Real-time 2-Hour free demo trial countdown timer and 1-click Razorpay subscription renewals.
+
+### 3. Super Admin Portal (`/admin/...`)
+- **Platform Analytics & KPI Overview**: Global shops count, daily prints, total GMV revenue, and system trends.
+- **Shop Management & Controls**: Search, filter, extend demo trials, grant paid VIP plans, or suspend malicious shops with 1 click.
+- **Live Print Agents Monitor (`/admin/agents`)**: Real-time monitoring of all connected desktop agents, live physical IP locations, operating systems, and installed spoolers.
+- **Hardware Device Binding Telemetry & Security (`/admin/devices`)**:
+  - **Telemetry Grid**: Hostname, CPU Model, Motherboard Serial, System UUID, Real Physical IPv4, and Default Gateway.
+  - **Anti-Fraud Guard**: Identifies shops with $\ge 4$ registered machines (credential-sharing detection).
+  - **1-Click Authority**: Super Admin `Approve PC`, `Reject`, `Revoke`, or `Re-Approve` actions.
+  - **Hardware Telemetry Inspector Modal**: Scrollable viewport inspector with formatted telemetry cards and 1-click raw JSON copy.
+- **Financial Ledger & Export**: Searchable transactions log with CSV export capability.
+- **Global Settings**: Update platform monthly/yearly subscription rates and trial durations.
+
+### 4. Desktop Print Agent (Windows Electron App)
+- **100% Silent Automated Printing**: Automatically downloads verified cloud print orders and routes them to the OS spooler using `pdf-to-printer`.
+- **Multi-Signal Hardware Fingerprinting**:
+  - Concatenates Machine ID + CPU specifications + Baseboard Serial + System UUID + Hostname/Arch.
+  - Generates a deterministic, tamper-proof SHA-256 hardware hash.
+- **Accurate Physical Network & Gateway Detection**:
+  - Automatically queries active physical adapters (`Wi-Fi` / `Ethernet`).
+  - Completely filters out VMware (`VMnet1`, `VMnet8`), VirtualBox, Hyper-V, WSL, and loopback (`127.0.0.1`, `::1`) adapters.
+- **Desktop & Background Tray Mode**: Runs minimized in the Windows system tray with auto-startup on boot and desktop shortcut creator.
+- **Live Audible Chimes & Counter Overlays**: Plays a sound notification and displays an on-screen order alert when a job arrives.
+
+### 5. Production SEO & Static Prerendering
+- Automated build pipeline (`npm run build`) runs `scripts/generate-seo.js`.
+- Generates static pre-rendered HTML files for all 12 public marketing routes (`/`, `/pricing`, `/features`, `/how-to-setup`, `/about`, `/contact`, `/privacy-policy`, `/refund-policy`, `/terms-and-conditions`, `/disclaimer`, `/register`, `/shop-login`).
+- Injects fully populated OpenGraph (`og:title`, `og:description`, `og:image`), Twitter Cards, Schema.org JSON-LD structured data, dynamic `sitemap.xml`, and `robots.txt` for maximum search engine indexability and WhatsApp/Facebook link previews.
+
+---
+
+## 🛠️ Tech Stack & Tools
+
+### Frontend
+- **Framework**: React 19, Vite 8
+- **Styling**: Tailwind CSS v4, Custom CSS Animations
+- **Routing**: React Router DOM v7
+- **Icons**: Lucide React, Boxicons
+- **Charts**: Recharts
+- **State Management**: Zustand
+- **Networking & Real-Time**: Axios, Socket.IO-Client
+- **PDF & File Processing**: PDF-Lib, PDF.js, React Dropzone
+- **Notifications**: React Hot Toast
 
 ### Backend
-| Purpose | Package |
-|---|---|
-| Server framework | `express` |
-| Database ODM | `mongoose` (MongoDB) |
-| Auth | `jsonwebtoken`, `bcryptjs` |
-| File upload handling | `multer` |
-| Cloud file storage | `cloudinary` (or `aws-sdk` for S3) |
-| Payments | `razorpay` |
-| Real-time server | `socket.io` |
-| PDF utilities (page count, pricing) | `pdf-lib`, `pdf-parse` |
-| Scheduled cleanup (auto-delete files) | `node-cron` |
-| Validation | `express-validator` or `joi` |
-| Security | `helmet`, `cors`, `express-rate-limit` |
-| Logging | `morgan`, `winston` |
-| Env config | `dotenv` |
+- **Runtime**: Node.js (ES Modules)
+- **Framework**: Express.js
+- **Database & ODM**: MongoDB Atlas, Mongoose 9
+- **Real-Time Engine**: Socket.IO 4.8
+- **Authentication**: JWT (JSON Web Tokens), BCrypt.js
+- **Cloud File Storage**: Cloudinary SDK, Multer
+- **Payment Gateway**: Razorpay Node SDK
+- **Security**: Helmet, CORS, Express Rate Limit
 
-### Database
-- **MongoDB Atlas** (managed) or self-hosted MongoDB — flexible schema fits evolving order attributes (paper size, binding, copies, etc.) and read-heavy dashboard queries.
-
-### Desktop Print Agent (runs on the shop's PC — this is what makes "Auto Print" possible)
-| Purpose | Package |
-|---|---|
-| Desktop app shell | `electron` |
-| Real-time job listener | `socket.io-client` |
-| Direct printer output | `pdf-to-printer` |
-| Detect installed printers | `systeminformation` (or Windows `wmic` wrapper) |
-| Local config storage | `electron-store` |
-| Auto-updates | `electron-updater` |
-
-### DevOps / Infra
-- `Docker` + `docker-compose` for local multi-service dev
-- `PM2` for Node process management in production
-- `Nginx` as reverse proxy / static file server
-- `GitHub Actions` for CI/CD
-- `MongoDB Atlas` for managed database hosting
-- `Cloudinary` / `AWS S3` for uploaded document storage
+### Desktop Agent
+- **Runtime**: Electron 35, Node.js
+- **Hardware Telemetry**: `systeminformation`, `node-machine-id`, Node `crypto`
+- **Spooling Engine**: `pdf-to-printer`, Windows PowerShell CIM Spooler
+- **Storage**: Custom AppData JSON Store
 
 ---
 
-## System Architecture
-
-```
-                         ┌───────────────────────┐
-                         │   Customer scans QR    │
-                         └───────────┬───────────┘
-                                     ▼
- ┌────────────────┐   REST/HTTPS  ┌────────────────────┐   Socket.io  ┌──────────────────────┐
- │  Customer Web   │◄─────────────►│   Backend API      │◄────────────►│  Shop Dashboard (Web) │
- │  App (React)    │               │ (Node + Express)   │              │      (React)          │
- └────────────────┘               │  + MongoDB          │              └──────────────────────┘
-                                   │  + Cloud Storage     │
-                                   │  + Razorpay          │              ┌──────────────────────┐
-                                   └──────────┬───────────┘◄────────────►│   Admin Panel (React) │
-                                              │ Socket.io                └──────────────────────┘
-                                              ▼
-                                   ┌──────────────────────┐
-                                   │  Desktop Print Agent  │
-                                   │  (Electron, on shop's │
-                                   │   PC — sends job to   │
-                                   │   B&W / Colour printer)│
-                                   └──────────────────────┘
-```
-
-**Flow:** Customer uploads file & pays → Backend stores file (Cloudinary/S3) + creates order in MongoDB → Backend emits a `job:new` Socket.io event to that shop's Print Agent → Agent downloads file & sends it straight to the mapped printer → Agent emits `job:printed` back → Dashboard & customer status update in real time → File auto-deleted after a configurable retention window (secure document processing).
-
----
-
-## Monorepo Structure
-
-Using **npm workspaces** (or Turborepo) since multiple React apps share types, API clients, and UI components.
-
-```
-qr-se-print/
-├── apps/
-│   ├── backend/                 # Node + Express + MongoDB API
-│   │   ├── src/
-│   │   │   ├── config/
-│   │   │   ├── controllers/
-│   │   │   ├── models/          # Shop, Order, Printer, User, Transaction
-│   │   │   ├── routes/
-│   │   │   ├── middleware/
-│   │   │   ├── sockets/
-│   │   │   ├── utils/
-│   │   │   └── server.js
-│   │   └── package.json
-│   │
-│   ├── customer-web/            # Customer QR → Upload → Pay flow (React, PWA)
-│   │   ├── src/
-│   │   │   ├── pages/
-│   │   │   ├── components/
-│   │   │   └── App.jsx
-│   │   └── package.json
-│   │
-│   ├── shop-dashboard/          # Shop owner dashboard (React)
-│   │   ├── src/
-│   │   └── package.json
-│   │
-│   ├── admin-panel/             # Super admin (React)
-│   │   ├── src/
-│   │   └── package.json
-│   │
-│   └── print-agent/             # Electron desktop app
-│       ├── src/
-│       └── package.json
-│
-├── packages/
-│   └── shared/                  # Shared constants, API client, types
-│
-├── docker-compose.yml
-├── .env.example
-└── README.md
-```
-
----
-
-## All Pages / Screens
-
-### 🧑‍💻 Customer Web App (`apps/customer-web`) — mobile-first
-| Route | Page |
-|---|---|
-| `/shop/:shopId` | Landing page (opens on QR scan) |
-| `/shop/:shopId/upload` | Upload document(s) |
-| `/shop/:shopId/options` | Print options — B&W/Colour, copies, page range, paper size |
-| `/shop/:shopId/payment` | Payment (Razorpay checkout) |
-| `/shop/:shopId/order/:orderId` | Live order status / confirmation & receipt |
-| `/about` | About QR Se Print |
-| `/terms` | Terms & Conditions |
-| `/privacy-policy` | Privacy Policy |
-| `/refund-policy` | Refund Policy |
-| `/disclaimer` | Disclaimer |
-| `/support` | Support (WhatsApp deep link) |
-
-### 🏪 Shop Owner Dashboard (`apps/shop-dashboard`)
-| Route | Page |
-|---|---|
-| `/login`, `/signup`, `/forgot-password` | Auth |
-| `/dashboard` | Home — today's orders, revenue snapshot |
-| `/dashboard/orders` | Order list, filters, reprint, download |
-| `/dashboard/earnings` | Income, transaction history |
-| `/dashboard/printers` | Add/select B&W & Colour printers, test print |
-| `/dashboard/qr-code` | Generate/download shop's QR code |
-| `/dashboard/print-agent` | Download & installation guide for Print Agent |
-| `/dashboard/settings` | Shop profile & settings |
-| `/dashboard/support` | WhatsApp support |
-
-### 🛠️ Admin Panel (`apps/admin-panel`)
-| Route | Page |
-|---|---|
-| `/admin/login` | Admin auth |
-| `/admin/shops` | Onboard/approve/manage shops |
-| `/admin/analytics` | Platform-wide orders, revenue, active shops |
-| `/admin/support` | Support ticket overview |
-| `/admin/content` | Edit Terms / Privacy / Refund policy content |
-
-### 🖥️ Desktop Print Agent (`apps/print-agent`)
-| Screen | Purpose |
-|---|---|
-| Login/Setup Wizard | Connect agent to shop account |
-| Printer Mapping | Assign detected printers as B&W / Colour |
-| Background Tray | Listens for jobs, shows print status notifications |
-
----
-
-## Installation & Setup
+## 🚀 Installation & Local Setup
 
 ### Prerequisites
-- Node.js LTS (v20+)
-- MongoDB (local or Atlas connection string)
-- Git
-- Razorpay account (test keys for development)
-- Cloudinary or AWS S3 account (for file storage)
+- **Node.js**: v18.0.0 or higher
+- **MongoDB**: Local MongoDB instance or MongoDB Atlas Connection URI
+- **OS**: Windows 10/11 (for Desktop Print Agent testing)
 
-### 1. Clone & install
+### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/your-org/qr-se-print.git
-cd qr-se-print
-npm install        # installs all workspaces
+git clone https://github.com/govindkumarjangid/PrintPe.git ScanAndPrint
+cd ScanAndPrint
 ```
 
-### 2. Backend setup
+### Step 2: Setup Backend Server
 ```bash
-cd apps/backend
-cp .env.example .env      # fill in values, see below
-npm run dev                # starts on http://localhost:5000
-```
-
-### 3. Customer Web App
-```bash
-cd apps/customer-web
-cp .env.example .env
-npm run dev                # http://localhost:5173
-```
-
-### 4. Shop Dashboard
-```bash
-cd apps/shop-dashboard
-cp .env.example .env
-npm run dev                # http://localhost:5174
-```
-
-### 5. Admin Panel
-```bash
-cd apps/admin-panel
-cp .env.example .env
-npm run dev                # http://localhost:5175
-```
-
-### 6. Desktop Print Agent
-```bash
-cd apps/print-agent
+cd scanandprint-backend
 npm install
-npm run dev                # launches Electron app
-npm run build               # produces installer (.exe/.dmg)
-```
 
-### Optional: run everything via Docker
+# Create environment configuration file
+cp .env.example .env   # Or create .env with required keys
+
+# Start backend in development mode
+npm run dev
+```
+*Backend runs by default on `http://localhost:5000`.*
+
+### Step 3: Setup Frontend Web Client
 ```bash
-docker-compose up --build
+cd ../scanandprint-frontend
+npm install
+
+# Start Vite frontend dev server
+npm run dev
+```
+*Frontend runs by default on `http://localhost:5173`.*
+
+### Step 4: Setup Desktop Print Agent
+```bash
+cd ../scanandprint-agent
+npm install
+
+# Start Electron Agent in development mode
+npm start
 ```
 
 ---
 
-## Environment Variables
+## 🔐 Environment Variables
 
-### `apps/backend/.env`
+### Backend (`scanandprint-backend/.env`)
 ```env
 PORT=5000
-MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/qrseprint
-JWT_SECRET=your_jwt_secret
+NODE_ENV=development
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/ScanAndPrintDB?retryWrites=true&w=majority
+JWT_SECRET=your_super_secret_jwt_key_here
 JWT_EXPIRES_IN=7d
 
-RAZORPAY_KEY_ID=xxxx
-RAZORPAY_KEY_SECRET=xxxx
-
-CLOUDINARY_CLOUD_NAME=xxxx
-CLOUDINARY_API_KEY=xxxx
-CLOUDINARY_API_SECRET=xxxx
-
+# Frontend Client URL for CORS
 CLIENT_URL=http://localhost:5173
-SOCKET_CORS_ORIGIN=http://localhost:5173,http://localhost:5174
 
-FILE_AUTO_DELETE_HOURS=24
-WHATSAPP_SUPPORT_NUMBER=+91XXXXXXXXXX
+# Razorpay Payment Gateway Credentials
+RAZORPAY_KEY_ID=rzp_live_your_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_secret_key
+
+# Cloudinary Cloud Storage
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# Default Admin Credentials (Auto-seeded on first launch)
+DEFAULT_ADMIN_EMAIL=admin@scanandprint.in
+DEFAULT_ADMIN_PASSWORD=AdminPassword123!
 ```
 
-### `apps/customer-web/.env` / `shop-dashboard/.env` / `admin-panel/.env`
+### Frontend (`scanandprint-frontend/.env`)
 ```env
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000/api
 VITE_SOCKET_URL=http://localhost:5000
-VITE_RAZORPAY_KEY_ID=xxxx
+VITE_RAZORPAY_KEY_ID=rzp_live_your_key_id
 ```
 
 ---
 
-## Core API Endpoints
+## 📡 Core API Endpoints
 
-```
-Auth
-POST   /api/auth/register              Shop owner signup
-POST   /api/auth/login                 Shop owner / admin login
+### 1. Customer Kiosk Endpoints
+- `GET /api/kiosk/shop/:shopCode` — Retrieve public shop profile, pricing, and live printer online status.
+- `POST /api/kiosk/upload` — Upload document and receive page count analysis & price estimate.
+- `POST /api/kiosk/order` — Create print order and initiate Razorpay payment order.
+- `POST /api/kiosk/verify-payment` — Verify payment signature and trigger real-time print spooling.
+- `GET /api/kiosk/job/:jobId/status` — Live status poll for a specific print job.
 
-Shops (public, used by QR landing page)
-GET    /api/shops/:shopId              Get shop public info
+### 2. Shop Owner Endpoints (Protected by JWT)
+- `POST /api/auth/register` — Register a new print shop with 2-Hour free trial or paid plan.
+- `POST /api/auth/login` — Authenticate shop owner and issue JWT tokens.
+- `GET /api/jobs/my-jobs` — Paginated print job history with status and search filters.
+- `POST /api/jobs/:jobId/reprint` — Re-dispatch a previous print job to the agent.
+- `GET /api/devices/my-devices` — Retrieve owner's active bound hardware PC and pending requests.
+- `POST /api/devices/:deviceId/revoke` — Disconnect/unlink current PC.
 
-Orders
-POST   /api/orders                     Create order (file upload + print options)
-POST   /api/orders/:id/payment         Initiate Razorpay payment
-POST   /api/orders/:id/payment/verify  Verify payment signature
-GET    /api/orders/:id/status          Poll/get order status
-
-Dashboard (auth required)
-GET    /api/dashboard/orders           Shop's orders list
-GET    /api/dashboard/earnings         Income & transactions
-POST   /api/printers                   Register/update a printer
-GET    /api/printers                   List shop's printers
-
-Admin (auth required, admin role)
-GET    /api/admin/shops                All shops
-GET    /api/admin/analytics            Platform-wide stats
-```
-
-## Real-time Events (Socket.io)
-
-| Event | Direction | Purpose |
-|---|---|---|
-| `job:new` | Server → Print Agent | New print job assigned to a shop |
-| `job:accepted` | Print Agent → Server | Agent picked up the job |
-| `job:printed` | Print Agent → Server | Job completed successfully |
-| `job:failed` | Print Agent → Server | Printer error / offline |
-| `order:status` | Server → Customer Web | Live status update for order tracking page |
+### 3. Super Admin Endpoints (Protected by Admin JWT)
+- `POST /api/admin/login` — Super Admin authentication.
+- `GET /api/admin/stats` — Platform dashboard statistics & KPI telemetry.
+- `GET /api/admin/shops` — Paginated list of all shops with action controls (Extend Trial, VIP, Suspend).
+- `GET /api/admin/agents` — Real-time list of all connected Desktop Print Agents with live physical IPs.
+- `GET /api/admin/devices` — Complete hardware device binding registry (Hostname, CPU, Motherboard Serial, UUID, IP, Gateway).
+- `GET /api/admin/devices/suspicious` — Fraud detection query identifying multi-device accounts ($\ge 4$ PCs).
+- `POST /api/admin/devices/:deviceId/approve` — Authorize a counter PC for printing.
+- `POST /api/admin/devices/:deviceId/reject` — Reject a device connection request.
+- `POST /api/admin/devices/:deviceId/revoke` — Revoke authorization from an active machine.
 
 ---
 
-## Desktop Print Agent
+## ⚡ Socket.IO Real-Time Events
 
-The Print Agent is a lightweight Electron app installed **once** on the shop's PC. It:
-1. Logs in with the shop owner's credentials.
-2. Detects installed printers and lets the owner map one as **B&W** and one as **Colour**.
-3. Listens on a persistent Socket.io connection for `job:new` events.
-4. Downloads the file from cloud storage and sends it to the correct printer via `pdf-to-printer`.
-5. Reports job status back to the backend in real time.
-6. Runs silently in the system tray; auto-updates via `electron-updater`.
-
-This is what enables "no WiFi-printer required, any printer supported" — the agent talks to the printer locally over USB/network exactly like a normal print job from the PC.
-
----
-
-## Deployment
-
-- **Backend:** Deploy on a VPS (DigitalOcean/AWS EC2) with PM2 + Nginx reverse proxy, or a PaaS like Render/Railway.
-- **Frontend apps:** Deploy `customer-web`, `shop-dashboard`, `admin-panel` as static builds on Vercel/Netlify (or serve via Nginx alongside backend).
-- **Database:** MongoDB Atlas (managed, with automated backups).
-- **File storage:** Cloudinary/S3 with lifecycle rules matching `FILE_AUTO_DELETE_HOURS`.
-- **Print Agent distribution:** Host signed installers (`.exe`/`.dmg`) for download from the Shop Dashboard's "Print Agent" page, with `electron-updater` pointing to a release feed (e.g., GitHub Releases).
+| Event Name | Direction | Payload & Description |
+| :--- | :--- | :--- |
+| `AGENT_REGISTER` | Agent $\rightarrow$ Server | Handshake with Shop ID, Secret Key, Hardware Fingerprint, Local IP, Gateway, and installed printers. |
+| `AGENT_CONNECTED` | Server $\rightarrow$ Agent | Confirmation that agent is authenticated and live. |
+| `PRINT_JOB_DISPATCH` | Server $\rightarrow$ Agent | Dispatches a new verified print order with download URL, color mode, copies, and target printer. |
+| `JOB_STATUS_UPDATED` | Agent $\rightarrow$ Server | Updates job progress (`PRINTING`, `PRINTED_SUCCESSFULLY`, `PRINT_FAILED`). |
+| `AGENT_STATUS_CHANGE` | Server $\rightarrow$ Portals | Broadcasts live online/offline status, IP, and connected printers to Owner & Admin dashboards. |
+| `ADMIN_DEVICE_UPDATED` | Server $\rightarrow$ Admin | Broadcasts real-time hardware telemetry updates to the Super Admin room. |
+| `AGENT_KICKED` | Server $\rightarrow$ Agent | Sent when a machine's hardware authorization is revoked by Admin; halts printing immediately. |
 
 ---
 
-## Roadmap
+## 🛡️ Hardware Device Binding & Security
 
-In line with the product's vision — *India's most trusted Smart Printing Platform* — upcoming focus areas:
-- Broader printer/driver compatibility
-- Stronger document security (encryption in transit & at rest)
-- Faster print-agent job dispatch
-- More granular shop analytics
-- Multi-language support for the customer web app
+To prevent account abuse, credential sharing, and unauthorized multi-location use:
+
+1. **Deterministic Multi-Signal Hardware Fingerprint**:
+   - The Desktop Agent queries the motherboard serial, CPU brand/cores, BIOS UUID, and primary machine ID.
+   - Hashes these parameters using SHA-256 into a 64-character persistent signature.
+2. **Strict Super Admin Authorization**:
+   - When an agent connects on a new machine, it is placed in `PENDING_APPROVAL` status.
+   - The Shop Owner cannot self-approve; the request is sent to the **Super Admin Portal** for verification.
+   - Once approved by Admin, the Print Agent automatically activates and begins processing jobs without requiring a software restart.
+3. **Single Active Device Policy**:
+   - Only **1 Physical PC** can be actively authorized per shop at any time.
+   - Authorizing a new PC automatically revokes any previous machine and disconnects its active socket session.
 
 ---
 
-## Support
+## 🚢 Production Deployment
 
-Support is direct — **no third-party ticketing middlemen**. Shop owners and customers get help via WhatsApp, keeping resolution fast and personal.
+### Frontend (Vercel / Netlify)
+1. Link repository to Vercel.
+2. Set Build Command to: `npm run build`.
+3. Set Output Directory to: `dist`.
+4. Configure environment variables (`VITE_API_URL`, `VITE_SOCKET_URL`, `VITE_RAZORPAY_KEY_ID`).
+
+### Backend (Render / Railway / AWS EC2)
+1. Deploy `scanandprint-backend` as a Node Web Service.
+2. Set Start Command: `npm start` (or `node src/index.js`).
+3. Set environment variables in dashboard (`MONGO_URI`, `JWT_SECRET`, `CLOUDINARY_*`, `RAZORPAY_*`, `CLIENT_URL`).
+
+### Windows Desktop Agent Installer
+1. Inside `scanandprint-agent`:
+   ```bash
+   npm run dist
+   ```
+2. Electron-builder will package the application into a standalone Windows `.exe` installer in `dist/`.
 
 ---
 
-**QR Se Print** — Making printing smarter, faster & simpler.
+## 📄 License & Intellectual Property
+
+Copyright © 2026 **Scan & Print**. All rights reserved.  
+Built with ❤️ for Indian Cyber Cafes, Print Shops, and Digital Service Centers.
