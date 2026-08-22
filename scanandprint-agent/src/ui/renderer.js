@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let config = {
     shopId: '',
     secretKey: '',
-    serverUrl: 'http://localhost:5000',
+    serverUrl: 'https://scanandprint.onrender.com',
     defaultBwPrinter: '',
     defaultColorPrinter: '',
     autoStartOnBoot: true,
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Populate Input Fields
   shopIdInput.value = config.shopId || ''
   secretKeyInput.value = config.secretKey || ''
-  const currentUrl = config.serverUrl === 'https://scanandprint.onrender.com' ? 'http://localhost:5000' : (config.serverUrl || 'http://localhost:5000')
+  const currentUrl = (config.serverUrl && config.serverUrl !== 'http://localhost:5000' && config.serverUrl !== 'http://127.0.0.1:5000') ? config.serverUrl : 'https://scanandprint.onrender.com'
   serverUrlInput.value = currentUrl
   if (autoStartToggle) autoStartToggle.checked = config.autoStartOnBoot !== false
   if (displayShopCode) displayShopCode.textContent = config.shopId || 'UNSET'

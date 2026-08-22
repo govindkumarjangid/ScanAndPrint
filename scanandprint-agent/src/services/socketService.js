@@ -154,9 +154,9 @@ class SocketService {
       return
     }
 
-    let targetServerUrl = serverUrl || 'http://localhost:5000'
-    if (targetServerUrl === 'https://scanandprint.onrender.com') {
-      targetServerUrl = 'http://localhost:5000'
+    let targetServerUrl = serverUrl || 'https://scanandprint.onrender.com'
+    if (!targetServerUrl || targetServerUrl.includes('localhost:5000') || targetServerUrl.includes('127.0.0.1:5000')) {
+      targetServerUrl = 'https://scanandprint.onrender.com'
     }
     console.log(`[SocketService] Target Server: ${targetServerUrl} (Shop: ${shopId})`)
 

@@ -42,23 +42,23 @@ class PrintService {
         fileBuffer = Buffer.from(base64Data, 'base64')
       } else {
         // Case 2: Download from remote URLs (Cloudinary, Backend Proxy, or downloadUrl)
-        const serverUrl = configStore.get('serverUrl') || 'http://localhost:5000'
+        const serverUrl = configStore.get('serverUrl') || 'https://scanandprint.onrender.com'
         const candidateUrls = []
 
-        // Local & Remote fallback URLs
+        // Remote & fallback URLs
         if (downloadUrl) {
           if (downloadUrl.startsWith('http')) {
             candidateUrls.push(downloadUrl)
           } else {
             candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
-            candidateUrls.push(`http://localhost:5000${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
+            candidateUrls.push(`https://scanandprint.onrender.com${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
           }
         }
         if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://'))) {
           candidateUrls.push(fileUrl)
         }
         candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}/api/kiosk/download/${jobId}`)
-        candidateUrls.push(`http://localhost:5000/api/kiosk/download/${jobId}`)
+        candidateUrls.push(`https://scanandprint.onrender.com/api/kiosk/download/${jobId}`)
 
         for (const targetUrl of candidateUrls) {
           try {
