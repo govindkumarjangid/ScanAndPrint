@@ -167,3 +167,20 @@ export const executeLocalPrint = asyncHandler(async (req, res, next) => {
     return sendError(res, 500, `Printer Hardware Error: ${err.message}`)
   }
 })
+
+// Serve direct download of Desktop Print Agent setup installer (.exe)
+export const downloadAgentInstaller = asyncHandler(async (req, res, next) => {
+  const possiblePaths = [
+    path.resolve(process.cwd(), 'public', 'downloads', 'Scan_and_Print_Agent_Setup_1.0.3.exe'),
+    path.resolve(process.cwd(), '..', 'scanandprint-agent', 'dist', 'Scan&Print Agent Setup 1.0.3.exe'),
+    path.resolve(process.cwd(), '..', 'scanandprint-frontend', 'public', 'downloads', 'Scan_and_Print_Agent_Setup_1.0.3.exe'),
+  ]
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return res.download(p, 'Scan_and_Print_Agent_Setup_1.0.3.exe')
+    }
+  }
+
+  return sendError(res, 404, 'Print Agent Setup Installer (.exe) not found on server')
+})
