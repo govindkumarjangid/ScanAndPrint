@@ -36,10 +36,9 @@ export default function OwnerAgentDownload() {
     setTimeout(() => setCopiedCode(false), 2000)
   }
 
-  const backendBase = (import.meta.env.VITE_API_URL || 'https://scanandprint.onrender.com/api').replace(/\/+$/, '')
   const downloadUrl =
     import.meta.env.VITE_AGENT_DOWNLOAD_URL ||
-    `${backendBase}/agent/download`
+    'https://github.com/govindkumarjangid/ScanAndPrint/releases/download/v1.0.3/Scan.Print.Agent.Setup.1.0.3.exe'
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
