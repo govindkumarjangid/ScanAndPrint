@@ -43,14 +43,18 @@ export const authService = {
     const shopCode = generateShopCode(shopName)
     const secretApiKey = generateSecretApiKey()
 
-    // 2. Fetch active platform pricing
+    // 2. Fetch active platform pricing & settings
     const settings = await AdminSettings.findOne().lean()
     const monthlyPrice = settings?.monthlyPrice || 299
     const yearlyPrice = settings?.yearlyPrice || 799
+    const demoDurationHours = settings?.demoDurationHours || 2
 
-    // 3. Handle Free Trial (Demo) Immediate Activation (2 Hours full access)
+    // 3. Handle Free Trial (Demo) Immediate Activation
     if (planType === 'FREE_TRIAL') {
-      const demoExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000)
+      if (settings && settings.demoMode === false) {
+        throw new Error('Free demo registration is currently disabled by Administrator')
+      }
+      const demoExpiresAt = new Date(Date.now() + demoDurationHours * 60 * 60 * 1000)
       const newShop = await shopRepository.create({
         ...rest,
         shopName,
@@ -308,6 +312,12 @@ export const authService = {
     const cleanMobile = String(mobile).trim()
     const demoEmail = `demo_${cleanMobile.slice(-6)}_${Date.now().toString().slice(-4)}@demo.scanandprint.in`
 
+    const settings = await AdminSettings.findOne().lean()
+    if (settings && settings.demoMode === false) {
+      throw new Error('Free demo registration is currently disabled by Administrator')
+    }
+    const demoDurationHours = settings?.demoDurationHours || 2
+
     // Check if phone exists
     const existing = await shopRepository.findByPhoneOrEmail(demoEmail, cleanMobile, { lean: true })
     if (existing) {
@@ -318,7 +328,7 @@ export const authService = {
         const isPasswordValid = await comparePassword(password, existing.passwordHash || '')
         if (isPasswordValid) {
           const updated = await shopRepository.updateById(existing._id, {
-            demoExpiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+            demoExpiresAt: new Date(Date.now() + demoDurationHours * 60 * 60 * 1000),
           })
           return this._generateAuthTokens(updated)
         }
@@ -329,7 +339,7 @@ export const authService = {
     const passwordHash = await hashPassword(password)
     const shopCode = generateShopCode(shopName || 'DEMO')
     const secretApiKey = generateSecretApiKey()
-    const demoExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours from now
+    const demoExpiresAt = new Date(Date.now() + demoDurationHours * 60 * 60 * 1000)
 
     const newShop = await shopRepository.create({
       shopName: shopName || 'Demo Cyber Cafe & Prints',

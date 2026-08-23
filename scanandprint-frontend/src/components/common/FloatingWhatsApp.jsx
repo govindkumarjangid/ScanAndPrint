@@ -1,15 +1,20 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageSquare, X } from '../../assets/assets'
+import { useAuthStore } from '../../store/useAuthStore'
 
 export default function FloatingWhatsApp() {
   const [isHovered, setIsHovered] = useState(false)
+  const { publicSettings } = useAuthStore()
+
+  const rawPhone = String(publicSettings?.supportPhone || '917073904473').replace(/[^\d]/g, '')
+  const waNumber = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone
 
   return (
     <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 flex items-center gap-3">
       {/* Floating Action Button */}
       <motion.a
-        href="https://wa.me/917073904473?text=Hello%20Scan%26Print%20Support%2C%20I%20need%20assistance%20with%20shop%20setup"
+        href={`https://wa.me/${waNumber}?text=Hello%20Scan%26Print%20Support%2C%20I%20need%20assistance%20with%20shop%20setup`}
         target="_blank"
         rel="noreferrer"
         onMouseEnter={() => setIsHovered(true)}

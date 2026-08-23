@@ -21,9 +21,17 @@ const adminSettingsSchema = new mongoose.Schema({
     type: Number,
     default: 299
   },
+  monthlyOriginalPrice: {
+    type: Number,
+    default: 499
+  },
   yearlyPrice: {
     type: Number,
     default: 799
+  },
+  yearlyOriginalPrice: {
+    type: Number,
+    default: 3588
   },
   supportEmail: {
     type: String,
@@ -31,7 +39,11 @@ const adminSettingsSchema = new mongoose.Schema({
   },
   supportPhone: {
     type: String,
-    default: "+91 98765 43210"
+    default: "+91 7073904473"
+  },
+  supportAddress: {
+    type: String,
+    default: "Tonk Road, Near University Campus, Jaipur, Rajasthan 302015"
   },
   demoDurationHours: {
     type: Number,

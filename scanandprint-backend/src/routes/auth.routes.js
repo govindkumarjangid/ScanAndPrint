@@ -15,6 +15,7 @@ import {
   submitShopReview,
   getPublicReviews,
   getPublicSettings,
+  submitContactForm,
   logoutShop,
   loginAdmin,
 } from '../controllers/auth.controller.js'
@@ -43,6 +44,7 @@ router.route('/admin/login').post(loginAdmin)
 // Public Route
 router.route('/reviews').get(getPublicReviews)
 router.route('/settings').get(getPublicSettings)
+router.route('/contact').post(submitContactForm)
 
 // Protected Routes
 router.use(authenticateShop)

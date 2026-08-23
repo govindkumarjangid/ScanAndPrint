@@ -176,18 +176,39 @@ export default function AdminShops() {
                           <div className="flex flex-col gap-1.5 items-start">
                             <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full bg-amber-950/90 text-amber-300 border border-amber-800/80 shadow-xs whitespace-nowrap">
                               <Clock className="w-3 h-3 text-amber-400" />
-                              <span>Free Demo (2-Hr)</span>
+                              <span>Free Demo</span>
                             </span>
-                            <AdminDemoTimer demoExpiresAt={s.demoExpiresAt} createdAt={s.createdAt} status={subStatus} />
+                            <AdminDemoTimer
+                              demoExpiresAt={s.demoExpiresAt}
+                              createdAt={s.createdAt}
+                              status={subStatus}
+                              planType="FREE_TRIAL"
+                            />
                           </div>
                         ) : pType === 'YEARLY_799' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-purple-950/90 text-purple-300 border border-purple-800/80 whitespace-nowrap">
-                            ₹799 / Yr (Yearly)
-                          </span>
+                          <div className="flex flex-col gap-1.5 items-start">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-purple-950/90 text-purple-300 border border-purple-800/80 whitespace-nowrap shadow-xs">
+                              ₹799 / Yr (Yearly)
+                            </span>
+                            <AdminDemoTimer
+                              subscriptionExpiresAt={s.subscriptionExpiresAt}
+                              createdAt={s.createdAt}
+                              status={subStatus}
+                              planType="YEARLY_799"
+                            />
+                          </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-rose-950/90 text-rose-300 border border-rose-900/60 whitespace-nowrap">
-                            ₹299 / Mo (Monthly)
-                          </span>
+                          <div className="flex flex-col gap-1.5 items-start">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-950/90 text-emerald-300 border border-emerald-900/60 whitespace-nowrap shadow-xs">
+                              ₹299 / Mo (Monthly)
+                            </span>
+                            <AdminDemoTimer
+                              subscriptionExpiresAt={s.subscriptionExpiresAt}
+                              createdAt={s.createdAt}
+                              status={subStatus}
+                              planType="MONTHLY_299"
+                            />
+                          </div>
                         )}
                       </td>
                       <td className="py-4 px-4">

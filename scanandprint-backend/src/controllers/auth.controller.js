@@ -221,6 +221,17 @@ export const getPublicSettings = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 200, 'Settings fetched successfully', settings)
 })
 
+// public: handle contact form submission and send email to admin via Resend
+export const submitContactForm = asyncHandler(async (req, res, next) => {
+  const { name, email, phone, subject, message } = req.body
+  if (!name || !email || !message) {
+    return sendError(res, 400, 'Name, email and message are required')
+  }
+
+  const result = await sendContactEmail({ name, email, phone, subject, message })
+  return sendSuccess(res, 200, 'Your message has been sent successfully to our support team!', result)
+})
+
 // logout shop
 export const logoutShop = asyncHandler(async (req, res, next) => {
   res.clearCookie('accessToken', cookieOptions)

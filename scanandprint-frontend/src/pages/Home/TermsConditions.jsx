@@ -2,8 +2,13 @@ import React from 'react'
 import { Link } from 'react-router'
 import SEO from '../../components/common/SEO'
 import { ShieldCheck, FileText, CheckCircle2, ArrowRight } from '../../assets/assets'
+import { useAuthStore } from '../../store/useAuthStore'
 
 export default function TermsConditions() {
+  const { publicSettings } = useAuthStore()
+  const monthlyPrice = publicSettings?.monthlyPrice || 299
+  const yearlyPrice = publicSettings?.yearlyPrice || 799
+  const supportEmail = publicSettings?.supportEmail || 'scanqrandprint@gmail.com'
   return (
     <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
       <SEO path="/terms-and-conditions" />
@@ -52,7 +57,7 @@ export default function TermsConditions() {
             </h2>
             <ul className="list-disc pl-6 space-y-1.5 text-stone-600">
               <li>
-                <strong>License Grant:</strong> Upon purchasing a Monthly (₹299) or Yearly (₹799) plan, shop owners receive a non-exclusive, non-transferable license to run the Print Agent software on connected Windows computers.
+                <strong>License Grant:</strong> Upon purchasing a Monthly (₹{monthlyPrice}) or Yearly (₹{yearlyPrice}) plan, shop owners receive a non-exclusive, non-transferable license to run the Print Agent software on connected Windows computers.
               </li>
               <li>
                 <strong>Account Credentials:</strong> Shop owners are responsible for maintaining confidentiality of their Shop ID, email, and password.
@@ -104,7 +109,7 @@ export default function TermsConditions() {
               <span className="text-brand font-mono">7.</span> Governing Law & Legal Contact
             </h2>
             <p className="text-stone-600">
-              These Terms shall be governed by and construed in accordance with the laws of India. For any legal inquiries or clarifications, please contact us at <a href="mailto:scanqrandprint@gmail.com" className="text-brand font-bold underline">scanqrandprint@gmail.com</a>.
+              These Terms shall be governed by and construed in accordance with the laws of India. For any legal inquiries or clarifications, please contact us at <a href={`mailto:${supportEmail}`} className="text-brand font-bold underline">{supportEmail}</a>.
             </p>
           </section>
 

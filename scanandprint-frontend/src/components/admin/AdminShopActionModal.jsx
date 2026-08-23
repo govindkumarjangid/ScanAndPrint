@@ -15,8 +15,10 @@ import {
   Mail,
   MapPin,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
+import AdminDemoTimer from '../ui/AdminDemoTimer'
 import api from '../../lib/axios'
 import toast from 'react-hot-toast'
 
@@ -54,14 +56,20 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
     setIsSubmitting(true)
     const success = await extendShopDemo(shop._id, hours)
     setIsSubmitting(false)
-    if (success) onClose()
+    if (success) {
+      toast.success(`Demo extended by ${hours} hours!`)
+      onClose()
+    }
   }
 
   const handlePlanChange = async (planType, days = 30) => {
     setIsSubmitting(true)
     const success = await updateShopPlan(shop._id, planType, days, true)
     setIsSubmitting(false)
-    if (success) onClose()
+    if (success) {
+      toast.success(`Plan updated to ${planType === 'YEARLY_799' ? 'Yearly (365 Days)' : planType === 'MONTHLY_299' ? 'Monthly (30 Days)' : 'Free Trial'}!`)
+      onClose()
+    }
   }
 
   const handleToggleSuspend = async () => {
@@ -71,6 +79,8 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
     setIsSubmitting(false)
     if (success) onClose()
   }
+
+  const pType = shop.planType || (shop.isDemoAccount ? 'FREE_TRIAL' : 'MONTHLY_299')
 
   return (
     <AnimatePresence>
@@ -106,6 +116,23 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
             >
               <X className="w-5 h-5" />
             </button>
+          </div>
+
+          {/* Current Status Bar */}
+          <div className="px-6 py-3 bg-stone-950/60 border-b border-stone-800/60 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-stone-400 font-bold">Current Plan:</span>
+              <span className="text-xs font-extrabold text-white">
+                {pType === 'FREE_TRIAL' || shop.isDemoAccount ? 'Free Demo' : pType === 'YEARLY_799' ? 'Yearly Plan' : 'Monthly Plan'}
+              </span>
+            </div>
+            <AdminDemoTimer
+              demoExpiresAt={shop.demoExpiresAt}
+              subscriptionExpiresAt={shop.subscriptionExpiresAt}
+              createdAt={shop.createdAt}
+              status={shop.status}
+              planType={pType}
+            />
           </div>
 
           {/* Tab Navigation */}
@@ -144,22 +171,29 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
                     <span>Extend Demo Trial Duration</span>
                   </div>
                   <p className="text-stone-400 text-xs">
-                    Adds extra trial time directly to this shop's countdown timer without payment.
+                    Adds extra trial hours directly to this shop's countdown timer in real-time.
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     <button
                       onClick={() => handleExtend(2)}
                       disabled={isSubmitting}
                       className="py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 font-bold text-xs border border-stone-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <Plus className="w-3.5 h-3.5" /> +2 Hours
+                      <Plus className="w-3.5 h-3.5" /> +2 Hrs
                     </button>
                     <button
                       onClick={() => handleExtend(24)}
                       disabled={isSubmitting}
                       className="py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 font-bold text-xs border border-stone-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <Plus className="w-3.5 h-3.5" /> +24 Hours
+                      <Plus className="w-3.5 h-3.5" /> +24 Hrs
+                    </button>
+                    <button
+                      onClick={() => handleExtend(48)}
+                      disabled={isSubmitting}
+                      className="py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 font-bold text-xs border border-stone-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> +48 Hrs
                     </button>
                     <button
                       onClick={() => handleExtend(168)}
@@ -175,25 +209,32 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
                 <div className="p-4 rounded-2xl bg-stone-950/90 border border-stone-800 flex flex-col gap-3">
                   <div className="flex items-center gap-2 text-purple-300 text-xs font-extrabold uppercase tracking-wider">
                     <Zap className="w-4 h-4" />
-                    <span>Manual Plan Override / Grant Status</span>
+                    <span>Grant Subscription Plan / Validity</span>
                   </div>
                   <p className="text-stone-400 text-xs">
-                    Instantly grant active paid subscription status to this shop.
+                    Instantly grant active paid subscription status (adds days to existing active plan).
                   </p>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => handlePlanChange('FREE_TRIAL', 0)}
+                      disabled={isSubmitting}
+                      className="py-2.5 px-2 rounded-xl bg-amber-950/70 hover:bg-amber-900 text-amber-200 font-bold text-[11px] border border-amber-800/80 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
+                    >
+                      <span>Free Demo (2h)</span>
+                    </button>
                     <button
                       onClick={() => handlePlanChange('MONTHLY_299', 30)}
                       disabled={isSubmitting}
-                      className="py-2.5 px-3 rounded-xl bg-rose-950 hover:bg-rose-900 text-rose-200 font-bold text-xs border border-rose-900 flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-50"
+                      className="py-2.5 px-2 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 font-bold text-[11px] border border-emerald-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <span>Grant Monthly (30 Days)</span>
+                      <span>+30 Days (Mo)</span>
                     </button>
                     <button
                       onClick={() => handlePlanChange('YEARLY_799', 365)}
                       disabled={isSubmitting}
-                      className="py-2.5 px-3 rounded-xl bg-purple-950 hover:bg-purple-900 text-purple-200 font-bold text-xs border border-purple-900 flex items-center justify-center gap-1.5 cursor-pointer transition-all disabled:opacity-50"
+                      className="py-2.5 px-2 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-200 font-bold text-[11px] border border-purple-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <span>Grant Yearly (365 Days)</span>
+                      <span>+365 Days (Yr)</span>
                     </button>
                   </div>
                 </div>

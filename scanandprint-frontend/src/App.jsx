@@ -8,6 +8,9 @@ import OwnerLayout from './layouts/OwnerLayout'
 import AdminLayout from './layouts/AdminLayout'
 import PageLoader from './components/common/PageLoader'
 
+import { useAuthStore } from './store/useAuthStore'
+import { getSocket } from './lib/socket'
+
 // Synchronize root theme attribute for dark admin scrollbar vs light owner/marketing scrollbar
 function ThemeSynchronizer() {
   const location = useLocation()
@@ -21,6 +24,30 @@ function ThemeSynchronizer() {
       document.body.classList.remove('admin-theme')
     }
   }, [location.pathname])
+  return null
+}
+
+// Global Platform Settings Initializer with Real-time WebSocket Sync
+function GlobalSettingsInitializer() {
+  const { fetchPublicSettings, setPublicSettings } = useAuthStore()
+
+  useEffect(() => {
+    fetchPublicSettings()
+
+    const socket = getSocket()
+    if (socket) {
+      const handleGlobalSettings = (updated) => {
+        if (updated) {
+          setPublicSettings(updated)
+        }
+      }
+      socket.on('GLOBAL_SETTINGS_UPDATED', handleGlobalSettings)
+      return () => {
+        socket.off('GLOBAL_SETTINGS_UPDATED', handleGlobalSettings)
+      }
+    }
+  }, [fetchPublicSettings, setPublicSettings])
+
   return null
 }
 
@@ -162,6 +189,7 @@ export default function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
+        <GlobalSettingsInitializer />
         <ThemeSynchronizer />
         <AdaptiveToaster />
         <Suspense fallback={<PageLoader />}>

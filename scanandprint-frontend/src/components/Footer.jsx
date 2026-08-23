@@ -1,8 +1,14 @@
 import { Link } from 'react-router'
-import { Printer, Mail, Phone, Briefcase, KeyRound, ArrowRight, InstagramIcon, YoutubeIcon } from '../assets/assets';
+import { Printer, Mail, Phone, MapPin, Briefcase, KeyRound, ArrowRight, InstagramIcon, YoutubeIcon } from '../assets/assets';
 import { Logo } from "./ui/Logo";
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function Footer() {
+  const { publicSettings } = useAuthStore()
+  const email = publicSettings?.supportEmail || 'scanqrandprint@gmail.com'
+  const phone = publicSettings?.supportPhone || '+91 7073904473'
+  const address = publicSettings?.supportAddress || 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015'
+  const cleanPhone = phone.replace(/[^\d+]/g, '')
   return (
     <footer className="bg-stone-900 text-stone-300 pt-16 pb-8 border-t border-stone-800 px-4 sm:px-6 lg:px-8 w-full">
       <div className="max-w-6xl mx-auto w-full">
@@ -92,16 +98,22 @@ export default function Footer() {
             <ul className="flex flex-col gap-3 text-sm">
               <li className="flex items-center gap-2 text-stone-300">
                 <Mail className="w-4 h-4 text-brand" />
-                <a href="mailto:scanqrandprint@gmail.com" className="hover:text-white transition-colors">
-                  scanqrandprint@gmail.com
+                <a href={`mailto:${email}`} className="hover:text-white transition-colors">
+                  {email}
                 </a>
               </li>
               <li className="flex items-center gap-2 text-stone-300">
                 <Phone className="w-4 h-4 text-emerald-400" />
-                <a href="tel:7073904473 " className="hover:text-white transition-colors">
-                  7073904473
+                <a href={`tel:${cleanPhone}`} className="hover:text-white transition-colors">
+                  {phone}
                 </a>
               </li>
+              {address && (
+                <li className="flex items-start gap-2 text-stone-400 text-xs leading-relaxed max-w-xs">
+                  <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <span>{address}</span>
+                </li>
+              )}
               <li>
                 <Link to="/contact" className="flex items-center gap-2 hover:text-brand transition-colors">
                   <Briefcase className="w-4 h-4 text-amber-400" />

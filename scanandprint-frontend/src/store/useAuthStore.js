@@ -34,11 +34,20 @@ export const useAuthStore = create((set, get) => ({
   // Register multi-step state: 1 | 2 | 3
   registerStep: 1,
 
-  // Public Platform Settings (Pricing, Demo limits etc)
+  // Public Platform Settings (Pricing, Demo limits, Support, Policies, Maintenance)
   publicSettings: {
     monthlyPrice: 299,
+    monthlyOriginalPrice: 499,
     yearlyPrice: 799,
-    demoMode: false,
+    yearlyOriginalPrice: 3588,
+    demoMode: true,
+    demoDurationHours: 2,
+    filePurgeMinutes: 60,
+    supportEmail: 'scanqrandprint@gmail.com',
+    supportPhone: '+91 7073904473',
+    supportAddress: 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015',
+    systemNotice: '',
+    maintenanceMode: false,
   },
   isFetchingSettings: false,
 
@@ -73,12 +82,22 @@ export const useAuthStore = create((set, get) => ({
       set({ isFetchingSettings: true })
       const res = await api.get('/auth/settings')
       if (res.data.success && res.data.data) {
+        const d = res.data.data
         set({
           publicSettings: {
-            monthlyPrice: res.data.data.monthlyPrice || 299,
-            yearlyPrice: res.data.data.yearlyPrice || 799,
-            demoMode: res.data.data.demoMode || false,
-          }
+            monthlyPrice: d.monthlyPrice ?? 299,
+            monthlyOriginalPrice: d.monthlyOriginalPrice ?? 499,
+            yearlyPrice: d.yearlyPrice ?? 799,
+            yearlyOriginalPrice: d.yearlyOriginalPrice ?? 3588,
+            demoMode: d.demoMode ?? true,
+            demoDurationHours: d.demoDurationHours ?? 2,
+            filePurgeMinutes: d.filePurgeMinutes ?? 60,
+            supportEmail: d.supportEmail || 'scanqrandprint@gmail.com',
+            supportPhone: d.supportPhone || '+91 7073904473',
+            supportAddress: d.supportAddress || 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015',
+            systemNotice: d.systemNotice || '',
+            maintenanceMode: Boolean(d.maintenanceMode),
+          },
         })
       }
     } catch (error) {
@@ -86,6 +105,15 @@ export const useAuthStore = create((set, get) => ({
     } finally {
       set({ isFetchingSettings: false })
     }
+  },
+
+  setPublicSettings: (newSettings) => {
+    set((state) => ({
+      publicSettings: {
+        ...state.publicSettings,
+        ...newSettings,
+      },
+    }))
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),

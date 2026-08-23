@@ -600,10 +600,16 @@ export const updateShopPlan = asyncHandler(async (req, res) => {
 
   if (planType === 'FREE_TRIAL') {
     shop.isDemoAccount = true
-    shop.demoExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000)
+    const baseDemoTime = shop.demoExpiresAt && new Date(shop.demoExpiresAt).getTime() > Date.now()
+      ? new Date(shop.demoExpiresAt).getTime()
+      : Date.now()
+    shop.demoExpiresAt = new Date(baseDemoTime + 2 * 60 * 60 * 1000)
   } else {
     shop.isDemoAccount = false
-    shop.subscriptionExpiresAt = new Date(Date.now() + Number(days) * 24 * 60 * 60 * 1000)
+    const baseSubTime = shop.subscriptionExpiresAt && new Date(shop.subscriptionExpiresAt).getTime() > Date.now()
+      ? new Date(shop.subscriptionExpiresAt).getTime()
+      : Date.now()
+    shop.subscriptionExpiresAt = new Date(baseSubTime + Number(days) * 24 * 60 * 60 * 1000)
   }
 
   await shop.save()

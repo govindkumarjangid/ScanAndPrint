@@ -79,8 +79,19 @@ export default function ShopAuth() {
   }, [fetchPublicSettings])
 
   const monthlyPrice = publicSettings?.monthlyPrice || 299
+  const monthlyOriginalPrice = publicSettings?.monthlyOriginalPrice || 499
   const yearlyPrice = publicSettings?.yearlyPrice || 799
+  const yearlyOriginalPrice = publicSettings?.yearlyOriginalPrice || 3588
+  const demoDurationHours = publicSettings?.demoDurationHours || 2
   const isDemoAvailable = publicSettings?.demoMode ?? true
+
+  const monthlyDiscountPercent = monthlyOriginalPrice > monthlyPrice
+    ? Math.round(((monthlyOriginalPrice - monthlyPrice) / monthlyOriginalPrice) * 100)
+    : 0
+
+  const yearlyDiscountPercent = yearlyOriginalPrice > yearlyPrice
+    ? Math.round(((yearlyOriginalPrice - yearlyPrice) / yearlyOriginalPrice) * 100)
+    : Math.max(0, Math.round((((monthlyPrice * 12) - yearlyPrice) / (monthlyPrice * 12)) * 100))
 
   // Sync route path and plan query param with Zustand activeTab on load / URL change
   useEffect(() => {
@@ -927,12 +938,15 @@ export default function ShopAuth() {
                           setSelectedPlan('FREE_TRIAL')
                           updateRegisterData({ planType: 'FREE_TRIAL' })
                         }}
-                        className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                        className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
                           selectedPlan === 'FREE_TRIAL'
                             ? 'border-amber-500 bg-amber-50/70 shadow-sm'
                             : 'border-stone-200 bg-white hover:border-stone-300'
                         }`}
                       >
+                        <div className="absolute top-0 right-0 bg-amber-500 text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-1.5 sm:px-2 py-0.5 rounded-bl-lg">
+                          Free Trial · ₹0
+                        </div>
                         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
                             selectedPlan === 'FREE_TRIAL' ? 'border-amber-500 bg-amber-500 text-white' : 'border-stone-300'
@@ -941,10 +955,9 @@ export default function ShopAuth() {
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">2-Hour Free Demo</span>
-                              <span className="text-[9px] sm:text-[10px] font-bold uppercase bg-amber-200 text-amber-900 px-1.5 sm:px-2 py-0.5 rounded-full shrink-0">Trial</span>
+                              <span className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">{demoDurationHours}-Hour Free Demo</span>
                             </div>
-                            <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">Test live printing for 2 hours free</p>
+                            <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">Test live printing for {demoDurationHours} hours free</p>
                           </div>
                         </div>
                         <div className="text-right shrink-0 ml-2">
@@ -960,12 +973,15 @@ export default function ShopAuth() {
                         setSelectedPlan('MONTHLY_299')
                         updateRegisterData({ planType: 'MONTHLY_299' })
                       }}
-                      className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                      className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
                         selectedPlan === 'MONTHLY_299'
                           ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
                           : 'border-stone-200 bg-white hover:border-stone-300'
                       }`}
                     >
+                      <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-1.5 sm:px-2 py-0.5 rounded-bl-lg">
+                        {monthlyDiscountPercent > 0 ? `Save ${monthlyDiscountPercent}%` : 'Monthly'}
+                      </div>
                       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
                           selectedPlan === 'MONTHLY_299' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-stone-300'
@@ -975,13 +991,17 @@ export default function ShopAuth() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">Monthly Plan</span>
-                            <span className="text-[9px] sm:text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-1.5 sm:px-2 py-0.5 rounded-full shrink-0">Monthly</span>
                           </div>
-                          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">Owner dashboard, QR kiosk & print agent</p>
+                          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">Owner dashboard, QR kiosk &amp; print agent</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0 ml-2">
-                        <div className="text-sm sm:text-base font-extrabold text-stone-900">₹{monthlyPrice}</div>
+                        <div className="flex items-center gap-1.5 justify-end">
+                          {monthlyOriginalPrice > monthlyPrice && (
+                            <span className="text-[11px] text-stone-400 line-through">₹{monthlyOriginalPrice}</span>
+                          )}
+                          <div className="text-sm sm:text-base font-extrabold text-stone-900">₹{monthlyPrice}</div>
+                        </div>
                         <div className="text-[9px] sm:text-[10px] text-stone-500 font-semibold">/ 30 days</div>
                       </div>
                     </div>
@@ -999,7 +1019,7 @@ export default function ShopAuth() {
                       }`}
                     >
                       <div className="absolute top-0 right-0 bg-brand text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-1.5 sm:px-2 py-0.5 rounded-bl-lg">
-                        Best Value · Save 78%
+                        Best Value · Save {yearlyDiscountPercent}%
                       </div>
                       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
@@ -1010,13 +1030,19 @@ export default function ShopAuth() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">Yearly Plan</span>
-                            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400 shrink-0" />
                           </div>
-                          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">365 Days — priority setup & poster</p>
+                          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">365 Days — priority setup &amp; poster</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0 ml-2">
-                        <div className="text-sm sm:text-base font-extrabold text-stone-900">₹{yearlyPrice}</div>
+                        <div className="flex items-center gap-1.5 justify-end">
+                          {yearlyOriginalPrice > yearlyPrice && (
+                            <span className="text-[11px] text-stone-400 line-through">
+                              ₹{yearlyOriginalPrice}
+                            </span>
+                          )}
+                          <div className="text-sm sm:text-base font-extrabold text-brand">₹{yearlyPrice}</div>
+                        </div>
                         <div className="text-[10px] text-emerald-600 font-bold">1 Year</div>
                       </div>
                     </div>
@@ -1050,11 +1076,11 @@ export default function ShopAuth() {
                           <span>{isVerifying ? 'Verifying...' : 'Processing...'}</span>
                         </>
                       ) : selectedPlan === 'FREE_TRIAL' ? (
-                        <span>Activate Demo ✨</span>
+                        <span>Activate Demo</span>
                       ) : selectedPlan === 'YEARLY_799' ? (
-                        <span>Pay ₹{yearlyPrice} 💳</span>
+                        <span>Pay ₹{yearlyPrice}</span>
                       ) : (
-                        <span>Pay ₹{monthlyPrice} 💳</span>
+                        <span>Pay ₹{monthlyPrice}</span>
                       )}
                     </button>
                   </div>

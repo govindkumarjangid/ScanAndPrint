@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, AlertCircle, ownerNavItems } from '../assets/assets'
-import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check, Rocket, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check, Rocket, ChevronLeft, ChevronRight, Megaphone, AlertTriangle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
 import { useAuthStore } from '../store/useAuthStore'
@@ -48,7 +48,13 @@ export default function OwnerLayout() {
   }, [fetchProfile, fetchPublicSettings])
 
   const monthlyPrice = publicSettings?.monthlyPrice || 299
+  const monthlyOriginalPrice = publicSettings?.monthlyOriginalPrice || 499
   const yearlyPrice = publicSettings?.yearlyPrice || 799
+  const yearlyOriginalPrice = publicSettings?.yearlyOriginalPrice || 3588
+
+  const yearlyDiscountPercent = yearlyOriginalPrice > yearlyPrice 
+    ? Math.round(((yearlyOriginalPrice - yearlyPrice) / yearlyOriginalPrice) * 100) 
+    : Math.max(0, Math.round((((monthlyPrice * 12) - yearlyPrice) / (monthlyPrice * 12)) * 100))
 
   // Play audio alert chime
   const playChime = () => {
@@ -65,7 +71,7 @@ export default function OwnerLayout() {
       gain.connect(audioCtx.destination)
       osc.start()
       osc.stop(audioCtx.currentTime + 0.5)
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Real-time Socket Connection (Pure Socket.IO - 0 Refresh Required)
@@ -91,10 +97,10 @@ export default function OwnerLayout() {
       useAuthStore.setState((state) => ({
         currentShop: state.currentShop
           ? {
-              ...state.currentShop,
-              isOnline,
-              connectedPrinters: data?.printers || state.currentShop.connectedPrinters || [],
-            }
+            ...state.currentShop,
+            isOnline,
+            connectedPrinters: data?.printers || state.currentShop.connectedPrinters || [],
+          }
           : null,
       }))
     }
@@ -117,6 +123,23 @@ export default function OwnerLayout() {
         })
         logout()
       } else {
+        if (data?.planType || data?.demoExpiresAt || data?.subscriptionExpiresAt) {
+          useAuthStore.setState((state) => ({
+            currentShop: {
+              ...state.currentShop,
+              ...(data.planType && { planType: data.planType }),
+              ...(data.isDemoAccount !== undefined && { isDemoAccount: data.isDemoAccount }),
+              ...(data.demoExpiresAt && { demoExpiresAt: data.demoExpiresAt }),
+              ...(data.subscriptionExpiresAt && { subscriptionExpiresAt: data.subscriptionExpiresAt }),
+              isSubscriptionActive: true,
+              subscriptionStatus: 'ACTIVE',
+            },
+          }))
+          toast.success('🎉 Your subscription / demo validity has been updated by Admin!', {
+            icon: '🚀',
+            duration: 6000,
+          })
+        }
         fetchProfile()
       }
     }
@@ -417,9 +440,8 @@ export default function OwnerLayout() {
 
       {/* Desktop sidebar */}
       <aside
-        className={`relative hidden lg:flex flex-col bg-white border-r border-stone-200/80 h-full shrink-0 justify-between z-30 shadow-xs transition-all duration-300 ${
-          isCollapsed ? 'w-18' : 'w-65'
-        }`}
+        className={`relative hidden lg:flex flex-col bg-white border-r border-stone-200/80 h-full shrink-0 justify-between z-30 shadow-xs transition-all duration-300 ${isCollapsed ? 'w-18' : 'w-65'
+          }`}
       >
         {/* Floating Chevron Collapse / Expand Button placed at bottom-20 baseline */}
         <button
@@ -460,18 +482,16 @@ export default function OwnerLayout() {
                 to={item.path}
                 title={isCollapsed ? item.name : undefined}
                 className={({ isActive }) =>
-                  `flex items-center h-12 rounded-2xl text-sm font-bold transition-all duration-200 group px-3.5 overflow-hidden ${
-                    isActive
-                      ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
-                      : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                  `flex items-center h-12 rounded-2xl text-sm font-bold transition-all duration-200 group px-3.5 overflow-hidden ${isActive
+                    ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
+                    : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
                   }`
                 }
               >
                 <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105" />
                 <span
-                  className={`ml-3.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                    isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
-                  }`}
+                  className={`ml-3.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+                    }`}
                 >
                   {item.name}
                 </span>
@@ -494,9 +514,8 @@ export default function OwnerLayout() {
               <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
             )}
             <span
-              className={`ml-3.5 text-xs font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
-              }`}
+              className={`ml-3.5 text-xs font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+                }`}
             >
               {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
             </span>
@@ -507,9 +526,29 @@ export default function OwnerLayout() {
       {/* Content container with full-height right-edge scrollbar */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden">
 
-        {/* Sticky Top Bar (Demo Banner + Expiry Banner + Header) */}
-        <div className="sticky top-0 z-20 shrink-0 flex flex-col">
-          {/* 1. 2-Hour Free Demo Active Banner */}
+        {/* Sticky Top Bar (Broadcast + Maintenance + Demo Banner + Expiry Banner + Header) */}
+        <div className="sticky top-0 z-30 shrink-0 flex flex-col bg-white shadow-xs">
+          {/* Global Broadcast Notice Banner from Admin */}
+          {publicSettings?.systemNotice && (
+            <div className="bg-stone-900 text-amber-300 border-b border-amber-500/30 px-4 py-2 flex items-center justify-between text-xs font-bold shadow-xs">
+              <div className="flex items-center gap-2 mx-auto sm:mx-0">
+                <Megaphone className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+                <span>Notice: {publicSettings.systemNotice}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Platform Maintenance Mode Alert */}
+          {publicSettings?.maintenanceMode && (
+            <div className="bg-rose-600 text-white px-4 py-2 flex items-center justify-between text-xs font-bold shadow-md">
+              <div className="flex items-center gap-2 mx-auto sm:mx-0">
+                <AlertTriangle className="w-4 h-4 text-white shrink-0 animate-bounce" />
+                <span>Platform Maintenance Mode is ACTIVE: Kiosks & new print jobs are temporarily restricted.</span>
+              </div>
+            </div>
+          )}
+
+          {/* 1. Free Demo Active Banner */}
           {currentShop?.isDemoAccount && !isDemoExpired && (
             <div className="bg-linear-to-r from-amber-500 to-amber-600 text-stone-950 px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-xs">
               <div className="flex items-center gap-2 mx-auto sm:mx-0">
@@ -549,7 +588,7 @@ export default function OwnerLayout() {
           )}
 
           {/* Header */}
-          <header className="bg-white border-b border-stone-200/80 px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 shadow-2xs">
+          <header className="bg-white border-b border-stone-200/80 px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 shadow-xs">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -777,7 +816,7 @@ export default function OwnerLayout() {
                     }`}
                 >
                   <div className="absolute top-0 right-0 bg-brand text-white text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-bl-lg">
-                    Best Value · Save 78%
+                    Best Value · Save {yearlyDiscountPercent}%
                   </div>
                   <div className="flex items-center gap-3">
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedRenewPlan === 'YEARLY_799' ? 'border-brand bg-brand text-white' : 'border-stone-300'
@@ -874,15 +913,15 @@ export default function OwnerLayout() {
                 <div
                   onClick={() => setSelectedUpgradePlan('MONTHLY_299')}
                   className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${selectedUpgradePlan === 'MONTHLY_299'
-                      ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
-                      : 'border-stone-200 bg-white hover:border-stone-300'
+                    ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
+                    : 'border-stone-200 bg-white hover:border-stone-300'
                     }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedUpgradePlan === 'MONTHLY_299'
-                          ? 'border-emerald-600 bg-emerald-600 text-white'
-                          : 'border-stone-300'
+                        ? 'border-emerald-600 bg-emerald-600 text-white'
+                        : 'border-stone-300'
                         }`}
                     >
                       {selectedUpgradePlan === 'MONTHLY_299' && <Check className="w-3 h-3 stroke-3" />}
@@ -905,18 +944,18 @@ export default function OwnerLayout() {
                 <div
                   onClick={() => setSelectedUpgradePlan('YEARLY_799')}
                   className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${selectedUpgradePlan === 'YEARLY_799'
-                      ? 'border-brand bg-rose-50/70 shadow-sm'
-                      : 'border-stone-200 bg-white hover:border-stone-300'
+                    ? 'border-brand bg-rose-50/70 shadow-sm'
+                    : 'border-stone-200 bg-white hover:border-stone-300'
                     }`}
                 >
                   <div className="absolute top-0 right-0 bg-brand text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-bl-lg">
-                    Best Value · Save 78%
+                    Best Value · Save {yearlyDiscountPercent}%
                   </div>
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedUpgradePlan === 'YEARLY_799'
-                          ? 'border-brand bg-brand text-white'
-                          : 'border-stone-300'
+                        ? 'border-brand bg-brand text-white'
+                        : 'border-stone-300'
                         }`}
                     >
                       {selectedUpgradePlan === 'YEARLY_799' && <Check className="w-3 h-3 stroke-3" />}

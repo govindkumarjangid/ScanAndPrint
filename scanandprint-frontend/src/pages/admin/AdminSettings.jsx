@@ -9,6 +9,7 @@ import {
   Trash2,
   Phone,
   Mail,
+  MapPin,
   Megaphone,
   Sliders,
 } from 'lucide-react'
@@ -64,31 +65,78 @@ export default function AdminSettings() {
       ) : (
       <form onSubmit={handleSaveSettings} className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800 flex flex-col gap-6 shadow-sm">
         
-        {/* 1. Subscription Plan Pricing */}
+        {/* 1. Subscription Plan Pricing (Selling & Original MRP Rates) */}
         <div>
           <h3 className="text-sm font-extrabold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-brand" />
-            <span>Subscription Plan Pricing</span>
+            <span>Subscription Plan Pricing &amp; Discounts</span>
           </h3>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-stone-300">Monthly Plan Price (₹ / mo)</label>
-              <input
-                type="number"
-                value={settingsData.monthlyPrice ?? 299}
-                onChange={(e) => updateSetting('monthlyPrice', Number(e.target.value))}
-                className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
-              />
+            {/* Monthly Plan Group */}
+            <div className="p-4 rounded-2xl bg-stone-900/70 border border-stone-800 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-300">Plan 1 · Monthly</span>
+                {settingsData.monthlyOriginalPrice > settingsData.monthlyPrice && (
+                  <span className="text-[10px] font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-md">
+                    Save {Math.round(((settingsData.monthlyOriginalPrice - settingsData.monthlyPrice) / settingsData.monthlyOriginalPrice) * 100)}%
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-stone-400">Discount Price (₹ / mo)</label>
+                  <input
+                    type="number"
+                    value={settingsData.monthlyPrice ?? 299}
+                    onChange={(e) => updateSetting('monthlyPrice', Number(e.target.value))}
+                    className="w-full h-10 px-3 rounded-xl border border-stone-700 bg-stone-950 focus:border-brand text-sm font-bold text-white outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-stone-400">Original / MRP (₹)</label>
+                  <input
+                    type="number"
+                    value={settingsData.monthlyOriginalPrice ?? 499}
+                    onChange={(e) => updateSetting('monthlyOriginalPrice', Number(e.target.value))}
+                    className="w-full h-10 px-3 rounded-xl border border-stone-700 bg-stone-950 focus:border-brand text-sm font-bold text-stone-300 outline-none"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-stone-300">Yearly Plan Price (₹ / year)</label>
-              <input
-                type="number"
-                value={settingsData.yearlyPrice ?? 799}
-                onChange={(e) => updateSetting('yearlyPrice', Number(e.target.value))}
-                className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
-              />
+            {/* Yearly Plan Group */}
+            <div className="p-4 rounded-2xl bg-stone-900/70 border border-stone-800 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand font-extrabold">Plan 2 · Yearly (Best Value)</span>
+                {settingsData.yearlyOriginalPrice > settingsData.yearlyPrice && (
+                  <span className="text-[10px] font-extrabold bg-rose-950 text-rose-400 border border-rose-800 px-2 py-0.5 rounded-md">
+                    Save {Math.round(((settingsData.yearlyOriginalPrice - settingsData.yearlyPrice) / settingsData.yearlyOriginalPrice) * 100)}%
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-stone-400">Discount Price (₹ / yr)</label>
+                  <input
+                    type="number"
+                    value={settingsData.yearlyPrice ?? 799}
+                    onChange={(e) => updateSetting('yearlyPrice', Number(e.target.value))}
+                    className="w-full h-10 px-3 rounded-xl border border-stone-700 bg-stone-950 focus:border-brand text-sm font-bold text-brand outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-stone-400">Original / MRP (₹)</label>
+                  <input
+                    type="number"
+                    value={settingsData.yearlyOriginalPrice ?? 3588}
+                    onChange={(e) => updateSetting('yearlyOriginalPrice', Number(e.target.value))}
+                    className="w-full h-10 px-3 rounded-xl border border-stone-700 bg-stone-950 focus:border-brand text-sm font-bold text-stone-300 outline-none"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -163,6 +211,19 @@ export default function AdminSettings() {
                 type="email"
                 value={settingsData.supportEmail ?? 'scanqrandprint@gmail.com'}
                 onChange={(e) => updateSetting('supportEmail', e.target.value)}
+                className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-2 sm:col-span-2">
+              <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                <span>Platform Office / Support Address</span>
+              </label>
+              <input
+                type="text"
+                value={settingsData.supportAddress ?? 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015'}
+                onChange={(e) => updateSetting('supportAddress', e.target.value)}
+                placeholder="e.g. Tonk Road, Near University Campus, Jaipur, Rajasthan 302015"
                 className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
               />
             </div>

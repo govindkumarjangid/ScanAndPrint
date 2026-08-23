@@ -2,8 +2,16 @@ import React from 'react'
 import { Link } from 'react-router'
 import SEO from '../../components/common/SEO'
 import { IndianRupee, RefreshCw, CheckCircle2, AlertCircle, ArrowRight, Phone, Mail } from '../../assets/assets'
+import { useAuthStore } from '../../store/useAuthStore'
 
 export default function RefundPolicy() {
+  const { publicSettings } = useAuthStore()
+  const monthlyPrice = publicSettings?.monthlyPrice || 299
+  const yearlyPrice = publicSettings?.yearlyPrice || 799
+  const supportEmail = publicSettings?.supportEmail || 'scanqrandprint@gmail.com'
+  const supportPhone = publicSettings?.supportPhone || '+91 7073904473'
+  const rawPhone = supportPhone.replace(/[^\d]/g, '')
+  const waNumber = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone
   return (
     <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
       <SEO path="/refund-policy" />
@@ -38,7 +46,7 @@ export default function RefundPolicy() {
             </div>
           </div>
           <a
-            href="https://wa.me/918404832414?text=Hello%20Scan%26Print%2C%20I%20want%20to%20request%20a%20refund"
+            href={`https://wa.me/${waNumber}?text=Hello%20Scan%26Print%2C%20I%20want%20to%20request%20a%20refund`}
             target="_blank"
             rel="noreferrer"
             className="shrink-0"
@@ -55,17 +63,17 @@ export default function RefundPolicy() {
           {/* Section 1 */}
           <section className="flex flex-col gap-2">
             <h2 className="text-xl font-extrabold text-stone-900 flex items-center gap-2">
-              <span className="text-brand font-mono">1.</span> Shop Owner Subscription Refunds (Monthly & Yearly)
+              <span className="text-brand font-mono">1.</span> Shop Owner Subscription Refunds (Monthly &amp; Yearly)
             </h2>
             <p className="text-stone-600">
-              We stand behind the reliability of Scan&Print software. If you register your shop under either the <strong>Monthly (₹299)</strong> or <strong>Yearly (₹799)</strong> plan:
+              We stand behind the reliability of Scan&amp;Print software. If you register your shop under either the <strong>Monthly (₹{monthlyPrice})</strong> or <strong>Yearly (₹{yearlyPrice})</strong> plan:
             </p>
             <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mt-1">
               <li>
                 <strong>Full Refund Eligibility:</strong> If the Print Agent software is incompatible with your Windows PC or fails to auto-print after remote setup assistance within <strong>7 days</strong> of purchase, you are eligible for a 100% full refund.
               </li>
               <li>
-                <strong>No Renewal Lock-in:</strong> Monthly subscriptions (₹299/mo) can be cancelled at any time from your Shop Dashboard without cancellation penalties.
+                <strong>No Renewal Lock-in:</strong> Monthly subscriptions (₹{monthlyPrice}/mo) can be cancelled at any time from your Shop Dashboard without cancellation penalties.
               </li>
             </ul>
           </section>
@@ -124,7 +132,7 @@ export default function RefundPolicy() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               <a
-                href="https://wa.me/918404832414?text=Refund%20Request%20for%20Scan%26Print"
+                href={`https://wa.me/${waNumber}?text=Refund%20Request%20for%20Scan%26Print`}
                 target="_blank"
                 rel="noreferrer"
                 className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center gap-3 hover:bg-emerald-100/60 transition-all group"
@@ -134,12 +142,12 @@ export default function RefundPolicy() {
                 </div>
                 <div>
                   <span className="text-[11px] font-bold uppercase text-stone-400">WhatsApp Support</span>
-                  <p className="font-extrabold text-stone-900 text-sm">+91 84048 32414</p>
+                  <p className="font-extrabold text-stone-900 text-sm">{supportPhone}</p>
                 </div>
               </a>
 
               <a
-                href="mailto:scanqrandprint@gmail.com?subject=Refund%20Request"
+                href={`mailto:${supportEmail}?subject=Refund%20Request`}
                 className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center gap-3 hover:bg-rose-100/60 transition-all group"
               >
                 <div className="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center font-bold">
@@ -147,7 +155,7 @@ export default function RefundPolicy() {
                 </div>
                 <div>
                   <span className="text-[11px] font-bold uppercase text-stone-400">Email Support</span>
-                  <p className="font-extrabold text-stone-900 text-sm">scanqrandprint@gmail.com</p>
+                  <p className="font-extrabold text-stone-900 text-sm">{supportEmail}</p>
                 </div>
               </a>
             </div>

@@ -11,12 +11,20 @@ export default function Pricing() {
   const [demoModalOpen, setDemoModalOpen] = useState(false)
   const { publicSettings, fetchPublicSettings } = useAuthStore()
   
-  // Set fallback pricing if store data hasn't loaded
-  const pricing = {
-    monthlyPrice: publicSettings?.monthlyPrice || 299,
-    yearlyPrice: publicSettings?.yearlyPrice || 799,
-    demoMode: publicSettings?.demoMode ?? true,
-  }
+  const monthlyPrice = publicSettings?.monthlyPrice || 299
+  const monthlyOriginalPrice = publicSettings?.monthlyOriginalPrice || 499
+  const yearlyPrice = publicSettings?.yearlyPrice || 799
+  const yearlyOriginalPrice = publicSettings?.yearlyOriginalPrice || 3588
+  const demoDurationHours = publicSettings?.demoDurationHours || 2
+  const isDemoAvailable = publicSettings?.demoMode ?? true
+
+  const monthlyDiscountPercent = monthlyOriginalPrice > monthlyPrice 
+    ? Math.round(((monthlyOriginalPrice - monthlyPrice) / monthlyOriginalPrice) * 100) 
+    : 0
+
+  const yearlyDiscountPercent = yearlyOriginalPrice > yearlyPrice 
+    ? Math.round(((yearlyOriginalPrice - yearlyPrice) / yearlyOriginalPrice) * 100) 
+    : Math.max(0, Math.round((((monthlyPrice * 12) - yearlyPrice) / (monthlyPrice * 12)) * 100))
 
   useEffect(() => {
     fetchPublicSettings()
@@ -34,83 +42,87 @@ export default function Pricing() {
           Choose the Perfect Plan for <span className="marker-highlight text-stone-900">Your Shop</span>
         </h1>
         <p className="text-stone-500 text-base sm:text-lg max-w-2xl mx-auto">
-          Start with our 100% Free 2-Hour Demo, or choose our Monthly / Yearly plan for uninterrupted automated printing.
+          {isDemoAvailable
+            ? `Start with our 100% Free ${demoDurationHours}-Hour Demo, or choose our Monthly / Yearly plan for uninterrupted automated printing.`
+            : 'Choose our Monthly or Yearly plan for uninterrupted automated printing.'}
         </p>
       </div>
 
-      {/* 3-Column Plan Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 w-full items-stretch max-w-6xl mx-auto">
+      {/* Plan Cards Grid */}
+      <div className={`grid grid-cols-1 ${isDemoAvailable ? 'md:grid-cols-3' : 'md:grid-cols-2 max-w-4xl'} gap-6 sm:gap-8 w-full items-stretch max-w-6xl mx-auto`}>
 
-        {/* 1. 2-HOUR FREE DEMO TRIAL CARD */}
-        <motion.div
-          whileHover={{ y: -4 }}
-          className="bg-white rounded-3xl p-7 border-2 border-amber-400 shadow-amber-100 shadow-md flex flex-col justify-between relative bg-linear-to-b from-amber-50/40 to-white overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 bg-amber-400 text-white text-shadow-xs font-extrabold text-[11px] uppercase px-3.5 py-1 rounded-bl-2xl flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 stroke-[2.5]" /> 2-Hour Trial
-          </div>
+        {/* 1. FREE DEMO TRIAL CARD */}
+        {isDemoAvailable && (
+          <motion.div
+            whileHover={{ y: -4 }}
+            className="bg-white rounded-3xl p-7 border-2 border-amber-400 shadow-amber-100 shadow-md flex flex-col justify-between relative bg-linear-to-b from-amber-50/40 to-white overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 bg-amber-400 text-white text-shadow-xs font-extrabold text-[11px] uppercase px-3.5 py-1 rounded-bl-2xl flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 stroke-[2.5]" /> {demoDurationHours}-Hour Trial
+            </div>
 
-          <div>
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-700">Free Trial</span>
-                <h3 className="text-2xl font-extrabold text-stone-900 font-heading">2-Hour Demo</h3>
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-700">Free Trial</span>
+                  <h3 className="text-2xl font-extrabold text-stone-900 font-heading">{demoDurationHours}-Hour Demo</h3>
+                </div>
+              </div>
+
+              <p className="text-stone-500 text-xs sm:text-sm mb-6">
+                "Experience full owner dashboard, live kiosk & print agent for {demoDurationHours} hours completely free"
+              </p>
+
+              <div className="flex items-baseline gap-1.5 mb-6">
+                <span className="text-4xl font-extrabold text-stone-900">₹0</span>
+                <span className="text-stone-500 font-semibold text-xs">/ {demoDurationHours} hours full access</span>
+              </div>
+
+              <div className="space-y-3 mb-6 border-t border-stone-100 pt-5 text-xs font-medium text-stone-700">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Check className="w-3 h-3 stroke-3" />
+                  </div>
+                  <span>Full Owner Dashboard Access</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Check className="w-3 h-3 stroke-3" />
+                  </div>
+                  <span>Customer Kiosk with Live QR</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Check className="w-3 h-3 stroke-3" />
+                  </div>
+                  <span>Desktop Print Agent Setup</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Check className="w-3 h-3 stroke-3" />
+                  </div>
+                  <span>Test Live Printing Workflow</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Check className="w-3 h-3 stroke-3" />
+                  </div>
+                  <span>Zero Payment Required</span>
+                </div>
               </div>
             </div>
 
-            <p className="text-stone-500 text-xs sm:text-sm mb-6">
-              "Experience full owner dashboard, live kiosk & print agent for 2 hours completely free"
-            </p>
-
-            <div className="flex items-baseline gap-1.5 mb-6">
-              <span className="text-4xl font-extrabold text-stone-900">₹0</span>
-              <span className="text-stone-500 font-semibold text-xs">/ 2 hours full access</span>
-            </div>
-
-            <div className="space-y-3 mb-6 border-t border-stone-100 pt-5 text-xs font-medium text-stone-700">
-              <div className="flex items-center gap-2.5">
-                <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-3" />
-                </div>
-                <span>Full Owner Dashboard Access</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-3" />
-                </div>
-                <span>Customer Kiosk with Live QR</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-3" />
-                </div>
-                <span>Desktop Print Agent Setup</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-3" />
-                </div>
-                <span>Test Live Printing Workflow</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-3" />
-                </div>
-                <span>Zero Payment Required</span>
-              </div>
-            </div>
-          </div>
-
-          <Link to="/register?plan=demo" className="flex justify-center mt-2 w-full">
-            <button
-              type="button"
-              className="btn btn-outline w-full py-3.5 bg-amber-400! hover:bg-amber-500! text-white! font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-            >
-              <Zap className="w-4 h-4 text-amber-100 fill-amber-100" />
-              <span className="text-shadow-xs">Start 2-Hour Demo (₹0)</span>
-            </button>
-          </Link>
-        </motion.div>
+            <Link to="/register?plan=demo" className="flex justify-center mt-2 w-full">
+              <button
+                type="button"
+                className="btn btn-outline w-full py-3.5 bg-amber-400! hover:bg-amber-500! text-white! font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <Zap className="w-4 h-4 text-amber-100 fill-amber-100" />
+                <span className="text-shadow-xs">Start {demoDurationHours}-Hour Demo (₹0)</span>
+              </button>
+            </Link>
+          </motion.div>
+        )}
 
         {/* 2. MONTHLY PLAN CARD */}
         <motion.div
@@ -130,12 +142,22 @@ export default function Pricing() {
             </div>
 
             <p className="text-stone-500 text-xs sm:text-sm mb-6">
-              "Pay monthly on time to keep your automated shop printing active"
+              {monthlyDiscountPercent > 0
+                ? `"Pay monthly on time to keep automated printing active — save ${monthlyDiscountPercent}%"`
+                : '"Pay monthly on time to keep your automated shop printing active"'}
             </p>
 
-            <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-4xl font-extrabold text-stone-900">₹{pricing.monthlyPrice}</span>
+            <div className="flex items-baseline gap-2 mb-6">
+              {monthlyOriginalPrice > monthlyPrice && (
+                <span className="text-stone-400 line-through text-base font-bold">₹{monthlyOriginalPrice}</span>
+              )}
+              <span className="text-4xl font-extrabold text-stone-900">₹{monthlyPrice}</span>
               <span className="text-stone-500 font-semibold text-xs">/month</span>
+              {monthlyDiscountPercent > 0 && (
+                <span className="bg-emerald-100 text-emerald-900 font-extrabold text-[10px] px-2 py-0.5 rounded-md border border-emerald-300 ml-auto">
+                  Save {monthlyDiscountPercent}%
+                </span>
+              )}
             </div>
 
             <div className="space-y-3 mb-6 border-t border-stone-100 pt-5 text-xs font-medium text-stone-700">
@@ -174,7 +196,7 @@ export default function Pricing() {
 
           <Link to="/register?plan=monthly" className="flex justify-center mt-2 w-full">
             <button className="btn btn-secondary bg-emerald-600! hover:bg-emerald-700! text-white! w-full py-3.5 text-xs font-bold cursor-pointer text-shadow-xs">
-              Choose Monthly (₹{pricing.monthlyPrice})
+              Choose Monthly (₹{monthlyPrice})
             </button>
           </Link>
         </motion.div>
@@ -197,15 +219,22 @@ export default function Pricing() {
             </div>
 
             <p className="text-stone-500 text-xs sm:text-sm mb-6">
-              "1 full year access with priority support — save 78% compared to monthly"
+              "1 full year access with priority support — save {yearlyDiscountPercent}% compared to monthly"
             </p>
 
             <div className="flex items-baseline gap-2 mb-6">
-              <span className="text-stone-400 line-through text-base font-bold">₹3,588</span>
-              <span className="text-4xl font-extrabold text-brand">₹{pricing.yearlyPrice}</span>
-              <span className="bg-amber-100 text-amber-900 font-extrabold text-[10px] px-2 py-0.5 rounded-md border border-amber-300">
-                1 Year / ₹{pricing.yearlyPrice}
-              </span>
+              {yearlyOriginalPrice > yearlyPrice && (
+                <span className="text-stone-400 line-through text-base font-bold">
+                  ₹{yearlyOriginalPrice}
+                </span>
+              )}
+              <span className="text-4xl font-extrabold text-brand">₹{yearlyPrice}</span>
+              <span className="text-stone-500 font-semibold text-xs">/year</span>
+              {yearlyDiscountPercent > 0 && (
+                <span className="bg-rose-100 text-rose-900 font-extrabold text-[10px] px-2 py-0.5 rounded-md border border-rose-300 ml-auto whitespace-nowrap">
+                  Save {yearlyDiscountPercent}%
+                </span>
+              )}
             </div>
 
             <div className="space-y-3 mb-6 border-t border-stone-100 pt-5 text-xs font-medium text-stone-800">
@@ -242,7 +271,7 @@ export default function Pricing() {
 
           <Link to="/register?plan=yearly" className="flex justify-center mt-2 w-full">
             <button className="btn btn-primary w-full py-3.5 shadow-lg flex items-center justify-center gap-2 text-xs font-bold cursor-pointer">
-              <span className="text-shadow-xs">Get Yearly Plan (₹{pricing.yearlyPrice})</span>
+              <span className="text-shadow-xs">Get Yearly Plan (₹{yearlyPrice})</span>
             </button>
           </Link>
         </motion.div>

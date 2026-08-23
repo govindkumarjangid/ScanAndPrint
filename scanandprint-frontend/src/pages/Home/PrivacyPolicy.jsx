@@ -2,8 +2,13 @@ import React from 'react'
 import { Link } from 'react-router'
 import SEO from '../../components/common/SEO'
 import { ShieldCheck, Lock, EyeOff, Server, FileText, CheckCircle2, ArrowRight } from '../../assets/assets'
+import { useAuthStore } from '../../store/useAuthStore'
 
 export default function PrivacyPolicy() {
+  const { publicSettings } = useAuthStore()
+  const supportEmail = publicSettings?.supportEmail || 'scanqrandprint@gmail.com'
+  const supportPhone = publicSettings?.supportPhone || '+91 7073904473'
+  const filePurgeMinutes = publicSettings?.filePurgeMinutes || 60
   return (
     <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
       <SEO path="/privacy-policy" />
@@ -123,9 +128,9 @@ export default function PrivacyPolicy() {
             </p>
             <div className="bg-rose-50/60 border border-rose-200 p-4 rounded-2xl text-xs sm:text-sm text-stone-800 flex flex-col gap-1">
               <span className="font-bold text-stone-900">Scan&Print Privacy Desk</span>
-              <span>Email: <a href="mailto:scanqrandprint@gmail.com" className="text-brand font-bold underline">scanqrandprint@gmail.com</a></span>
-              <span>Phone / WhatsApp Support: <strong>+91 84048 32414</strong></span>
-              <span>Address: Main Market, Digital Hub, India</span>
+              <span>Email: <a href={`mailto:${supportEmail}`} className="text-brand font-bold underline">{supportEmail}</a></span>
+              <span>Phone / WhatsApp Support: <strong>{supportPhone}</strong></span>
+              <span>Address: {publicSettings?.supportAddress || 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015'}</span>
             </div>
           </section>
 

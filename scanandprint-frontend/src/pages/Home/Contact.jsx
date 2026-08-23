@@ -12,8 +12,15 @@ import {
   Clock,
   ShieldCheck,
 } from '../../assets/assets'
+import { useAuthStore } from '../../store/useAuthStore'
+import api from '../../lib/axios'
+import toast from 'react-hot-toast'
 
 export default function Contact() {
+  const { publicSettings } = useAuthStore()
+  const monthlyPrice = publicSettings?.monthlyPrice || 299
+  const yearlyPrice = publicSettings?.yearlyPrice || 799
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,13 +31,20 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => {
+    try {
+      const res = await api.post('/auth/contact', formData)
+      if (res.data.success) {
+        setSubmitted(true)
+        toast.success('Your message has been sent to our support desk!')
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to deliver message. Please try again.')
+    } finally {
       setLoading(false)
-      setSubmitted(true)
-    }, 600)
+    }
   }
 
   return (
@@ -145,8 +159,8 @@ export default function Contact() {
                   >
                     <option value="General Inquiry">General Inquiry / Demo</option>
                     <option value="Shop Setup Assistance">Printer Setup Assistance</option>
-                    <option value="Billing & Pricing">Billing & Pricing Plan (₹299 / ₹799)</option>
-                    <option value="Business Partnership">Business & Regional Franchise</option>
+                    <option value="Billing & Pricing">Billing &amp; Pricing Plan (₹{monthlyPrice} / ₹{yearlyPrice})</option>
+                    <option value="Business Partnership">Business &amp; Regional Franchise</option>
                   </select>
                 </div>
 
@@ -181,28 +195,32 @@ export default function Contact() {
         {/* right section */}
         <div className="lg:col-span-6 order-2 flex flex-col gap-6">
           <div className="bg-white rounded-3xl p-6 border border-stone-200/90 shadow-md flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-extrabold">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-stone-100/80">
+              <div className="flex items-start gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-extrabold shrink-0 mt-0.5 shadow-2xs">
                   <MapPin className="w-5 h-5 text-brand" />
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-stone-900">Head Office & Support Hub</h3>
-                  <p className="text-stone-500 text-xs">Tonk Road, Near University Campus, Jaipur, Rajasthan 302015</p>
+                <div className="flex flex-col min-w-0">
+                  <h3 className="font-extrabold text-base sm:text-lg text-stone-900 leading-tight">Head Office &amp; Support Hub</h3>
+                  <p className="text-stone-500 text-xs sm:text-[13px] leading-relaxed mt-0.5">
+                    {publicSettings?.supportAddress || 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015'}
+                  </p>
                 </div>
               </div>
 
-              <span className="hidden sm:flex items-center gap-1 text-[9px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Open 9 AM - 9 PM
-              </span>
+              <div className="shrink-0 self-start sm:self-center">
+                <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full whitespace-nowrap shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Open 9 AM – 9 PM
+                </span>
+              </div>
             </div>
 
             {/* Google Map Iframe Embed */}
             <div className="w-full h-56 sm:h-105 rounded-2xl overflow-hidden border border-stone-200 shadow-inner relative group">
               <iframe
                 title="Scan and Print Head Office Location"
-                src="https://maps.google.com/maps?q=Jaipur%20Rajasthan%20India&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(publicSettings?.supportAddress || 'Jaipur Rajasthan India')}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
