@@ -115,11 +115,11 @@ export default function AdminLayout() {
   const totalConnected = overviewData?.totalAgents ?? overviewData?.totalShops ?? 0
 
   return (
-    <div className="min-h-screen bg-stone-900 text-stone-100 flex font-sans">
+    <div className="h-screen h-dvh bg-stone-900 text-stone-100 flex font-sans overflow-hidden w-full max-w-full">
 
       {/* DESKTOP ADMIN SIDEBAR */}
       <aside
-        className={`hidden lg:flex flex-col bg-stone-950 border-r border-stone-800 sticky top-0 h-screen justify-between z-30 transition-all duration-300 ${
+        className={`relative hidden lg:flex flex-col bg-stone-950 border-r border-stone-800 h-full shrink-0 justify-between z-30 transition-all duration-300 ${
           isCollapsed ? 'w-18' : 'w-65'
         }`}
       >
@@ -183,20 +183,20 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        {/* 3. Footer Logout Button (Pinned firmly at bottom, shrink-0, border-t) */}
-        <div className="p-3 border-t border-stone-800/80 w-full shrink-0 bg-stone-950">
+        {/* 3. Footer Logout Button (Pinned firmly at bottom, shrink-0) */}
+        <div className="p-3 border-t border-stone-900 w-full shrink-0 bg-stone-950">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
             title={isCollapsed ? 'Admin Sign Out' : undefined}
-            className="flex items-center h-12 px-3.5 rounded-2xl w-full text-rose-400 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-900/40 transition-all duration-200 overflow-hidden cursor-pointer group"
+            className="flex items-center h-12 px-3.5 rounded-2xl w-full text-stone-400 bg-stone-900/60 hover:bg-rose-950/40 hover:text-rose-400 border border-stone-800/80 hover:border-rose-900/40 transition-all duration-200 overflow-hidden cursor-pointer group"
           >
             {isLoggingOut ? (
-              <Loader2 className="w-5 h-5 animate-spin text-rose-400 shrink-0" />
+              <Loader2 className="w-5 h-5 animate-spin text-rose-500 shrink-0" />
             ) : (
-              <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105" />
+              <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
             )}
-            <span className={`ml-3.5 whitespace-nowrap overflow-hidden transition-all duration-300 font-bold text-sm ${
+            <span className={`ml-3.5 text-xs font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${
               isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
             }`}>
               {isLoggingOut ? 'Signing Out...' : 'Admin Sign Out'}
@@ -205,11 +205,11 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 bg-stone-900">
+      {/* MAIN CONTENT AREA with full-height right-edge scrollbar */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden bg-stone-900">
 
-        {/* TOP HEADER */}
-        <header className="sticky top-0 z-20 bg-stone-950/90 backdrop-blur-md border-b border-stone-800 px-4 sm:px-8 py-4.5 flex items-center justify-between">
+        {/* TOP STICKY HEADER */}
+        <header className="sticky top-0 z-20 shrink-0 bg-stone-950 border-b border-stone-800 px-4 sm:px-8 py-3 sm:py-4.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -217,21 +217,24 @@ export default function AdminLayout() {
             >
               <Menu className="w-6 h-6" />
             </button>
-            <h2 className="font-extrabold text-lg text-white">Super Admin Management</h2>
+            <h2 className="font-extrabold text-base sm:text-lg text-white truncate">Super Admin Management</h2>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-stone-900 border border-stone-800 px-3.5 py-1.5 rounded-full text-xs text-stone-300 font-bold">
-              <Activity className="w-4 h-4 text-emerald-400" />
-              <span>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 bg-stone-900 border border-stone-800 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs text-stone-300 font-bold">
+              <Activity className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="hidden sm:inline">
                 {totalConnected} {totalConnected === 1 ? 'Shop' : 'Shops'} Live Connected
+              </span>
+              <span className="sm:hidden">
+                {totalConnected} Live
               </span>
             </div>
           </div>
         </header>
 
         {/* PAGE CONTENT */}
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-8 w-full min-w-0">
           <Outlet />
         </main>
       </div>

@@ -13,7 +13,7 @@ import PrintTrackingStage from '../../components/kiosk/PrintTrackingStage'
 import { useKioskStore } from '../../store/useKioskStore'
 import { getExactPageCount } from '../../lib/pdfUtil'
 import { getSocket } from '../../lib/socket'
-import KioskSkeleton from '../../components/skeleton/KioskSkeleton'
+import PageLoader from '../../components/common/PageLoader'
 
 export default function CustomerKiosk() {
   const { shopCode: paramShopCode } = useParams()
@@ -243,9 +243,9 @@ export default function CustomerKiosk() {
     setStep(1)
   }
 
-  // Loading state
-  if (isLoadingShop && !shopInfo) {
-    return <KioskSkeleton />
+  // Loading state with Original Logo Fallback Loader
+  if ((isLoadingShop && !shopInfo) || (!shopInfo && !error)) {
+    return <PageLoader message="Connecting to print kiosk..." subtitle="Loading shop pricing & live printers" />
   }
 
   // Shop Not Found / Error State

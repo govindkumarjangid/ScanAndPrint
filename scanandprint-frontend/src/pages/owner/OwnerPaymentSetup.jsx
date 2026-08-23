@@ -17,7 +17,6 @@ import {
   Lock,
   Info,
   Zap,
-  Smartphone,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
@@ -28,7 +27,6 @@ export default function OwnerPaymentSetup() {
   const [paymentMode, setPaymentMode] = useState(currentShop?.paymentSettings?.paymentMode || 'online_counter')
   const [razorpayKeyId, setRazorpayKeyId] = useState(currentShop?.paymentSettings?.razorpayKeyId || '')
   const [razorpayKeySecret, setRazorpayKeySecret] = useState('')
-  const [upiId, setUpiId] = useState(currentShop?.paymentSettings?.upiId || '')
   const [showSecret, setShowSecret] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
 
@@ -43,18 +41,16 @@ export default function OwnerPaymentSetup() {
     if (currentShop) {
       if (currentShop.paymentSettings?.paymentMode) setPaymentMode(currentShop.paymentSettings.paymentMode)
       if (currentShop.paymentSettings?.razorpayKeyId) setRazorpayKeyId(currentShop.paymentSettings.razorpayKeyId)
-      const foundUpi = currentShop.paymentSettings?.upiId || currentShop.upiId || ''
-      if (foundUpi) setUpiId(foundUpi)
     }
   }, [currentShop])
 
   const handleSave = async (e) => {
     e.preventDefault()
 
-    // Validation: if online mode selected and no custom UPI, keys are required
+    // Validation: if online mode selected, Razorpay Key ID is required
     if (paymentMode !== 'counter') {
-      if (!razorpayKeyId.trim() && !upiId.trim()) {
-        toast.error('Please enter Razorpay Key ID or direct UPI ID')
+      if (!razorpayKeyId.trim() && !hasExistingKeys) {
+        toast.error('Please enter your Razorpay Key ID')
         return
       }
     }
@@ -63,7 +59,6 @@ export default function OwnerPaymentSetup() {
       paymentMode,
       paymentGateway: 'razorpay',
       razorpayKeyId: razorpayKeyId.trim(),
-      upiId: upiId.trim(),
     }
 
     // Only send secret if user entered a new one
@@ -108,17 +103,17 @@ export default function OwnerPaymentSetup() {
   ]
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl">
+    <div className="flex flex-col gap-6 max-w-4xl w-full">
 
       {/* Top Banner */}
-      <div className="bg-linear-to-r from-emerald-600 to-emerald-700 rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-md">
+      <div className="bg-linear-to-r from-emerald-600 to-emerald-700 rounded-2xl sm:rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-md">
         <div className="bg-emerald-500/50 p-3 rounded-2xl mb-3">
-          <CreditCard className="w-8 h-8 text-white" />
+          <CreditCard className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-heading">
           Razorpay Payment Setup
         </h1>
-        <p className="text-emerald-100 text-sm mt-1 font-medium max-w-md">
+        <p className="text-emerald-100 text-xs sm:text-sm mt-1 font-medium max-w-md leading-relaxed">
           Setup your Razorpay keys to accept online UPI, Card & NetBanking payments from customers
         </p>
       </div>
@@ -130,86 +125,86 @@ export default function OwnerPaymentSetup() {
           <label className="text-xs font-extrabold uppercase tracking-wider text-stone-500 ml-1">
             Payment Mode
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 px-2">
 
             {/* ONLINE + COUNTER */}
             <label
               onClick={() => setPaymentMode('online_counter')}
-              className={`relative flex flex-row items-center justify-start gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ease-out text-left group ${
+              className={`relative flex flex-row items-center justify-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ease-out text-left group min-w-0 ${
                 paymentMode === 'online_counter'
-                  ? 'border-brand bg-linear-to-br from-rose-50/80 to-rose-100/30 shadow-[0_4px_20px_rgb(225,29,72,0.12)] scale-[1.02] ring-4 ring-brand/10'
-                  : 'border-stone-200/70 bg-white hover:border-stone-300 hover:shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:-translate-y-1'
+                  ? 'border-brand bg-linear-to-br from-rose-50/80 to-rose-100/30 shadow-[0_4px_20px_rgb(225,29,72,0.12)] scale-[1.01] sm:scale-[1.02] ring-4 ring-brand/10'
+                  : 'border-stone-200/70 bg-white hover:border-stone-300 hover:shadow-[0_4px_20px_rgb(0,0,0,0.04)]'
               }`}
             >
               <div className="absolute top-4 right-4">
-                <div className={`w-5 h-5 rounded-full border-[2px] flex items-center justify-center transition-colors duration-300 ${
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors duration-300 ${
                   paymentMode === 'online_counter' ? 'border-brand bg-white' : 'border-stone-300 group-hover:border-stone-400'
                 }`}>
                   <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${paymentMode === 'online_counter' ? 'bg-brand scale-100' : 'bg-transparent scale-0'}`} />
                 </div>
               </div>
 
-              <div className={`shrink-0 p-3.5 rounded-xl transition-colors duration-300 ${paymentMode === 'online_counter' ? 'bg-brand/10' : 'bg-blue-50 group-hover:bg-blue-100/80'}`}>
-                <CreditCard className={`w-6 h-6 ${paymentMode === 'online_counter' ? 'text-brand' : 'text-blue-500'}`} />
+              <div className={`shrink-0 p-2.5 sm:p-3.5 rounded-xl transition-colors duration-300 ${paymentMode === 'online_counter' ? 'bg-brand/10' : 'bg-blue-50 group-hover:bg-blue-100/80'}`}>
+                <CreditCard className={`w-5 h-5 sm:w-6 sm:h-6 ${paymentMode === 'online_counter' ? 'text-brand' : 'text-blue-500'}`} />
               </div>
 
-              <div className="flex flex-col gap-0.5 pr-8">
-                <span className={`font-extrabold text-sm transition-colors duration-300 ${paymentMode === 'online_counter' ? 'text-stone-900' : 'text-stone-700'}`}>ONLINE + COUNTER</span>
-                <span className="text-[11px] text-stone-500 font-medium leading-snug">THE CUSTOMER GETS BOTH OPTIONS</span>
+              <div className="flex flex-col gap-0.5 pr-6 sm:pr-8 min-w-0">
+                <span className={`font-extrabold text-xs sm:text-sm transition-colors duration-300 truncate ${paymentMode === 'online_counter' ? 'text-stone-900' : 'text-stone-700'}`}>ONLINE + COUNTER</span>
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-snug">THE CUSTOMER GETS BOTH OPTIONS</span>
               </div>
             </label>
 
             {/* ONLINE ONLY */}
             <label
               onClick={() => setPaymentMode('online')}
-              className={`relative flex flex-row items-center justify-start gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ease-out text-left group ${
+              className={`relative flex flex-row items-center justify-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ease-out text-left group min-w-0 ${
                 paymentMode === 'online'
-                  ? 'border-brand bg-linear-to-br from-rose-50/80 to-rose-100/30 shadow-[0_4px_20px_rgb(225,29,72,0.12)] scale-[1.02] ring-4 ring-brand/10'
-                  : 'border-stone-200/70 bg-white hover:border-stone-300 hover:shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:-translate-y-1'
+                  ? 'border-brand bg-linear-to-br from-rose-50/80 to-rose-100/30 shadow-[0_4px_20px_rgb(225,29,72,0.12)] scale-[1.01] sm:scale-[1.02] ring-4 ring-brand/10'
+                  : 'border-stone-200/70 bg-white hover:border-stone-300 hover:shadow-[0_4px_20px_rgb(0,0,0,0.04)]'
               }`}
             >
               <div className="absolute top-4 right-4">
-                <div className={`w-5 h-5 rounded-full border-[2px] flex items-center justify-center transition-colors duration-300 ${
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors duration-300 ${
                   paymentMode === 'online' ? 'border-brand bg-white' : 'border-stone-300 group-hover:border-stone-400'
                 }`}>
                   <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${paymentMode === 'online' ? 'bg-brand scale-100' : 'bg-transparent scale-0'}`} />
                 </div>
               </div>
 
-              <div className={`shrink-0 p-3.5 rounded-xl transition-colors duration-300 ${paymentMode === 'online' ? 'bg-brand/10' : 'bg-cyan-50 group-hover:bg-cyan-100/80'}`}>
-                <Globe className={`w-6 h-6 ${paymentMode === 'online' ? 'text-brand' : 'text-cyan-500'}`} />
+              <div className={`shrink-0 p-2.5 sm:p-3.5 rounded-xl transition-colors duration-300 ${paymentMode === 'online' ? 'bg-brand/10' : 'bg-cyan-50 group-hover:bg-cyan-100/80'}`}>
+                <Globe className={`w-5 h-5 sm:w-6 sm:h-6 ${paymentMode === 'online' ? 'text-brand' : 'text-cyan-500'}`} />
               </div>
 
-              <div className="flex flex-col gap-0.5 pr-8">
-                <span className={`font-extrabold text-sm transition-colors duration-300 ${paymentMode === 'online' ? 'text-stone-900' : 'text-stone-700'}`}>ONLINE ONLY</span>
-                <span className="text-[11px] text-stone-500 font-medium leading-snug">ONLINE PAYMENT ONLY, NO COUNTER</span>
+              <div className="flex flex-col gap-0.5 pr-6 sm:pr-8 min-w-0">
+                <span className={`font-extrabold text-xs sm:text-sm transition-colors duration-300 truncate ${paymentMode === 'online' ? 'text-stone-900' : 'text-stone-700'}`}>ONLINE ONLY</span>
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-snug">ONLINE PAYMENT ONLY, NO COUNTER</span>
               </div>
             </label>
 
             {/* COUNTER ONLY */}
             <label
               onClick={() => setPaymentMode('counter')}
-              className={`relative flex flex-row items-center justify-start gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ease-out text-left group ${
+              className={`relative flex flex-row items-center justify-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ease-out text-left group min-w-0 ${
                 paymentMode === 'counter'
-                  ? 'border-brand bg-linear-to-br from-rose-50/80 to-rose-100/30 shadow-[0_4px_20px_rgb(225,29,72,0.12)] scale-[1.02] ring-4 ring-brand/10'
-                  : 'border-stone-200/70 bg-white hover:border-stone-300 hover:shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:-translate-y-1'
+                  ? 'border-brand bg-linear-to-br from-rose-50/80 to-rose-100/30 shadow-[0_4px_20px_rgb(225,29,72,0.12)] scale-[1.01] sm:scale-[1.02] ring-4 ring-brand/10'
+                  : 'border-stone-200/70 bg-white hover:border-stone-300 hover:shadow-[0_4px_20px_rgb(0,0,0,0.04)]'
               }`}
             >
               <div className="absolute top-4 right-4">
-                <div className={`w-5 h-5 rounded-full border-[2px] flex items-center justify-center transition-colors duration-300 ${
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors duration-300 ${
                   paymentMode === 'counter' ? 'border-brand bg-white' : 'border-stone-300 group-hover:border-stone-400'
                 }`}>
                   <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${paymentMode === 'counter' ? 'bg-brand scale-100' : 'bg-transparent scale-0'}`} />
                 </div>
               </div>
 
-              <div className={`shrink-0 p-3.5 rounded-xl transition-colors duration-300 ${paymentMode === 'counter' ? 'bg-brand/10' : 'bg-emerald-50 group-hover:bg-emerald-100/80'}`}>
-                <Banknote className={`w-6 h-6 ${paymentMode === 'counter' ? 'text-brand' : 'text-emerald-500'}`} />
+              <div className={`shrink-0 p-2.5 sm:p-3.5 rounded-xl transition-colors duration-300 ${paymentMode === 'counter' ? 'bg-brand/10' : 'bg-emerald-50 group-hover:bg-emerald-100/80'}`}>
+                <Banknote className={`w-5 h-5 sm:w-6 sm:h-6 ${paymentMode === 'counter' ? 'text-brand' : 'text-emerald-500'}`} />
               </div>
 
-              <div className="flex flex-col gap-0.5 pr-8">
-                <span className={`font-extrabold text-sm transition-colors duration-300 ${paymentMode === 'counter' ? 'text-stone-900' : 'text-stone-700'}`}>COUNTER ONLY</span>
-                <span className="text-[11px] text-stone-500 font-medium leading-snug">CASH AT THE COUNTER ONLY</span>
+              <div className="flex flex-col gap-0.5 pr-6 sm:pr-8 min-w-0">
+                <span className={`font-extrabold text-xs sm:text-sm transition-colors duration-300 truncate ${paymentMode === 'counter' ? 'text-stone-900' : 'text-stone-700'}`}>COUNTER ONLY</span>
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-snug">CASH AT THE COUNTER ONLY</span>
               </div>
             </label>
 
@@ -221,7 +216,7 @@ export default function OwnerPaymentSetup() {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="flex flex-col gap-5 mt-2"
+            className="flex flex-col gap-4 sm:gap-5 mt-2"
           >
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-500 ml-1 flex items-center gap-2">
               <Key className="w-3.5 h-3.5 text-brand" />
@@ -230,13 +225,13 @@ export default function OwnerPaymentSetup() {
 
             {/* Status Badge */}
             {hasExistingKeys && (
-              <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-2xl border border-emerald-200 text-xs font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Razorpay Keys Already Configured ✅ — Update below to change them</span>
+              <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3.5 sm:px-4 py-2.5 rounded-2xl border border-emerald-200 text-xs font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Razorpay Keys Configured — Update below to change them</span>
               </div>
             )}
 
-            <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col gap-5">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-xs flex flex-col gap-4 sm:gap-5 overflow-hidden">
 
               {/* Key ID Input */}
               <div className="flex flex-col gap-1.5">
@@ -249,20 +244,22 @@ export default function OwnerPaymentSetup() {
                   value={razorpayKeyId}
                   onChange={(e) => setRazorpayKeyId(e.target.value)}
                   placeholder="rzp_live_xxxxxxxxx or rzp_test_xxxxxxxxx"
-                  className="w-full h-12 px-4 rounded-xl border border-stone-300 bg-stone-50/50 focus:bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-all font-mono"
+                  className="w-full h-11 sm:h-12 px-3 sm:px-4 rounded-xl border border-stone-300 bg-stone-50/50 focus:bg-white text-xs sm:text-sm font-bold text-stone-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-all font-mono"
                 />
-                <span className="text-[11px] text-stone-400 font-medium ml-1">
+                <span className="text-[10px] sm:text-[11px] text-stone-400 font-medium ml-1">
                   Example: rzp_live_TBRpwJ4pTFgPiY (starts with rzp_live_ or rzp_test_)
                 </span>
               </div>
 
               {/* Key Secret Input */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
-                  <Lock className="w-3 h-3 text-brand" />
-                  Razorpay Key Secret
+                <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600 flex flex-wrap items-center gap-1.5 justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Lock className="w-3 h-3 text-brand" />
+                    Razorpay Key Secret
+                  </span>
                   {hasExistingKeys && (
-                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 ml-1 normal-case">
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 normal-case">
                       Leave empty to keep current
                     </span>
                   )}
@@ -273,7 +270,7 @@ export default function OwnerPaymentSetup() {
                     value={razorpayKeySecret}
                     onChange={(e) => setRazorpayKeySecret(e.target.value)}
                     placeholder={hasExistingKeys ? '•••••••••• (saved & encrypted)' : 'Enter your Key Secret'}
-                    className="w-full h-12 px-4 pr-12 rounded-xl border border-stone-300 bg-stone-50/50 focus:bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-all font-mono"
+                    className="w-full h-11 sm:h-12 px-3 sm:px-4 pr-12 rounded-xl border border-stone-300 bg-stone-50/50 focus:bg-white text-xs sm:text-sm font-bold text-stone-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-all font-mono"
                   />
                   <button
                     type="button"
@@ -283,28 +280,10 @@ export default function OwnerPaymentSetup() {
                     {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-stone-400 font-medium ml-1">
-                  <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                  <span>Your Key Secret is encrypted (bcrypt) before saving — never stored in plain text</span>
+                <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-stone-400 font-medium ml-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>Your Key Secret is encrypted (bcrypt) before saving</span>
                 </div>
-              </div>
-
-              {/* Direct UPI ID (VPA) Input */}
-              <div className="flex flex-col gap-1.5 pt-2 border-t border-stone-100">
-                <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
-                  <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-                  Direct UPI ID / QR VPA (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={upiId}
-                  onChange={(e) => setUpiId(e.target.value)}
-                  placeholder="e.g. 9876543210@paytm, shopname@okaxis, yourupi@ybl"
-                  className="w-full h-12 px-4 rounded-xl border border-stone-300 bg-stone-50/50 focus:bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-all font-mono"
-                />
-                <span className="text-[11px] text-stone-400 font-medium ml-1">
-                  If entered, Kiosk Dynamic QR Code will receive money directly to this UPI account.
-                </span>
               </div>
             </div>
 
@@ -313,25 +292,25 @@ export default function OwnerPaymentSetup() {
               <button
                 type="button"
                 onClick={() => setGuideOpen(!guideOpen)}
-                className="w-full flex items-center justify-between p-5 text-left hover:bg-stone-50 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-stone-50 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Info className="w-5 h-5" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <Info className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-extrabold text-stone-900">
-                      📖 Razorpay से Key ID & Secret कैसे लें?
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">
+                      Razorpay से Key ID & Secret कैसे लें?
                     </span>
-                    <span className="text-[11px] text-stone-500 font-medium">
+                    <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium">
                       Step-by-step guide in Hindi — Click to {guideOpen ? 'close' : 'expand'}
                     </span>
                   </div>
                 </div>
                 {guideOpen ? (
-                  <ChevronUp className="w-5 h-5 text-stone-400 shrink-0" />
+                  <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-stone-400 shrink-0" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-stone-400 shrink-0" />
+                  <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-stone-400 shrink-0" />
                 )}
               </button>
 
@@ -344,14 +323,14 @@ export default function OwnerPaymentSetup() {
                     transition={{ duration: 0.25 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-5 pb-5 flex flex-col gap-4 border-t border-stone-100 pt-4">
+                    <div className="px-4 sm:px-5 pb-4 sm:pb-5 flex flex-col gap-4 border-t border-stone-100 pt-4">
                       {guideSteps.map((item) => (
-                        <div key={item.step} className="flex gap-4">
-                          <div className="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center shrink-0 font-extrabold text-xs shadow-md shadow-rose-500/20">
+                        <div key={item.step} className="flex gap-3 sm:gap-4">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand text-white flex items-center justify-center shrink-0 font-extrabold text-xs shadow-md shadow-rose-500/20">
                             {item.step}
                           </div>
                           <div className="flex flex-col gap-1 min-w-0">
-                            <span className="text-sm font-extrabold text-stone-900">{item.title}</span>
+                            <span className="text-xs sm:text-sm font-extrabold text-stone-900">{item.title}</span>
                             <span className="text-xs text-stone-600 font-medium leading-relaxed">{item.desc}</span>
                             {item.link && (
                               <a
@@ -369,7 +348,7 @@ export default function OwnerPaymentSetup() {
                       ))}
 
                       {/* Quick Test Key Tip */}
-                      <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-xs text-amber-900 font-medium flex items-start gap-2.5">
+                      <div className="bg-amber-50 p-3.5 sm:p-4 rounded-xl border border-amber-200 text-xs text-amber-900 font-medium flex items-start gap-2.5">
                         <Zap className="w-4 h-4 text-amber-600 shrink-0 mt-0.5 fill-amber-600" />
                         <div>
                           <strong>Quick Testing Tip:</strong> Use Test Mode Keys (rzp_test_xxxxx) to test without real money.
@@ -381,16 +360,15 @@ export default function OwnerPaymentSetup() {
                 )}
               </AnimatePresence>
             </div>
-
           </motion.div>
         )}
 
         {/* SAVE BUTTON */}
-        <div className="flex justify-start">
+        <div className="flex justify-start pt-2">
           <button
             type="submit"
             disabled={isSavingPayment}
-            className="btn btn-primary py-4 mt-4 px-8 flex items-center gap-2"
+            className="btn btn-primary py-3.5 sm:py-4 px-6 sm:px-8 flex items-center justify-center gap-2 shadow-md w-full sm:w-auto"
           >
             {isSavingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{isSavingPayment ? 'Saving Payment Settings...' : 'Save Payment Settings'}</span>

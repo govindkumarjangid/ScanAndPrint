@@ -217,9 +217,9 @@ export default function OwnerJobs() {
       </div>
 
       {/* Orders table */}
-      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-stone-200/80 shadow-xs">
-        <div className="w-full overflow-hidden">
-          <table className="w-full text-left text-sm border-collapse block md:table md:table-fixed">
+      <div className="bg-white rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs overflow-hidden">
+        <div className="w-full overflow-x-auto min-w-0">
+          <table className="w-full text-left text-sm border-collapse block md:table min-w-0 md:min-w-[840px]">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-stone-200/80 text-stone-500 font-bold text-xs uppercase tracking-wider">
                 <th className="py-3.5 px-3 md:w-[15%]">Job ID</th>

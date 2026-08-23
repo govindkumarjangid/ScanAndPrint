@@ -7,12 +7,11 @@ export const kioskService = {
   // Get shop information by its code
   async getShopInfo(shopCode) {
     const shop = await shopRepository.findByCode(shopCode, {
-      select: 'shopCode shopName ownerName phone address cityState pincode bwRate colorRate printerBrand isOnline isSubscriptionActive isDemoAccount demoExpiresAt subscriptionExpiresAt subscriptionStatus paymentSettings isSuspended',
+       select: 'shopCode shopName ownerName phone address cityState pincode bwRate colorRate printerBrand isOnline isSubscriptionActive isDemoAccount demoExpiresAt subscriptionExpiresAt subscriptionStatus paymentSettings isSuspended',
       lean: true,
     })
     if (shop && shop.paymentSettings) {
       delete shop.paymentSettings.razorpayKeySecret
-      shop.upiId = shop.paymentSettings.upiId || ''
     }
     return shop || null
   },

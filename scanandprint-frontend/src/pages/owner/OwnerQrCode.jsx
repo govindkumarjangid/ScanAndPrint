@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { QRCode } from 'react-qrcode-logo'
 import { Printer, ArrowRight, Download, Smartphone, CloudUpload, MapPin, Wallet, Loader2 } from 'lucide-react'
 import { toPng } from 'html-to-image'
@@ -12,7 +12,23 @@ export default function OwnerQrCode() {
   const kioskUrl = `${window.location.origin}/p/${shopCode}`
 
   const posterRef = useRef(null)
+  const containerRef = useRef(null)
+  const [scale, setScale] = useState(1)
   const [isDownloading, setIsDownloading] = useState(false)
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (containerRef.current) {
+        const availableWidth = containerRef.current.clientWidth - 16
+        const posterWidth = 800
+        const newScale = Math.min(1, Math.max(0.3, availableWidth / posterWidth))
+        setScale(newScale)
+      }
+    }
+    updateScale()
+    window.addEventListener('resize', updateScale)
+    return () => window.removeEventListener('resize', updateScale)
+  }, [])
 
   const handleDownloadImage = async () => {
     if (!posterRef.current) return
@@ -41,7 +57,7 @@ export default function OwnerQrCode() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-5xl w-full mx-auto">
+    <div className="flex flex-col gap-6 max-w-5xl w-full mx-auto overflow-hidden">
       {/* Top Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -57,19 +73,32 @@ export default function OwnerQrCode() {
           id="download-btn"
           onClick={handleDownloadImage}
           disabled={isDownloading}
-          className="btn btn-primary flex items-center gap-2"
+          className="btn btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           <span>{isDownloading ? 'Generating High-Res Poster...' : 'Download Poster (PNG)'}</span>
         </button>
       </div>
 
-      {/* --- PORTRAIT POSTER LAYOUT (A4 Aspect Ratio: ~1:1.414) --- */}
-      <div className="flex justify-center w-full pb-10 overflow-x-auto">
+      {/* --- PORTRAIT POSTER LAYOUT (Auto-Scaled for Responsive Mobile Preview) --- */}
+      <div ref={containerRef} className="flex justify-center items-center w-full pb-8 overflow-hidden min-w-0">
         <div
-          ref={posterRef}
-          className="w-200 h-281 bg-[#FEFDF9] shadow-2xl relative flex flex-col justify-between overflow-hidden shrink-0 border border-slate-100 font-sans"
+          style={{
+            width: `${800 * scale}px`,
+            height: `${1124 * scale}px`,
+          }}
+          className="relative transition-all flex items-start justify-start shrink-0"
         >
+          <div
+            ref={posterRef}
+            style={{
+              width: '800px',
+              height: '1124px',
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+            }}
+            className="bg-[#FEFDF9] shadow-2xl relative flex flex-col justify-between overflow-hidden shrink-0 border border-slate-100 font-sans select-none"
+          >
           {/* Main Content Wrapper */}
           <div className="flex flex-col items-center h-full pt-12 pb-0 px-10 relative z-10">
 
@@ -260,5 +289,6 @@ export default function OwnerQrCode() {
         </div>
       </div>
     </div>
+  </div>
   )
 }

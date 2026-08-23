@@ -413,11 +413,11 @@ export default function OwnerLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100/70 flex font-sans text-stone-800 relative">
+    <div className="h-dvh bg-stone-100/70 flex text-stone-800 relative overflow-hidden w-full max-w-full">
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col bg-white border-r border-stone-200/80 sticky top-0 h-screen justify-between z-30 shadow-xs transition-all duration-300 ${
+        className={`relative hidden lg:flex flex-col bg-white border-r border-stone-200/80 h-full shrink-0 justify-between z-30 shadow-xs transition-all duration-300 ${
           isCollapsed ? 'w-18' : 'w-65'
         }`}
       >
@@ -504,138 +504,141 @@ export default function OwnerLayout() {
         </div>
       </aside>
 
-      {/* Content container */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Content container with full-height right-edge scrollbar */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden">
 
-        {/* 1. 2-Hour Free Demo Active Banner */}
-        {currentShop?.isDemoAccount && !isDemoExpired && (
-          <div className="bg-linear-to-r from-amber-500 to-amber-600 text-stone-950 px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-xs z-30">
-            <div className="flex items-center gap-2 mx-auto sm:mx-0">
-              <Clock className="w-4 h-4 text-stone-950 animate-pulse" />
-              <span>
-                Free Demo Trial Active: <span className="font-mono bg-black/10 px-2 py-0.5 rounded-md text-stone-950 font-extrabold">{demoTimeLeft}</span> remaining
-              </span>
-            </div>
-            <button
-              onClick={() => setShowUpgradeModal(true)}
-              className="hidden sm:inline-flex items-center gap-1.5 bg-stone-950 text-white px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold hover:bg-black transition-colors cursor-pointer shadow-xs"
-            >
-              <span>Upgrade Plan 🚀</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
-        {/* 2. Advance Expiry Warning Banner (When 1-3 days left) */}
-        {!isDemo && daysLeft !== null && daysLeft > 0 && daysLeft <= 3 && !isPlanExpired && (
-          <div className="bg-linear-to-r from-amber-500 via-rose-500 to-rose-600 text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-md z-30">
-            <div className="flex items-center gap-2 mx-auto sm:mx-0">
-              <Clock className="w-4 h-4 text-white animate-bounce" />
-              <span>
-                ⚠️ Your {isYearly ? 'Yearly' : 'Monthly'} Plan expires in <strong>{daysLeft} day{daysLeft > 1 ? 's' : ''}</strong>. Renew now to avoid any printing interruption!
-              </span>
-            </div>
-            <button
-              onClick={() => setShowUpgradeModal(true)}
-              disabled={isRenewing}
-              className="hidden sm:inline-flex items-center gap-1.5 bg-white text-brand px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold hover:bg-rose-50 shadow-sm transition-colors cursor-pointer"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Renew / Upgrade Plan</span>
-            </button>
-          </div>
-        )}
-
-        {/* Header */}
-        <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 shadow-2xs">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-1.5 sm:p-2 rounded-xl text-stone-700 hover:bg-stone-100 cursor-pointer shrink-0 transition-colors"
-              aria-label="Toggle Navigation Menu"
-            >
-              <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-
-            <div className="flex flex-col min-w-0">
-              <h2 className="font-extrabold text-sm sm:text-lg text-stone-900 leading-tight truncate max-w-32.5 xs:max-w-[190px] sm:max-w-none">
-                {shopName}
-              </h2>
-              <span className="text-[11px] sm:text-xs text-stone-500 font-medium hidden sm:block truncate">
-                Cyber Café & Automated Printing
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-            {/* Subscription Badge with Expiry Date & Remaining Time */}
-            {isDemo ? (
-              <span
-                title={`2-Hour Demo Free Trial · ${liveCountdown?.formattedDesktop || demoTimeLeft || '00:00:00'} remaining`}
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs shrink-0 font-mono"
-              >
-                <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-700 shrink-0" />
-                <span className="hidden sm:inline">Demo: {liveCountdown?.formattedDesktop || demoTimeLeft || '00:00:00'}</span>
-                <span className="sm:hidden">{liveCountdown?.formattedMobile || demoTimeLeft || '00:00:00'}</span>
-              </span>
-            ) : isPlanExpired ? (
-              <span
-                title={`Subscription expired on ${expiryFormatted || 'N/A'}`}
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs shrink-0"
-              >
-                <ShieldAlert className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-600 shrink-0" />
-                <span className="hidden sm:inline">Expired {expiryFormatted ? `(${expiryFormatted})` : ''}</span>
-                <span className="sm:hidden">Expired</span>
-              </span>
-            ) : isYearly ? (
-              <span
-                title={`Yearly Active Subscription (₹799/yr) · Valid till ${expiryFormatted || 'N/A'}`}
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-amber-50 text-amber-900 border border-amber-300/80 shadow-2xs shrink-0"
-              >
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 fill-amber-400 shrink-0" />
-                <span className="hidden sm:inline">
-                  Yearly · Till {expiryFormatted} · <span className="font-mono">{liveCountdown?.formattedDesktop || `${daysLeft}d left`}</span>
+        {/* Sticky Top Bar (Demo Banner + Expiry Banner + Header) */}
+        <div className="sticky top-0 z-20 shrink-0 flex flex-col">
+          {/* 1. 2-Hour Free Demo Active Banner */}
+          {currentShop?.isDemoAccount && !isDemoExpired && (
+            <div className="bg-linear-to-r from-amber-500 to-amber-600 text-stone-950 px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-xs">
+              <div className="flex items-center gap-2 mx-auto sm:mx-0">
+                <Clock className="w-4 h-4 text-stone-950 animate-pulse" />
+                <span>
+                  Free Demo Trial Active: <span className="font-mono bg-black/10 px-2 py-0.5 rounded-md text-stone-950 font-extrabold">{demoTimeLeft}</span> remaining
                 </span>
-                <span className="sm:hidden font-mono">
-                  {liveCountdown?.formattedMobile || `Till ${expiryShort || `${daysLeft}d`}`}
-                </span>
-              </span>
-            ) : (
-              <span
-                title={`Monthly Active Subscription (₹299/mo) · Valid till ${expiryFormatted || 'N/A'}`}
-                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs shrink-0"
+              </div>
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 bg-stone-950 text-white px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold hover:bg-black transition-colors cursor-pointer shadow-xs"
               >
-                <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
-                <span className="hidden sm:inline">
-                  Monthly · Till {expiryFormatted} · <span className="font-mono">{liveCountdown?.formattedDesktop || `${daysLeft}d left`}</span>
-                </span>
-                <span className="sm:hidden font-mono">
-                  {liveCountdown?.formattedMobile || `Till ${expiryShort || `${daysLeft}d`}`}
-                </span>
-              </span>
-            )}
-
-            {/* Desktop Agent Live Status Badge */}
-            <div
-              title={isAgentConnected ? 'Desktop Print Agent is online' : 'Desktop Print Agent is offline'}
-              className="flex items-center gap-1.5 sm:gap-2 bg-stone-50 border border-stone-200/80 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-extrabold shrink-0"
-            >
-              <span
-                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${isAgentConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
-                  }`}
-              />
-              <span className={`hidden sm:inline ${isAgentConnected ? 'text-emerald-700' : 'text-stone-500'}`}>
-                {isAgentConnected ? 'Agent Live' : 'Agent Offline'}
-              </span>
-              <span className={`sm:hidden ${isAgentConnected ? 'text-emerald-700' : 'text-stone-500'}`}>
-                {isAgentConnected ? 'Live' : 'Off'}
-              </span>
+                <span>Upgrade Plan 🚀</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
-          </div>
-        </header>
+          )}
+
+          {/* 2. Advance Expiry Warning Banner (When 1-3 days left) */}
+          {!isDemo && daysLeft !== null && daysLeft > 0 && daysLeft <= 3 && !isPlanExpired && (
+            <div className="bg-linear-to-r from-amber-500 via-rose-500 to-rose-600 text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-md">
+              <div className="flex items-center gap-2 mx-auto sm:mx-0">
+                <Clock className="w-4 h-4 text-white animate-bounce" />
+                <span>
+                  ⚠️ Your {isYearly ? 'Yearly' : 'Monthly'} Plan expires in <strong>{daysLeft} day{daysLeft > 1 ? 's' : ''}</strong>. Renew now to avoid any printing interruption!
+                </span>
+              </div>
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                disabled={isRenewing}
+                className="hidden sm:inline-flex items-center gap-1.5 bg-white text-brand px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold hover:bg-rose-50 shadow-sm transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Renew / Upgrade Plan</span>
+              </button>
+            </div>
+          )}
+
+          {/* Header */}
+          <header className="bg-white border-b border-stone-200/80 px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 shadow-2xs">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-1.5 sm:p-2 rounded-xl text-stone-700 hover:bg-stone-100 cursor-pointer shrink-0 transition-colors"
+                aria-label="Toggle Navigation Menu"
+              >
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+
+              <div className="flex flex-col min-w-0">
+                <h2 className="font-extrabold text-sm sm:text-lg text-stone-900 leading-tight truncate max-w-32.5 xs:max-w-[190px] sm:max-w-none">
+                  {shopName}
+                </h2>
+                <span className="text-[11px] sm:text-xs text-stone-500 font-medium hidden sm:block truncate">
+                  Cyber Café & Automated Printing
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+              {/* Subscription Badge with Expiry Date & Remaining Time */}
+              {isDemo ? (
+                <span
+                  title={`2-Hour Demo Free Trial · ${liveCountdown?.formattedDesktop || demoTimeLeft || '00:00:00'} remaining`}
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs shrink-0 font-mono"
+                >
+                  <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-700 shrink-0" />
+                  <span className="hidden sm:inline">Demo: {liveCountdown?.formattedDesktop || demoTimeLeft || '00:00:00'}</span>
+                  <span className="sm:hidden">{liveCountdown?.formattedMobile || demoTimeLeft || '00:00:00'}</span>
+                </span>
+              ) : isPlanExpired ? (
+                <span
+                  title={`Subscription expired on ${expiryFormatted || 'N/A'}`}
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs shrink-0"
+                >
+                  <ShieldAlert className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-600 shrink-0" />
+                  <span className="hidden sm:inline">Expired {expiryFormatted ? `(${expiryFormatted})` : ''}</span>
+                  <span className="sm:hidden">Expired</span>
+                </span>
+              ) : isYearly ? (
+                <span
+                  title={`Yearly Active Subscription (₹799/yr) · Valid till ${expiryFormatted || 'N/A'}`}
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-amber-50 text-amber-900 border border-amber-300/80 shadow-2xs shrink-0"
+                >
+                  <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 fill-amber-400 shrink-0" />
+                  <span className="hidden sm:inline">
+                    Yearly · Till {expiryFormatted} · <span className="font-mono">{liveCountdown?.formattedDesktop || `${daysLeft}d left`}</span>
+                  </span>
+                  <span className="sm:hidden font-mono">
+                    {liveCountdown?.formattedMobile || `Till ${expiryShort || `${daysLeft}d`}`}
+                  </span>
+                </span>
+              ) : (
+                <span
+                  title={`Monthly Active Subscription (₹299/mo) · Valid till ${expiryFormatted || 'N/A'}`}
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs shrink-0"
+                >
+                  <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
+                  <span className="hidden sm:inline">
+                    Monthly · Till {expiryFormatted} · <span className="font-mono">{liveCountdown?.formattedDesktop || `${daysLeft}d left`}</span>
+                  </span>
+                  <span className="sm:hidden font-mono">
+                    {liveCountdown?.formattedMobile || `Till ${expiryShort || `${daysLeft}d`}`}
+                  </span>
+                </span>
+              )}
+
+              {/* Desktop Agent Live Status Badge */}
+              <div
+                title={isAgentConnected ? 'Desktop Print Agent is online' : 'Desktop Print Agent is offline'}
+                className="flex items-center gap-1.5 sm:gap-2 bg-stone-50 border border-stone-200/80 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-extrabold shrink-0"
+              >
+                <span
+                  className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${isAgentConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                    }`}
+                />
+                <span className={`hidden sm:inline ${isAgentConnected ? 'text-emerald-700' : 'text-stone-500'}`}>
+                  {isAgentConnected ? 'Agent Live' : 'Agent Offline'}
+                </span>
+                <span className={`sm:hidden ${isAgentConnected ? 'text-emerald-700' : 'text-stone-500'}`}>
+                  {isAgentConnected ? 'Live' : 'Off'}
+                </span>
+              </div>
+            </div>
+          </header>
+        </div>
 
         {/* Content Container */}
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-8 w-full min-w-0">
           <Outlet />
         </main>
       </div>

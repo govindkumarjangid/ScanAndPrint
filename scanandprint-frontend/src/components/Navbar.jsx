@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router'
 import { createPortal } from 'react-dom'
-import { Printer, Menu, X, KeyRound, ChevronRight, navLinks } from '../assets/assets'
+import { Menu, X, KeyRound, ChevronRight, navLinks } from '../assets/assets'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Logo } from "./ui/Logo";
 
@@ -25,9 +25,9 @@ export default function Navbar() {
   }, [location.pathname])
 
   return (
-    <header className={`sticky top-0 z-40 transition-all duration-300 border-none ${isScrolled
-      ? 'glass-nav shadow-md border-b border-stone-200/60 py-3'
-      : 'bg-brand-bg/90 py-4'
+    <header className={`sticky top-0 z-40 transition-all duration-200 bg-brand-bg border-b ${isScrolled
+      ? 'border-stone-200/50 shadow-2xs py-3'
+      : 'border-transparent py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">

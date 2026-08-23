@@ -390,44 +390,44 @@ export default function ShopAuth() {
       <motion.div
         layout
         transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-        className="relative z-10 w-full max-w-md mx-auto bg-white/90 backdrop-blur-xl border border-stone-200/90 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-stone-900/8 flex flex-col gap-6 my-6 overflow-hidden"
+        className="relative z-10 w-full max-w-md mx-auto bg-white/95 backdrop-blur-xl border border-stone-200/90 rounded-2xl sm:rounded-3xl p-4.5 sm:p-8 shadow-2xl shadow-stone-900/8 flex flex-col gap-5 sm:gap-6 my-4 sm:my-6 overflow-hidden"
       >
         {/* Top Pill Tab Switcher */}
-        <div className="bg-stone-100 p-1.5 rounded-2xl grid grid-cols-2 gap-1 font-bold text-sm relative border border-stone-200/60">
+        <div className="bg-stone-100 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl grid grid-cols-2 gap-1 font-bold text-xs sm:text-sm relative border border-stone-200/60 min-w-0">
           <button
             type="button"
             onClick={() => handleTabSwitch('login')}
-            className={`relative py-2.5 px-4 rounded-xl text-center transition-colors duration-200 cursor-pointer z-10 flex items-center justify-center gap-2 ${
+            className={`relative py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl text-center transition-colors duration-200 cursor-pointer z-10 flex items-center justify-center gap-1.5 sm:gap-2 min-w-0 ${
               activeTab === 'login' ? 'text-white font-extrabold' : 'text-stone-600 hover:text-stone-900 font-semibold'
             }`}
           >
             {activeTab === 'login' && (
               <motion.div
                 layoutId="activeAuthPill"
-                className="absolute inset-0 bg-brand rounded-xl shadow-md shadow-rose-500/25 z-[-1]"
+                className="absolute inset-0 bg-brand rounded-lg sm:rounded-xl shadow-md shadow-rose-500/25 z-[-1]"
                 transition={{ type: 'spring', stiffness: 450, damping: 35 }}
               />
             )}
-            <Lock className="w-4 h-4" />
-            <span>Sign In</span>
+            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Sign In</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleTabSwitch('register')}
-            className={`relative py-2.5 px-4 rounded-xl text-center transition-colors duration-200 cursor-pointer z-10 flex items-center justify-center gap-2 ${
+            className={`relative py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl text-center transition-colors duration-200 cursor-pointer z-10 flex items-center justify-center gap-1.5 sm:gap-2 min-w-0 ${
               activeTab === 'register' ? 'text-white font-extrabold' : 'text-stone-600 hover:text-stone-900 font-semibold'
             }`}
           >
             {activeTab === 'register' && (
               <motion.div
                 layoutId="activeAuthPill"
-                className="absolute inset-0 bg-brand rounded-xl shadow-md shadow-rose-500/25 z-[-1]"
+                className="absolute inset-0 bg-brand rounded-lg sm:rounded-xl shadow-md shadow-rose-500/25 z-[-1]"
                 transition={{ type: 'spring', stiffness: 450, damping: 35 }}
               />
             )}
-            <Sparkles className="w-4 h-4" />
-            <span>Register Shop</span>
+            <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Register Shop</span>
           </button>
         </div>
 
@@ -447,18 +447,18 @@ export default function ShopAuth() {
             >
               {/* Email Address */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">
+                <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">
                   Registered Email
                 </label>
                 <div className="relative flex items-center">
-                  <Mail className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none" />
+                  <Mail className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none shrink-0" />
                   <input
                     type="email"
                     required
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     placeholder="shop@example.com"
-                    className="w-full h-12 pl-10 pr-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
+                    className="w-full h-11 sm:h-12 pl-10 pr-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
                   />
                 </div>
               </div>
@@ -466,26 +466,26 @@ export default function ShopAuth() {
               {/* Password */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">
+                  <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">
                     Password
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowForgotModal(true)}
-                    className="text-xs text-brand font-bold hover:underline cursor-pointer"
+                    className="text-[11px] sm:text-xs text-brand font-bold hover:underline cursor-pointer"
                   >
                     Forgot password?
                   </button>
                 </div>
                 <div className="relative flex items-center">
-                  <Lock className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none" />
+                  <Lock className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none shrink-0" />
                   <input
                     type={showLoginPassword ? 'text' : 'password'}
                     required
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full h-12 pl-10 pr-11 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
+                    className="w-full h-11 sm:h-12 pl-10 pr-11 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
                   />
                   <button
                     type="button"
@@ -499,7 +499,7 @@ export default function ShopAuth() {
               </div>
 
               {/* Remember Me */}
-              <div className="flex items-center justify-between text-xs pt-1">
+              <div className="flex items-center justify-between text-[11px] sm:text-xs pt-1">
                 <label className="flex items-center gap-2 cursor-pointer text-stone-700 font-semibold select-none">
                   <input
                     type="checkbox"
@@ -517,7 +517,7 @@ export default function ShopAuth() {
                 whileTap={{ scale: 0.99 }}
                 type="submit"
                 disabled={isSubmitting}
-                className="btn btn-primary w-full py-3.5 rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 text-sm font-bold mt-2 cursor-pointer"
+                className="btn btn-primary w-full py-3 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold mt-1 sm:mt-2 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
@@ -533,18 +533,18 @@ export default function ShopAuth() {
               </motion.button>
 
               {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-stone-100 text-center">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2 border-t border-stone-100 text-center">
                 <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-stone-50 border border-stone-100">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  <span className="text-[10px] font-extrabold text-stone-700">0-Click Print</span>
+                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+                  <span className="text-[9px] sm:text-[10px] font-extrabold text-stone-700">0-Click Print</span>
                 </div>
                 <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-stone-50 border border-stone-100">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span className="text-[10px] font-extrabold text-stone-700">256-Bit SSL</span>
+                  <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
+                  <span className="text-[9px] sm:text-[10px] font-extrabold text-stone-700">256-Bit SSL</span>
                 </div>
                 <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-stone-50 border border-stone-100">
-                  <IndianRupee className="w-4 h-4 text-rose-500" />
-                  <span className="text-[10px] font-extrabold text-stone-700">Direct UPI</span>
+                  <QrCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500" />
+                  <span className="text-[9px] sm:text-[10px] font-extrabold text-stone-700">QR Kiosk</span>
                 </div>
               </div>
 
@@ -570,21 +570,23 @@ export default function ShopAuth() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -16 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col gap-5 text-left"
+              className="flex flex-col gap-4 sm:gap-5 text-left"
             >
               {/* 4-Step Progress Header */}
-              <div className="flex flex-col gap-2 bg-stone-50 p-3 rounded-2xl border border-stone-200/70">
+              <div className="flex flex-col gap-2 bg-stone-50 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-stone-200/70">
                 <div className="flex items-center justify-between text-xs font-extrabold text-stone-800">
                   <span className="text-brand flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-brand text-white flex items-center justify-center text-[10px] font-mono">
+                    <span className="w-5 h-5 rounded-full bg-brand text-white flex items-center justify-center text-[10px] font-mono shrink-0">
                       {registerStep}
                     </span>
-                    {registerStep === 1 && 'Personal Info'}
-                    {registerStep === 2 && 'Shop Location'}
-                    {registerStep === 3 && 'Printer Rates'}
-                    {registerStep === 4 && 'Subscription Plan'}
+                    <span className="truncate">
+                      {registerStep === 1 && 'Personal Info'}
+                      {registerStep === 2 && 'Shop Location'}
+                      {registerStep === 3 && 'Printer Rates'}
+                      {registerStep === 4 && 'Subscription Plan'}
+                    </span>
                   </span>
-                  <span className="text-stone-400 font-semibold text-[11px]">Step {registerStep} of 4</span>
+                  <span className="text-stone-400 font-semibold text-[10px] sm:text-[11px] shrink-0">Step {registerStep} of 4</span>
                 </div>
 
                 {/* Progress Fill Bar */}
@@ -609,33 +611,33 @@ export default function ShopAuth() {
 
               {/* STEP 1: PERSONAL DETAILS */}
               {registerStep === 1 && (
-                <form onSubmit={handleStep1Next} noValidate className="flex flex-col gap-3.5">
+                <form onSubmit={handleStep1Next} noValidate className="flex flex-col gap-3 sm:gap-3.5">
                   {/* Full Name */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Owner Full Name</label>
+                    <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Owner Full Name</label>
                     <div className="relative flex items-center">
-                      <User className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none" />
+                      <User className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none shrink-0" />
                       <input
                         type="text"
                         required
                         value={registerData.fullName}
                         onChange={(e) => updateRegisterData({ fullName: e.target.value })}
                         placeholder="Rahul Sharma"
-                        className="w-full h-11 pl-10 pr-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
+                        className="w-full h-11 sm:h-12 pl-10 pr-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
                       />
                     </div>
                   </div>
 
                   {/* Mobile Number with +91 */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Mobile Number</label>
+                    <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Mobile Number</label>
                     <div className="flex items-center gap-2">
-                      <div className="h-11 px-3 rounded-2xl border border-stone-300 bg-stone-100 text-stone-700 font-bold text-xs flex items-center justify-center gap-1 shrink-0">
+                      <div className="h-11 sm:h-12 px-2.5 sm:px-3 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-100 text-stone-700 font-bold text-xs flex items-center justify-center gap-1 shrink-0">
                         <span>🇮🇳</span>
                         <span>+91</span>
                       </div>
-                      <div className="relative flex items-center flex-1">
-                        <Phone className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none" />
+                      <div className="relative flex items-center flex-1 min-w-0">
+                        <Phone className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none shrink-0" />
                         <input
                           type="tel"
                           required
@@ -644,7 +646,7 @@ export default function ShopAuth() {
                           value={registerData.mobile}
                           onChange={(e) => updateRegisterData({ mobile: e.target.value.replace(/\D/g, '') })}
                           placeholder="9876543210"
-                          className="w-full h-11 pl-10 pr-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
+                          className="w-full h-11 sm:h-12 pl-10 pr-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
                         />
                       </div>
                     </div>
@@ -652,38 +654,38 @@ export default function ShopAuth() {
 
                   {/* Email Address */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Email Address</label>
+                    <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Email Address</label>
                     <div className="relative flex items-center">
-                      <Mail className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none" />
+                      <Mail className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none shrink-0" />
                       <input
                         type="email"
                         required
                         value={registerData.email}
                         onChange={(e) => updateRegisterData({ email: e.target.value })}
                         placeholder="sharma.prints@example.com"
-                        className="w-full h-11 pl-10 pr-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
+                        className="w-full h-11 sm:h-12 pl-10 pr-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand focus:ring-3 focus:ring-rose-500/15 outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all placeholder:text-stone-400"
                       />
                     </div>
                   </div>
 
                   {/* Password & Confirm Password */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Password</label>
+                      <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Password</label>
                       <div className="relative flex items-center">
-                        <Lock className="w-4 h-4 absolute left-3 text-stone-400 pointer-events-none" />
+                        <Lock className="w-4 h-4 absolute left-3 text-stone-400 pointer-events-none shrink-0" />
                         <input
                           type={showRegPassword ? 'text' : 'password'}
                           required
                           value={registerData.password}
                           onChange={(e) => updateRegisterData({ password: e.target.value })}
                           placeholder="••••••••"
-                          className="w-full h-11 pl-9 pr-9 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-sm font-medium text-stone-900 transition-all"
+                          className="w-full h-11 sm:h-12 pl-9 pr-9 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all"
                         />
                         <button
                           type="button"
                           onClick={() => setShowRegPassword(!showRegPassword)}
-                          className="absolute right-2.5 text-stone-400 hover:text-stone-700 cursor-pointer"
+                          className="absolute right-2.5 text-stone-400 hover:text-stone-700 cursor-pointer p-1"
                         >
                           {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>
@@ -691,21 +693,21 @@ export default function ShopAuth() {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Confirm</label>
+                      <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Confirm</label>
                       <div className="relative flex items-center">
-                        <Lock className="w-4 h-4 absolute left-3 text-stone-400 pointer-events-none" />
+                        <Lock className="w-4 h-4 absolute left-3 text-stone-400 pointer-events-none shrink-0" />
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           required
                           value={registerData.confirmPassword}
                           onChange={(e) => updateRegisterData({ confirmPassword: e.target.value })}
                           placeholder="••••••••"
-                          className="w-full h-11 pl-9 pr-9 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-sm font-medium text-stone-900 transition-all"
+                          className="w-full h-11 sm:h-12 pl-9 pr-9 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all"
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-2.5 text-stone-400 hover:text-stone-700 cursor-pointer"
+                          className="absolute right-2.5 text-stone-400 hover:text-stone-700 cursor-pointer p-1"
                         >
                           {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>
@@ -717,7 +719,7 @@ export default function ShopAuth() {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                     type="submit"
-                    className="btn btn-primary w-full mt-2 py-3 rounded-2xl shadow-md font-bold flex items-center justify-center gap-2 cursor-pointer"
+                    className="btn btn-primary w-full mt-1 sm:mt-2 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-md font-bold flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer"
                   >
                     <span>Proceed to Shop Details</span>
                     <ArrowRight className="w-4 h-4" />
@@ -727,43 +729,43 @@ export default function ShopAuth() {
 
               {/* STEP 2: SHOP DETAILS */}
               {registerStep === 2 && (
-                <form onSubmit={handleStep2Next} noValidate className="flex flex-col gap-3.5">
+                <form onSubmit={handleStep2Next} noValidate className="flex flex-col gap-3 sm:gap-3.5">
                   {/* Shop Name */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Shop Name</label>
+                    <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Shop Name</label>
                     <div className="relative flex items-center">
-                      <Building2 className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none" />
+                      <Building2 className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none shrink-0" />
                       <input
                         type="text"
                         required
                         value={registerData.shopName}
                         onChange={(e) => updateRegisterData({ shopName: e.target.value })}
                         placeholder="Sharma Cyber Cafe & Xerox"
-                        className="w-full h-11 pl-10 pr-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-sm font-medium text-stone-900 transition-all"
+                        className="w-full h-11 sm:h-12 pl-10 pr-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Shop Address */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Shop Address / Landmark</label>
+                    <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Shop Address / Landmark</label>
                     <div className="relative flex items-center">
-                      <MapPin className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none" />
+                      <MapPin className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none shrink-0" />
                       <input
                         type="text"
                         required
                         value={registerData.shopAddress}
                         onChange={(e) => updateRegisterData({ shopAddress: e.target.value })}
                         placeholder="Shop No. 4, Opposite Railway Station"
-                        className="w-full h-11 pl-10 pr-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-sm font-medium text-stone-900 transition-all"
+                        className="w-full h-11 sm:h-12 pl-10 pr-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Pincode & City */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Pincode</label>
+                      <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Pincode</label>
                       <input
                         type="text"
                         required
@@ -771,39 +773,39 @@ export default function ShopAuth() {
                         value={registerData.pincode}
                         onChange={(e) => updateRegisterData({ pincode: e.target.value.replace(/\D/g, '') })}
                         placeholder="110001"
-                        className="w-full h-11 px-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-sm font-medium text-stone-900 transition-all"
+                        className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">City & State</label>
+                      <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">City & State</label>
                       <input
                         type="text"
                         required
                         value={registerData.cityState}
                         onChange={(e) => updateRegisterData({ cityState: e.target.value })}
                         placeholder="New Delhi, Delhi"
-                        className="w-full h-11 px-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-sm font-medium text-stone-900 transition-all"
+                        className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-xs sm:text-sm font-medium text-stone-900 transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-1 sm:mt-2">
                     <button
                       type="button"
                       onClick={prevRegisterStep}
-                      className="btn btn-outline py-3 rounded-2xl font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="btn btn-outline py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
                     >
-                      <ArrowLeft className="w-4 h-4" />
+                      <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       <span>Back</span>
                     </button>
 
                     <button
                       type="submit"
-                      className="btn btn-primary py-3 rounded-2xl font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="btn btn-primary py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
                     >
                       <span>Next Step</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </form>
@@ -811,16 +813,16 @@ export default function ShopAuth() {
 
               {/* STEP 3: PRINTER SETUP & RATES */}
               {registerStep === 3 && (
-                <form onSubmit={handleStep3Next} noValidate className="flex flex-col gap-3.5">
+                <form onSubmit={handleStep3Next} noValidate className="flex flex-col gap-3 sm:gap-3.5">
                   {/* Printer Brand */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Primary Printer Brand</label>
+                    <label className="text-[11px] sm:text-xs font-bold text-stone-700 uppercase tracking-wider">Primary Printer Brand</label>
                     <div className="relative flex items-center">
-                      <Printer className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none" />
+                      <Printer className="w-4 h-4 absolute left-3.5 text-stone-400 pointer-events-none shrink-0" />
                       <select
                         value={registerData.printerBrand}
                         onChange={(e) => updateRegisterData({ printerBrand: e.target.value })}
-                        className="w-full h-11 pl-10 pr-4 rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-sm font-medium text-stone-900 cursor-pointer transition-all appearance-none"
+                        className="w-full h-11 sm:h-12 pl-10 pr-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/70 focus:bg-white focus:border-brand outline-none text-xs sm:text-sm font-medium text-stone-900 cursor-pointer transition-all appearance-none"
                       >
                         {printerBrandOptions.map((brand) => (
                           <option key={brand} value={brand}>
@@ -832,15 +834,15 @@ export default function ShopAuth() {
                   </div>
 
                   {/* Print Pricing Rates */}
-                  <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-1">
                     {/* B&W Rate */}
-                    <div className="flex flex-col gap-1 bg-stone-100/80 p-3 rounded-2xl border border-stone-200">
-                      <label className="text-xs font-bold text-stone-800 flex items-center justify-between">
+                    <div className="flex flex-col gap-1 bg-stone-100/80 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-stone-200">
+                      <label className="text-[11px] sm:text-xs font-bold text-stone-800 flex items-center justify-between">
                         <span>B&W Rate</span>
-                        <span className="text-[10px] text-stone-500 font-semibold">₹ / page</span>
+                        <span className="text-[9px] sm:text-[10px] text-stone-500 font-semibold">₹ / pg</span>
                       </label>
-                      <div className="relative flex items-center mt-1">
-                        <span className="absolute left-3 text-stone-500 font-bold text-sm">₹</span>
+                      <div className="relative flex items-center mt-0.5 sm:mt-1">
+                        <span className="absolute left-3 text-stone-500 font-bold text-xs sm:text-sm">₹</span>
                         <input
                           type="number"
                           min="0.5"
@@ -848,19 +850,19 @@ export default function ShopAuth() {
                           required
                           value={registerData.bwRate}
                           onChange={(e) => updateRegisterData({ bwRate: Number(e.target.value) })}
-                          className="w-full h-10 pl-7 pr-3 rounded-xl border border-stone-300 bg-white focus:border-brand outline-none text-sm font-extrabold text-stone-900"
+                          className="w-full h-9 sm:h-10 pl-6 sm:pl-7 pr-2.5 rounded-lg sm:rounded-xl border border-stone-300 bg-white focus:border-brand outline-none text-xs sm:text-sm font-extrabold text-stone-900"
                         />
                       </div>
                     </div>
 
                     {/* Color Rate */}
-                    <div className="flex flex-col gap-1 bg-rose-50/70 p-3 rounded-2xl border border-rose-200">
-                      <label className="text-xs font-bold text-brand flex items-center justify-between">
+                    <div className="flex flex-col gap-1 bg-rose-50/70 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-rose-200">
+                      <label className="text-[11px] sm:text-xs font-bold text-brand flex items-center justify-between">
                         <span>Color Rate</span>
-                        <span className="text-[10px] text-rose-500 font-semibold">₹ / page</span>
+                        <span className="text-[9px] sm:text-[10px] text-rose-500 font-semibold">₹ / pg</span>
                       </label>
-                      <div className="relative flex items-center mt-1">
-                        <span className="absolute left-3 text-brand font-bold text-sm">₹</span>
+                      <div className="relative flex items-center mt-0.5 sm:mt-1">
+                        <span className="absolute left-3 text-brand font-bold text-xs sm:text-sm">₹</span>
                         <input
                           type="number"
                           min="1"
@@ -868,41 +870,41 @@ export default function ShopAuth() {
                           required
                           value={registerData.colorRate}
                           onChange={(e) => updateRegisterData({ colorRate: Number(e.target.value) })}
-                          className="w-full h-10 pl-7 pr-3 rounded-xl border border-rose-300 bg-white focus:border-brand outline-none text-sm font-extrabold text-stone-900"
+                          className="w-full h-9 sm:h-10 pl-6 sm:pl-7 pr-2.5 rounded-lg sm:rounded-xl border border-rose-300 bg-white focus:border-brand outline-none text-xs sm:text-sm font-extrabold text-stone-900"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Hardware Check */}
-                  <div className="bg-amber-50/70 border border-amber-200/80 p-3.5 rounded-2xl">
-                    <label className="flex items-start gap-2.5 cursor-pointer text-xs text-stone-800 font-medium select-none">
+                  <div className="bg-amber-50/70 border border-amber-200/80 p-3 sm:p-3.5 rounded-xl sm:rounded-2xl">
+                    <label className="flex items-start gap-2.5 cursor-pointer text-[11px] sm:text-xs text-stone-800 font-medium select-none">
                       <input
                         type="checkbox"
                         checked={registerData.hardwareReady}
                         onChange={(e) => updateRegisterData({ hardwareReady: e.target.checked })}
-                        className="w-4 h-4 rounded border-stone-300 text-brand focus:ring-brand accent-brand mt-0.5"
+                        className="w-4 h-4 rounded border-stone-300 text-brand focus:ring-brand accent-brand mt-0.5 shrink-0"
                       />
                       <span>I have a Windows PC & Printer ready for 1-click desktop agent pairing.</span>
                     </label>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-1 sm:mt-2">
                     <button
                       type="button"
                       onClick={prevRegisterStep}
-                      className="btn btn-outline py-3 rounded-2xl font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="btn btn-outline py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
                     >
-                      <ArrowLeft className="w-4 h-4" />
+                      <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       <span>Back</span>
                     </button>
 
                     <button
                       type="submit"
-                      className="btn btn-primary py-3 rounded-2xl font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="btn btn-primary py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
                     >
                       <span>Choose Plan</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </form>
@@ -910,10 +912,10 @@ export default function ShopAuth() {
 
               {/* STEP 4: SUBSCRIPTION PLAN & PAYMENT */}
               {registerStep === 4 && (
-                <div className="flex flex-col gap-3.5">
+                <div className="flex flex-col gap-3 sm:gap-3.5">
                   <div>
-                    <h3 className="text-sm font-extrabold text-stone-900">Select Subscription Plan</h3>
-                    <p className="text-xs text-stone-500 mt-0.5">Activate full Owner Dashboard & instant Windows printing</p>
+                    <h3 className="text-xs sm:text-sm font-extrabold text-stone-900">Select Subscription Plan</h3>
+                    <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">Activate full Owner Dashboard & instant Windows printing</p>
                   </div>
 
                   {/* Plan Cards */}
@@ -925,28 +927,28 @@ export default function ShopAuth() {
                           setSelectedPlan('FREE_TRIAL')
                           updateRegisterData({ planType: 'FREE_TRIAL' })
                         }}
-                        className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                        className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                           selectedPlan === 'FREE_TRIAL'
                             ? 'border-amber-500 bg-amber-50/70 shadow-sm'
                             : 'border-stone-200 bg-white hover:border-stone-300'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
                             selectedPlan === 'FREE_TRIAL' ? 'border-amber-500 bg-amber-500 text-white' : 'border-stone-300'
                           }`}>
                             {selectedPlan === 'FREE_TRIAL' && <Check className="w-3 h-3 stroke-3" />}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-sm font-extrabold text-stone-900">2-Hour Free Demo</span>
-                              <span className="text-[10px] font-bold uppercase bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">Trial</span>
+                              <span className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">2-Hour Free Demo</span>
+                              <span className="text-[9px] sm:text-[10px] font-bold uppercase bg-amber-200 text-amber-900 px-1.5 sm:px-2 py-0.5 rounded-full shrink-0">Trial</span>
                             </div>
-                            <p className="text-[11px] text-stone-500 font-medium mt-0.5">Test full live printing & agent for 2 hours free</p>
+                            <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">Test live printing for 2 hours free</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-base font-extrabold text-stone-900">₹0</div>
+                        <div className="text-right shrink-0 ml-2">
+                          <div className="text-sm sm:text-base font-extrabold text-stone-900">₹0</div>
                           <div className="text-[10px] text-amber-700 font-bold">Free</div>
                         </div>
                       </div>
@@ -958,29 +960,29 @@ export default function ShopAuth() {
                         setSelectedPlan('MONTHLY_299')
                         updateRegisterData({ planType: 'MONTHLY_299' })
                       }}
-                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                      className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                         selectedPlan === 'MONTHLY_299'
                           ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
                           : 'border-stone-200 bg-white hover:border-stone-300'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
                           selectedPlan === 'MONTHLY_299' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-stone-300'
                         }`}>
                           {selectedPlan === 'MONTHLY_299' && <Check className="w-3 h-3 stroke-3" />}
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-extrabold text-stone-900">Monthly Plan</span>
-                            <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Monthly</span>
+                            <span className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">Monthly Plan</span>
+                            <span className="text-[9px] sm:text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-1.5 sm:px-2 py-0.5 rounded-full shrink-0">Monthly</span>
                           </div>
-                          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Owner dashboard, QR kiosk & live print agent</p>
+                          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">Owner dashboard, QR kiosk & print agent</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-base font-extrabold text-stone-900">₹{monthlyPrice}</div>
-                        <div className="text-[10px] text-stone-500 font-semibold">/ 30 days</div>
+                      <div className="text-right shrink-0 ml-2">
+                        <div className="text-sm sm:text-base font-extrabold text-stone-900">₹{monthlyPrice}</div>
+                        <div className="text-[9px] sm:text-[10px] text-stone-500 font-semibold">/ 30 days</div>
                       </div>
                     </div>
 
@@ -990,49 +992,49 @@ export default function ShopAuth() {
                         setSelectedPlan('YEARLY_799')
                         updateRegisterData({ planType: 'YEARLY_799' })
                       }}
-                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
+                      className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
                         selectedPlan === 'YEARLY_799'
                           ? 'border-brand bg-rose-50/70 shadow-sm'
                           : 'border-stone-200 bg-white hover:border-stone-300'
                       }`}
                     >
-                      <div className="absolute top-0 right-0 bg-brand text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-bl-lg">
+                      <div className="absolute top-0 right-0 bg-brand text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-1.5 sm:px-2 py-0.5 rounded-bl-lg">
                         Best Value · Save 78%
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
                           selectedPlan === 'YEARLY_799' ? 'border-brand bg-brand text-white' : 'border-stone-300'
                         }`}>
                           {selectedPlan === 'YEARLY_799' && <Check className="w-3 h-3 stroke-3" />}
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-extrabold text-stone-900">Yearly Plan</span>
-                            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                            <span className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">Yearly Plan</span>
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400 shrink-0" />
                           </div>
-                          <p className="text-[11px] text-stone-500 font-medium mt-0.5">365 Days access — priority setup & poster</p>
+                          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 truncate">365 Days — priority setup & poster</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-base font-extrabold text-stone-900">₹{yearlyPrice}</div>
+                      <div className="text-right shrink-0 ml-2">
+                        <div className="text-sm sm:text-base font-extrabold text-stone-900">₹{yearlyPrice}</div>
                         <div className="text-[10px] text-emerald-600 font-bold">1 Year</div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-[11px] text-stone-500 bg-stone-100/70 p-2.5 rounded-xl border border-stone-200">
+                  <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-stone-500 bg-stone-100/70 p-2.5 rounded-xl border border-stone-200">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Secured by 256-bit encrypted Razorpay Payment Gateway.</span>
+                    <span>Secured by 256-bit encrypted Razorpay Gateway.</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 mt-1">
+                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-1">
                     <button
                       type="button"
                       onClick={prevRegisterStep}
                       disabled={isSubmitting || isVerifying}
-                      className="btn btn-outline py-3 rounded-2xl font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="btn btn-outline py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
                     >
-                      <ArrowLeft className="w-4 h-4" />
+                      <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       <span>Back</span>
                     </button>
 
@@ -1040,7 +1042,7 @@ export default function ShopAuth() {
                       type="button"
                       onClick={() => triggerRazorpayCheckout(selectedPlan)}
                       disabled={isSubmitting || isVerifying}
-                      className="btn btn-primary py-3 rounded-2xl font-bold shadow-md shadow-rose-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                      className="btn btn-primary py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold shadow-md shadow-rose-500/25 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm cursor-pointer"
                     >
                       {isSubmitting || isVerifying ? (
                         <>
@@ -1048,11 +1050,11 @@ export default function ShopAuth() {
                           <span>{isVerifying ? 'Verifying...' : 'Processing...'}</span>
                         </>
                       ) : selectedPlan === 'FREE_TRIAL' ? (
-                        <span>Activate Free Demo ✨</span>
+                        <span>Activate Demo ✨</span>
                       ) : selectedPlan === 'YEARLY_799' ? (
-                        <span>Pay ₹{yearlyPrice} & Activate 💳</span>
+                        <span>Pay ₹{yearlyPrice} 💳</span>
                       ) : (
-                        <span>Pay ₹{monthlyPrice} & Activate 💳</span>
+                        <span>Pay ₹{monthlyPrice} 💳</span>
                       )}
                     </button>
                   </div>

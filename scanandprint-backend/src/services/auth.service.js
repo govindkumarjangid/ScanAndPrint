@@ -467,18 +467,13 @@ export const authService = {
     return { success: true }
   },
 
-  // Update the shop's payment settings (bcrypt-encrypt razorpayKeySecret, save upiId)
+  // Update the shop's payment settings (bcrypt-encrypt razorpayKeySecret)
   async updatePaymentSettings(shopId, paymentData) {
-    const { razorpayKeySecret, razorpayKeyId, paymentMode, paymentGateway, upiId } = paymentData
+    const { razorpayKeySecret, razorpayKeyId, paymentMode, paymentGateway } = paymentData
 
     const updateFields = {
       'paymentSettings.paymentMode': paymentMode || 'online_counter',
       'paymentSettings.paymentGateway': paymentGateway || 'razorpay',
-    }
-
-    // Save direct UPI ID for Kiosk dynamic QR code
-    if (upiId !== undefined) {
-      updateFields['paymentSettings.upiId'] = String(upiId || '').trim()
     }
 
     // Save Key ID as-is (not secret, used in frontend checkout)

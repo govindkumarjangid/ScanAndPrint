@@ -239,7 +239,7 @@ export default function OwnerOverview() {
       </div>
 
       {/* Recent Print Jobs Table */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-5">
+      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-5 overflow-hidden">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-100 pb-4 gap-3 sm:gap-0">
@@ -253,15 +253,15 @@ export default function OwnerOverview() {
           </Link>
         </div>
 
-        <div className="w-full overflow-hidden">
-          <table className="w-full text-left text-sm border-collapse block md:table md:table-fixed">
+        <div className="w-full overflow-x-auto min-w-0">
+          <table className="w-full text-left text-sm border-collapse block md:table min-w-0 md:min-w-[680px]">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-stone-200/80 text-stone-500 font-bold text-xs uppercase tracking-wider">
-                <th className="py-3 px-4 md:w-[20%]">Job ID</th>
-                <th className="py-3 px-4 md:w-[28%]">File Name</th>
-                <th className="py-3 px-4 md:w-[15%]">Pages & Copies</th>
+                <th className="py-3 px-4 md:w-[18%]">Job ID</th>
+                <th className="py-3 px-4 md:w-[26%]">File Name</th>
+                <th className="py-3 px-4 md:w-[18%]">Pages & Copies</th>
                 <th className="py-3 px-4 md:w-[8%]">Type</th>
-                <th className="py-3 px-4 md:w-[7%]">Amount</th>
+                <th className="py-3 px-4 md:w-[8%]">Amount</th>
                 <th className="py-3 px-4 md:w-[10%] text-center">Status</th>
                 <th className="py-3 px-4 md:w-[12%] text-right">Actions</th>
               </tr>

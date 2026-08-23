@@ -41,7 +41,7 @@ export default function OwnerAgentDownload() {
     'https://github.com/govindkumarjangid/ScanAndPrint/releases/download/v1.0.3/Scan.Print.Agent.Setup.1.0.3.exe'
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl">
+    <div className="flex flex-col gap-6 max-w-4xl w-full max-w-full overflow-hidden">
 
       {/* Title */}
       <div>
@@ -54,8 +54,8 @@ export default function OwnerAgentDownload() {
       </div>
 
       {/* Download Box */}
-      <div className="bg-linear-to-br from-brand to-rose-600 rounded-3xl p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="flex flex-col gap-2">
+      <div className="bg-linear-to-br from-brand to-rose-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 overflow-hidden">
+        <div className="flex flex-col gap-2 min-w-0 flex-1">
           <span className="text-xs font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full w-max">
             Windows 10 / 11 Compatible
           </span>
@@ -72,12 +72,12 @@ export default function OwnerAgentDownload() {
           target="_blank"
           rel="noopener noreferrer"
           download="Scan_and_Print_Agent_Setup_1.0.3.exe"
-          className="shrink-0"
+          className="shrink-0 w-full sm:w-auto"
         >
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50! px-8 py-4 shadow-lg text-base cursor-pointer"
+            className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50! px-6 sm:px-8 py-3.5 sm:py-4 shadow-lg text-sm sm:text-base cursor-pointer w-full sm:w-auto justify-center"
           >
             <Download className="w-5 h-5" />
             <span>Download .exe (103MB)</span>
@@ -86,15 +86,15 @@ export default function OwnerAgentDownload() {
       </div>
 
       {/* Credentials Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-5">
+      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-5 overflow-hidden">
         <div className="border-b border-stone-100 pb-4">
           <h3 className="text-xl font-extrabold text-stone-900 font-heading">Your Agent Pairing Credentials</h3>
           <p className="text-xs text-stone-500 mt-0.5">Enter these two credentials when prompted by the desktop app on first launch</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           {/* Shop Code */}
-          <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200 flex flex-col gap-2">
+          <div className="bg-stone-50 p-4 sm:p-5 rounded-2xl border border-stone-200 flex flex-col gap-2 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Shop ID Code</span>
               {shopCode && (
@@ -109,7 +109,7 @@ export default function OwnerAgentDownload() {
               )}
             </div>
             {shopCode ? (
-              <span className="text-lg font-extrabold text-stone-900 font-mono tracking-wide select-all">{shopCode}</span>
+              <span className="text-lg font-extrabold text-stone-900 font-mono tracking-wide select-all truncate">{shopCode}</span>
             ) : (
               <div className="flex items-center gap-2 text-stone-400 py-1">
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -119,7 +119,7 @@ export default function OwnerAgentDownload() {
           </div>
 
           {/* Secret API Key */}
-          <div className="bg-rose-50/60 p-5 rounded-2xl border border-rose-200/80 flex flex-col gap-2">
+          <div className="bg-rose-50/60 p-4 sm:p-5 rounded-2xl border border-rose-200/80 flex flex-col gap-2 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-brand uppercase tracking-wider">Secret API Key</span>
               <div className="flex items-center gap-1">
@@ -160,24 +160,26 @@ export default function OwnerAgentDownload() {
       </div>
 
       {/* 4-Step Instructions */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-4">
+      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-4 overflow-hidden">
         <h3 className="text-lg font-extrabold text-stone-900 font-heading">Quick Setup & Launch Guide</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-stone-700">
-          <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0">1</span>
-            <span>Download & Run <strong>Scan_and_Print_Agent_Setup_1.0.3.exe</strong></span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs font-semibold text-stone-700">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
+            <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">1</span>
+            <span className="min-w-0 flex-1 break-words">
+              Download & Run <strong className="font-bold text-stone-900 font-mono break-all inline-block">Scan_and_Print_Agent_Setup_1.0.3.exe</strong>
+            </span>
           </div>
-          <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0">2</span>
-            <span>Input your <strong>Shop ID</strong> & <strong>Secret Key</strong> shown above</span>
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
+            <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">2</span>
+            <span className="min-w-0 flex-1 break-words">Input your <strong>Shop ID</strong> & <strong>Secret Key</strong> shown above</span>
           </div>
-          <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0">3</span>
-            <span>Select your Black & White and Color USB/Network Printers</span>
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
+            <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">3</span>
+            <span className="min-w-0 flex-1 break-words">Select your Black & White and Color USB/Network Printers</span>
           </div>
-          <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-extrabold flex items-center justify-center shrink-0">4</span>
-            <span>📌 <strong>Desktop Shortcut is created automatically</strong>, and agent runs in system tray 🟢!</span>
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
+            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">4</span>
+            <span className="min-w-0 flex-1 break-words">📌 <strong>Desktop Shortcut is created automatically</strong>, and agent runs in system tray 🟢!</span>
           </div>
         </div>
       </div>

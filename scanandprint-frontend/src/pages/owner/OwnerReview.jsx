@@ -48,25 +48,25 @@ export default function OwnerReview() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl">
+    <div className="flex flex-col gap-6 max-w-4xl w-full">
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading">
           Give a Review
         </h1>
-        <p className="text-stone-500 text-sm mt-0.5 font-medium">
+        <p className="text-stone-500 text-xs sm:text-sm mt-0.5 font-medium">
           Share your experience with Scan&Print and help us improve
         </p>
       </div>
 
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-6">
-        <div className="flex flex-col gap-2 bg-stone-50 p-6 rounded-2xl border border-stone-100">
-          <p className="text-stone-500 text-sm font-medium">
+      <div className="bg-white rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-5 overflow-hidden">
+        <div className="flex flex-col gap-2 bg-stone-50 p-4 sm:p-6 rounded-2xl border border-stone-100">
+          <p className="text-stone-600 text-xs sm:text-sm font-medium leading-relaxed">
             Your feedback is valuable to us! Please take a moment to share your experience with ScanAndPrint. Your review will help us improve our services and assist other users in making informed decisions.
           </p>
 
-          <form onSubmit={handleSaveReview} className="flex flex-col gap-5 mt-4">
+          <form onSubmit={handleSaveReview} className="flex flex-col gap-4 sm:gap-5 mt-3">
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
                 Your Name
               </label>
@@ -77,11 +77,11 @@ export default function OwnerReview() {
                 value={reviewData.username}
                 onChange={handleChange}
                 placeholder="e.g. Govind Kumar"
-                className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
+                className="w-full h-11 px-3.5 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
                 State
               </label>
@@ -90,12 +90,12 @@ export default function OwnerReview() {
                 name="state"
                 value={reviewData.state}
                 onChange={handleChange}
-                placeholder="e.g. Jharkhand"
-                className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
+                placeholder="e.g. Jaipur, Rajasthan"
+                className="w-full h-11 px-3.5 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
                 How many stars?
               </label>
@@ -110,7 +110,7 @@ export default function OwnerReview() {
                     className="p-1 focus:outline-none cursor-pointer"
                   >
                     <Star
-                      className={`w-8 h-8 transition-colors ${star <= (hoveredStar || reviewData.stars)
+                      className={`w-7 h-7 sm:w-8 sm:h-8 transition-colors ${star <= (hoveredStar || reviewData.stars)
                         ? 'fill-amber-400 text-amber-400'
                         : 'fill-stone-200 text-stone-200'
                         }`}
@@ -120,7 +120,7 @@ export default function OwnerReview() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
                 Your Review
               </label>
@@ -132,18 +132,18 @@ export default function OwnerReview() {
                 value={reviewData.review}
                 onChange={handleChange}
                 placeholder="How was using ScanAndPrint? What did you like most?"
-                className="w-full p-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand transition-colors resize-none"
+                className="w-full p-3.5 sm:p-4 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm font-semibold text-stone-900 outline-none focus:border-brand transition-colors resize-none leading-relaxed"
               />
-              <div className="text-[11px] text-stone-500 font-medium">
+              <div className="text-[10px] sm:text-[11px] text-stone-500 font-medium">
                 {reviewData.review.length}/1200 characters
               </div>
             </div>
 
-            <div>
+            <div className="pt-1">
               <button
                 type="submit"
                 disabled={isSubmittingReview}
-                className="btn btn-primary w-auto flex items-center gap-2 px-8"
+                className="btn btn-primary w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 text-sm sm:text-base font-bold shadow-md cursor-pointer"
               >
                 {isSubmittingReview ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 <span>{isSubmittingReview ? 'Sending Feedback...' : 'Send Review'}</span>

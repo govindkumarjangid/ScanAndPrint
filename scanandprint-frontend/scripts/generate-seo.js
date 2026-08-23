@@ -61,8 +61,13 @@ Object.entries(SEO_ROUTES).forEach(([routePath, config]) => {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/svgs/logo.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+  <link rel="icon" type="image/svg+xml" href="/svgs/logo.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <meta name="theme-color" content="${SITE_CONFIG.themeColor}" />
   
   <!-- Font Optimization: Preconnect & Display Swap -->
@@ -85,7 +90,7 @@ Object.entries(SEO_ROUTES).forEach(([routePath, config]) => {
   <meta property="og:image" content="${config.ogImage}" />
   <meta property="og:image:secure_url" content="${config.ogImage}" />
   <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
+  <meta property="og:image:height" content="1200" />
   <meta property="og:image:alt" content="${escapeHtml(config.title)}" />
   <meta property="og:locale" content="${SITE_CONFIG.locale}" />
 

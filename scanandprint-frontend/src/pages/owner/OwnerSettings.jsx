@@ -67,22 +67,22 @@ export default function OwnerSettings() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-3xl">
+    <div className="flex flex-col gap-6 max-w-3xl w-full">
       
       {/* Title */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading">
           Shop Profile & Account Settings
         </h1>
-        <p className="text-stone-500 text-sm mt-0.5 font-medium">
+        <p className="text-stone-500 text-xs sm:text-sm mt-0.5 font-medium">
           Update your shop information and manage your account security credentials
         </p>
       </div>
 
       {/* Main Settings Form */}
-      <form onSubmit={handleSaveProfile} className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-5">
+      <form onSubmit={handleSaveProfile} className="bg-white rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-4 sm:gap-5 overflow-hidden">
         <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
-          <h3 className="text-lg font-extrabold text-stone-900 font-heading">Shop Profile Details</h3>
+          <h3 className="text-base sm:text-lg font-extrabold text-stone-900 font-heading">Shop Profile Details</h3>
           <span className="text-xs font-bold text-stone-400">Public & Receipt Info</span>
         </div>
 
@@ -95,7 +95,7 @@ export default function OwnerSettings() {
             value={shopName}
             onChange={(e) => setShopName(e.target.value)}
             placeholder="e.g. Sharma Cyber Cafe & Xerox"
-            className="w-full h-12 px-4 rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-sm font-semibold outline-none transition-all"
+            className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-xs sm:text-sm font-semibold outline-none transition-all"
           />
         </div>
 
@@ -108,17 +108,17 @@ export default function OwnerSettings() {
             value={ownerName}
             onChange={(e) => setOwnerName(e.target.value)}
             placeholder="e.g. Rahul Sharma"
-            className="w-full h-12 px-4 rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-sm font-semibold outline-none transition-all"
+            className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-xs sm:text-sm font-semibold outline-none transition-all"
           />
         </div>
 
         {/* Locked Phone & Email Grid (Non-editable) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {/* Locked Mobile */}
-          <div className="flex flex-col gap-1.5 bg-stone-50/80 p-4 rounded-2xl border border-stone-200">
+          <div className="flex flex-col gap-1.5 bg-stone-50/80 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-stone-200 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between">
               <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600">Registered Mobile</label>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 bg-stone-200/80 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 bg-stone-200/80 px-2 py-0.5 rounded-full shrink-0">
                 <Lock className="w-2.5 h-2.5" /> Locked
               </span>
             </div>
@@ -126,16 +126,16 @@ export default function OwnerSettings() {
               type="tel"
               disabled
               value={phone}
-              className="w-full h-10 px-3 rounded-xl border border-stone-200 bg-stone-100 text-stone-500 font-mono text-sm font-bold outline-none cursor-not-allowed select-all"
+              className="w-full h-10 px-3 rounded-xl border border-stone-200 bg-stone-100 text-stone-500 font-mono text-xs sm:text-sm font-bold outline-none cursor-not-allowed select-all truncate"
             />
             <span className="text-[10px] text-stone-400 font-medium">Primary registered contact number</span>
           </div>
 
           {/* Locked Email */}
-          <div className="flex flex-col gap-1.5 bg-stone-50/80 p-4 rounded-2xl border border-stone-200">
+          <div className="flex flex-col gap-1.5 bg-stone-50/80 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-stone-200 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between">
               <label className="text-xs font-extrabold uppercase tracking-wider text-stone-600">Registered Gmail / Email</label>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 bg-stone-200/80 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 bg-stone-200/80 px-2 py-0.5 rounded-full shrink-0">
                 <Lock className="w-2.5 h-2.5" /> Locked
               </span>
             </div>
@@ -143,7 +143,7 @@ export default function OwnerSettings() {
               type="email"
               disabled
               value={email}
-              className="w-full h-10 px-3 rounded-xl border border-stone-200 bg-stone-100 text-stone-500 font-mono text-sm font-bold outline-none cursor-not-allowed select-all"
+              className="w-full h-10 px-3 rounded-xl border border-stone-200 bg-stone-100 text-stone-500 font-mono text-xs sm:text-sm font-bold outline-none cursor-not-allowed select-all truncate"
             />
             <span className="text-[10px] text-stone-400 font-medium">Account login & notification email</span>
           </div>
@@ -158,12 +158,12 @@ export default function OwnerSettings() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Shop address, shop number, road/landmark"
-            className="w-full h-12 px-4 rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-sm font-semibold outline-none transition-all"
+            className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-xs sm:text-sm font-semibold outline-none transition-all"
           />
         </div>
 
         {/* City & Pincode */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">City, State</label>
             <input
@@ -171,7 +171,7 @@ export default function OwnerSettings() {
               value={cityState}
               onChange={(e) => setCityState(e.target.value)}
               placeholder="e.g. Jaipur, Rajasthan"
-              className="w-full h-12 px-4 rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-sm font-semibold outline-none transition-all"
+              className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-xs sm:text-sm font-semibold outline-none transition-all"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -181,7 +181,7 @@ export default function OwnerSettings() {
               value={pincode}
               onChange={(e) => setPincode(e.target.value)}
               placeholder="e.g. 302001"
-              className="w-full h-12 px-4 rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-sm font-semibold outline-none transition-all"
+              className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-xs sm:text-sm font-semibold outline-none transition-all"
             />
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function OwnerSettings() {
           <button
             type="submit"
             disabled={isSavingProfile}
-            className="btn btn-primary py-4 px-8 flex items-center gap-2 shadow-md"
+            className="btn btn-primary py-3.5 sm:py-4 px-6 sm:px-8 flex items-center justify-center gap-2 shadow-md w-full sm:w-auto text-sm sm:text-base font-bold cursor-pointer"
           >
             {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span className="text-shadow-xs">{isSavingProfile ? 'Saving Profile...' : 'Save Profile Details'}</span>
@@ -199,20 +199,20 @@ export default function OwnerSettings() {
 
       </form>
 
-      {/* Password Update Form Section (Shifted to Settings Page) */}
-      <form onSubmit={handleUpdatePassword} className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-6">
+      {/* Password Update Form Section */}
+      <form onSubmit={handleUpdatePassword} className="bg-white rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col gap-4 sm:gap-6 overflow-hidden">
         <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-extrabold text-stone-900 font-heading">Account Password</h3>
+            <h3 className="text-base sm:text-lg font-extrabold text-stone-900 font-heading">Account Password</h3>
             <p className="text-xs text-stone-500 mt-0.5">Change your shop login password securely</p>
           </div>
-          <div className="p-2 rounded-xl bg-stone-100 text-stone-600">
+          <div className="p-2 rounded-xl bg-stone-100 text-stone-600 shrink-0">
             <KeyRound className="w-5 h-5" />
           </div>
         </div>
 
         {/* Current Password */}
-        <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200 flex flex-col gap-2">
+        <div className="bg-stone-50 p-4 sm:p-5 rounded-2xl border border-stone-200 flex flex-col gap-2">
           <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
             Current Password *
           </label>
@@ -223,14 +223,14 @@ export default function OwnerSettings() {
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Enter current password"
-              className="w-full h-12 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand"
+              className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm font-bold text-stone-900 outline-none focus:border-brand"
             />
           </div>
         </div>
 
         {/* New & Confirm Password Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="bg-stone-50/60 p-5 rounded-2xl border border-stone-200/80 flex flex-col gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
+          <div className="bg-stone-50/60 p-4 sm:p-5 rounded-2xl border border-stone-200/80 flex flex-col gap-2">
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
               New Password *
             </label>
@@ -241,12 +241,12 @@ export default function OwnerSettings() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="New password (min 6 chars)"
-                className="w-full h-12 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand"
+                className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm font-bold text-stone-900 outline-none focus:border-brand"
               />
             </div>
           </div>
 
-          <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200 flex flex-col gap-2">
+          <div className="bg-stone-50 p-4 sm:p-5 rounded-2xl border border-stone-200 flex flex-col gap-2">
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
               Confirm New Password *
             </label>
@@ -257,7 +257,7 @@ export default function OwnerSettings() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
-                className="w-full h-12 px-4 rounded-xl border border-stone-300 bg-white text-sm font-bold text-stone-900 outline-none focus:border-brand"
+                className="w-full h-11 sm:h-12 px-3.5 sm:px-4 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm font-bold text-stone-900 outline-none focus:border-brand"
               />
             </div>
           </div>
@@ -267,7 +267,7 @@ export default function OwnerSettings() {
           <button
             type="submit"
             disabled={isUpdatingPassword}
-            className="btn btn-outline py-4 px-8 flex items-center gap-2 font-bold"
+            className="btn btn-outline py-3.5 sm:py-4 px-6 sm:px-8 flex items-center justify-center gap-2 font-bold w-full sm:w-auto text-sm sm:text-base cursor-pointer"
           >
             {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin text-brand" /> : <Lock className="w-4 h-4 text-brand" />}
             <span>{isUpdatingPassword ? 'Updating Password...' : 'Update Password'}</span>
