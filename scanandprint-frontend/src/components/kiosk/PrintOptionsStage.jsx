@@ -22,6 +22,8 @@ export default function PrintOptionsStage({
   selectedPagesCount,
   setSelectedPagesCount,
   totalAmount,
+  onOpenStudioModal,
+  onOpenPdfStudioModal,
   onOpenImageEditor,
   onOpenCropModal,
   onBack,
@@ -47,16 +49,16 @@ export default function PrintOptionsStage({
   const handleRangeModeChange = (mode) => {
     setPageRangeMode(mode)
     if (mode === 'all') {
-      setRangeError('')
       setSelectedPagesCount(totalDocPages)
-    } else if (mode === 'first') {
+      setCustomRangeStr('')
       setRangeError('')
+    } else if (mode === 'first') {
       setSelectedPagesCount(1)
-    } else {
-      const result = parsePageRange(customRangeStr, totalDocPages)
-      if (result.valid) {
-        setSelectedPagesCount(result.count)
-      }
+      setCustomRangeStr('1')
+      setRangeError('')
+    } else if (mode === 'custom') {
+      setCustomRangeStr('')
+      setSelectedPagesCount(1)
     }
   }
 
@@ -66,13 +68,19 @@ export default function PrintOptionsStage({
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col gap-4"
+      exit={{ opacity: 0, y: -15 }}
+      className="max-w-xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col gap-5"
     >
-      {/* Header */}
+      {/* Top Header Row with Change File */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg sm:text-xl font-extrabold text-stone-900 font-heading">
-          Configure Print Options
-        </h2>
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black text-stone-900 font-heading">
+            Print Configuration
+          </h2>
+          <p className="text-xs sm:text-sm text-stone-500 font-medium">
+            Customize print settings for your document
+          </p>
+        </div>
         <button
           type="button"
           onClick={onBack}
@@ -94,17 +102,40 @@ export default function PrintOptionsStage({
                 <Crop className="w-4 h-4" />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-extrabold text-stone-900 truncate">Image Crop & Adjustments</span>
-                <span className="text-[11px] text-stone-500 font-medium truncate">Trim borders, rotate or enhance contrast</span>
+                <span className="text-xs font-extrabold text-stone-900 truncate">Image Studio &amp; Crop</span>
+                <span className="text-[11px] text-stone-500 font-medium truncate">Trim borders, multi-image A4 layout, or passport photos</span>
               </div>
             </div>
             <button
               type="button"
-              onClick={onOpenImageEditor}
+              onClick={onOpenStudioModal || onOpenImageEditor}
               className="btn btn-primary py-1.5 px-3 rounded-xl text-xs font-bold shrink-0 shadow-xs flex items-center gap-1 cursor-pointer"
             >
               <Crop className="w-3.5 h-3.5" />
-              <span>Crop Image</span>
+              <span>Edit Image</span>
+            </button>
+          </div>
+        )}
+
+        {/* PDF Studio & Page Manager Shortcut Banner */}
+        {!isImage && selectedFile && (
+          <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200/80 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-white text-purple-600 border border-purple-100 flex items-center justify-center shadow-xs shrink-0">
+                <Layers className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-extrabold text-stone-900 truncate">PDF Studio &amp; Page Manager</span>
+                <span className="text-[11px] text-stone-500 font-medium truncate">Page thumbnails, rotate orientation, delete &amp; merge</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenPdfStudioModal || onOpenStudioModal}
+              className="btn bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-3 rounded-xl text-xs font-bold shrink-0 shadow-xs flex items-center gap-1 cursor-pointer"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Edit PDF</span>
             </button>
           </div>
         )}
@@ -232,47 +263,78 @@ export default function PrintOptionsStage({
           </div>
         </div>
 
-        {/* 3. Number of Copies & Duplex */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Copies Stepper */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
-            <div className="flex flex-col">
-              <span className="text-xs font-extrabold text-stone-900">Copies (Sets)</span>
-              <span className="text-[11px] text-stone-500 font-medium">Quantity</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-stone-300 shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setCopies(Math.max(1, copies - 1))}
-                className="btn btn-ghost p-1 w-7 h-7 bg-stone-100 hover:bg-stone-200 text-stone-800 flex items-center justify-center cursor-pointer rounded-lg"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <span className="font-extrabold text-sm text-stone-900 w-5 text-center">
-                {copies}
+        {/* 3. Sides Mode: Single-Sided vs Double-Sided Book Mode */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
+            Print Sides &amp; Book Duplex
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setIsDuplex(false)}
+              className={`p-3.5 rounded-2xl border flex flex-col gap-1 text-left transition-all cursor-pointer ${
+                !isDuplex
+                  ? 'bg-rose-50/70 border-brand ring-2 ring-brand/20 shadow-xs'
+                  : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-stone-900">Single-Sided</span>
+                <span className="text-[10px] font-bold bg-white text-stone-600 px-2 py-0.5 rounded-md border border-stone-200">
+                  1-Side
+                </span>
+              </div>
+              <span className="text-[10px] text-stone-500 font-medium">
+                1 page per sheet (Front only)
               </span>
-              <button
-                type="button"
-                onClick={() => setCopies(copies + 1)}
-                className="btn btn-ghost p-1 w-7 h-7 bg-stone-100 hover:bg-stone-200 text-stone-800 flex items-center justify-center cursor-pointer rounded-lg"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
+            </button>
 
-          {/* Duplex Switch */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
-            <div className="flex flex-col">
-              <span className="text-xs font-extrabold text-stone-900">Double-Sided</span>
-              <span className="text-[11px] text-stone-500 font-medium">Front & Back</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={isDuplex}
-              onChange={(e) => setIsDuplex(e.target.checked)}
-              className="w-5 h-5 accent-brand rounded cursor-pointer"
-            />
+            <button
+              type="button"
+              onClick={() => setIsDuplex(true)}
+              className={`p-3.5 rounded-2xl border flex flex-col gap-1 text-left transition-all cursor-pointer ${
+                isDuplex
+                  ? 'bg-rose-50/70 border-brand ring-2 ring-brand/20 shadow-xs'
+                  : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-stone-900">Double-Sided Book</span>
+                <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+                  Front &amp; Back
+                </span>
+              </div>
+              <span className="text-[10px] text-stone-500 font-medium">
+                Front = Page 1, Back = Page 2 (Book style)
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* 4. Number of Copies */}
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+          <div className="flex flex-col">
+            <span className="text-xs font-extrabold text-stone-900">Copies (Sets)</span>
+            <span className="text-[11px] text-stone-500 font-medium">Number of print copies</span>
+          </div>
+          <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-stone-300 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setCopies(Math.max(1, copies - 1))}
+              className="btn btn-ghost p-1 w-7 h-7 bg-stone-100 hover:bg-stone-200 text-stone-800 flex items-center justify-center cursor-pointer rounded-lg"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <span className="font-extrabold text-sm text-stone-900 w-5 text-center">
+              {copies}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCopies(copies + 1)}
+              className="btn btn-ghost p-1 w-7 h-7 bg-stone-100 hover:bg-stone-200 text-stone-800 flex items-center justify-center cursor-pointer rounded-lg"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 

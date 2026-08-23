@@ -41,7 +41,7 @@ export default function OwnerAgentDownload() {
     'https://github.com/govindkumarjangid/ScanAndPrint/releases/download/v1.0.3/Scan.Print.Agent.Setup.1.0.3.exe'
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl w-full max-w-full overflow-hidden">
+    <div className="flex flex-col gap-6  w-full max-w-full overflow-hidden">
 
       {/* Title */}
       <div>
@@ -165,21 +165,21 @@ export default function OwnerAgentDownload() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs font-semibold text-stone-700">
           <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
             <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">1</span>
-            <span className="min-w-0 flex-1 break-words">
+            <span className="min-w-0 flex-1 wrap-break-words">
               Download & Run <strong className="font-bold text-stone-900 font-mono break-all inline-block">Scan_and_Print_Agent_Setup_1.0.3.exe</strong>
             </span>
           </div>
           <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
             <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">2</span>
-            <span className="min-w-0 flex-1 break-words">Input your <strong>Shop ID</strong> & <strong>Secret Key</strong> shown above</span>
+            <span className="min-w-0 flex-1 wrap-break-words">Input your <strong>Shop ID</strong> & <strong>Secret Key</strong> shown above</span>
           </div>
           <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
             <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">3</span>
-            <span className="min-w-0 flex-1 break-words">Select your Black & White and Color USB/Network Printers</span>
+            <span className="min-w-0 flex-1 wrap-break-words">Select your Black & White and Color USB/Network Printers</span>
           </div>
           <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
             <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">4</span>
-            <span className="min-w-0 flex-1 break-words">📌 <strong>Desktop Shortcut is created automatically</strong>, and agent runs in system tray 🟢!</span>
+            <span className="min-w-0 flex-1 wrap-break-words">📌 <strong>Desktop Shortcut is created automatically</strong>, and agent runs in system tray 🟢!</span>
           </div>
         </div>
       </div>

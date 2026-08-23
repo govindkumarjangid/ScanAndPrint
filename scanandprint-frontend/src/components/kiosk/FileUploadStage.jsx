@@ -21,6 +21,8 @@ export default function FileUploadStage({
   isAnalyzingPdf,
   isPreUploading,
   onFileSelect,
+  onOpenStudioModal,
+  onOpenPdfStudioModal,
   onOpenImageEditor,
   onOpenCropModal,
   onProceed,
@@ -222,25 +224,60 @@ export default function FileUploadStage({
             </button>
           </div>
 
-          {/* Image Action Buttons (Crop & Adjust / Aadhaar Layout) */}
+          {/* Image Action Button (Unified Crop & Document Studio) */}
           {isImage && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-stone-100">
+            <div className="pt-2 border-t border-stone-100 flex flex-col gap-2">
               <button
                 type="button"
-                onClick={onOpenImageEditor}
-                className="btn btn-outline w-full text-brand! bg-rose-50/80! hover:bg-rose-100! border-rose-200! flex items-center justify-center gap-2 text-xs font-extrabold py-2.5 rounded-2xl cursor-pointer shadow-2xs transition-all"
+                onClick={onOpenStudioModal || onOpenImageEditor || onOpenCropModal}
+                className="btn btn-outline w-full text-brand! bg-rose-50/90! hover:bg-rose-100! border-rose-200! flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl cursor-pointer shadow-xs transition-all group"
               >
-                <Crop className="w-4 h-4 text-brand" />
-                <span>✂️ Crop & Adjust Image</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <Crop className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col text-left min-w-0">
+                    <span className="text-xs font-extrabold text-stone-900 group-hover:text-brand transition-colors truncate">
+                      Edit &amp; Crop Document Image
+                    </span>
+                    <span className="text-[10px] text-stone-500 font-medium truncate">
+                      4-Point Crop · A4 Layout · Passport Grid
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 bg-brand text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black shadow-xs shrink-0 ml-2">
+                  <span>Edit Image</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                </div>
               </button>
+            </div>
+          )}
 
+          {/* PDF Action Button (PDF Studio & Page Manager) */}
+          {!isImage && selectedFile && (
+            <div className="pt-2 border-t border-stone-100 flex flex-col gap-2">
               <button
                 type="button"
-                onClick={onOpenCropModal}
-                className="btn btn-outline w-full text-stone-700! bg-stone-50! hover:bg-stone-100! border-stone-200! flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-2xl cursor-pointer shadow-2xs transition-all"
+                onClick={onOpenPdfStudioModal || onOpenStudioModal}
+                className="btn btn-outline w-full text-brand! bg-rose-50/90! hover:bg-rose-100! border-rose-200! flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl cursor-pointer shadow-xs transition-all group"
               >
-                <FileCheck2 className="w-4 h-4 text-emerald-600" />
-                <span>📄 Aadhaar / 2nd Side Layout</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col text-left min-w-0">
+                    <span className="text-xs font-extrabold text-stone-900 group-hover:text-brand transition-colors truncate">
+                      Manage &amp; Edit PDF Pages
+                    </span>
+                    <span className="text-[10px] text-stone-500 font-medium truncate">
+                      Page Preview · Rotate Portrait/Landscape · Custom Range · Delete/Merge
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 bg-brand text-white px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black shadow-xs shrink-0 ml-2">
+                  <span>Edit PDF</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                </div>
               </button>
             </div>
           )}

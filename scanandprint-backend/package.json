@@ -31,6 +31,7 @@
     "pdf-to-printer": "^5.8.0",
     "razorpay": "^2.9.8",
     "resend": "^6.22.0",
+    "sharp": "^0.35.3",
     "socket.io": "^4.8.3",
     "zod": "^4.4.3"
   }

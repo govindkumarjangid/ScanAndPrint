@@ -5,8 +5,8 @@ import { AlertCircle, Store, RefreshCw, ArrowLeft } from 'lucide-react'
 
 import KioskHeader from '../../components/kiosk/KioskHeader'
 import FileUploadStage from '../../components/kiosk/FileUploadStage'
-import ImageCropModal from '../../components/kiosk/ImageCropModal'
-import ImageEditorModal from '../../components/kiosk/ImageEditorModal'
+import KioskStudioModal from '../../components/kiosk/KioskStudioModal'
+import KioskPdfStudioModal from '../../components/kiosk/KioskPdfStudioModal'
 import PrintOptionsStage from '../../components/kiosk/PrintOptionsStage'
 import PaymentStage from '../../components/kiosk/PaymentStage'
 import PrintTrackingStage from '../../components/kiosk/PrintTrackingStage'
@@ -42,8 +42,8 @@ export default function CustomerKiosk() {
   const [copies, setCopies] = useState(1)
   const [isDuplex, setIsDuplex] = useState(false)
   const [customerPhone, setCustomerPhone] = useState('')
-  const [cropModalOpen, setCropModalOpen] = useState(false)
-  const [editorModalOpen, setEditorModalOpen] = useState(false)
+  const [studioModalOpen, setStudioModalOpen] = useState(false)
+  const [pdfStudioModalOpen, setPdfStudioModalOpen] = useState(false)
 
   useEffect(() => {
     fetchShopInfo(shopCode).then((info) => {
@@ -140,17 +140,34 @@ export default function CustomerKiosk() {
     } finally {
       setIsAnalyzingPdf(false)
     }
-
-    if (file.type?.startsWith('image/')) {
-      setCropModalOpen(true)
-    }
   }
 
-  const handleSaveEditedImage = (editedFile) => {
-    setSelectedFile(editedFile)
-    setCropModalOpen(false)
-    // Pre-upload edited crop
-    preUploadFile(editedFile)
+  const handleSaveEditedDocument = (editedDocFile) => {
+    setSelectedFile(editedDocFile)
+    setStudioModalOpen(false)
+    setTotalDocPages(1)
+    setSelectedPagesCount(1)
+    setPageRangeMode('all')
+    setCustomRangeStr('')
+    // Pre-upload edited document
+    preUploadFile(editedDocFile)
+    // Advance directly to print options stage with processed file
+    setStep(2)
+  }
+
+  const handleSaveEditedPdf = (editedPdfFile) => {
+    setSelectedFile(editedPdfFile)
+    setPdfStudioModalOpen(false)
+    setIsAnalyzingPdf(true)
+    getExactPageCount(editedPdfFile).then((count) => {
+      setTotalDocPages(count)
+      setSelectedPagesCount(count)
+      setPageRangeMode('all')
+      setCustomRangeStr('')
+      setIsAnalyzingPdf(false)
+    })
+    preUploadFile(editedPdfFile)
+    setStep(2)
   }
 
   // Suspended Shop State Screen
@@ -360,8 +377,10 @@ export default function CustomerKiosk() {
             isAnalyzingPdf={isAnalyzingPdf}
             isPreUploading={isPreUploading}
             onFileSelect={handleFileSelect}
-            onOpenImageEditor={() => setEditorModalOpen(true)}
-            onOpenCropModal={() => setCropModalOpen(true)}
+            onOpenStudioModal={() => setStudioModalOpen(true)}
+            onOpenPdfStudioModal={() => setPdfStudioModalOpen(true)}
+            onOpenImageEditor={() => setStudioModalOpen(true)}
+            onOpenCropModal={() => setStudioModalOpen(true)}
             onProceed={() => setStep(2)}
           />
         )}
@@ -387,8 +406,10 @@ export default function CustomerKiosk() {
             selectedPagesCount={selectedPagesCount}
             setSelectedPagesCount={setSelectedPagesCount}
             totalAmount={totalAmount}
-            onOpenImageEditor={() => setEditorModalOpen(true)}
-            onOpenCropModal={() => setCropModalOpen(true)}
+            onOpenStudioModal={() => setStudioModalOpen(true)}
+            onOpenPdfStudioModal={() => setPdfStudioModalOpen(true)}
+            onOpenImageEditor={() => setStudioModalOpen(true)}
+            onOpenCropModal={() => setStudioModalOpen(true)}
             onBack={() => setStep(1)}
             onProceedToPayment={() => setStep(3)}
           />
@@ -424,24 +445,20 @@ export default function CustomerKiosk() {
         )}
       </main>
 
-      {/* 1. Precision Image Crop & Rotate Editor Modal */}
-      <ImageEditorModal
+      {/* Unified Image Crop & 2-in-1 Aadhaar / ID Studio Modal */}
+      <KioskStudioModal
         imageFile={selectedFile && selectedFile.type?.startsWith('image/') ? selectedFile : null}
-        isOpen={editorModalOpen}
-        onClose={() => setEditorModalOpen(false)}
-        onSave={(editedFile) => {
-          setSelectedFile(editedFile)
-          setEditorModalOpen(false)
-          preUploadFile(editedFile)
-        }}
+        isOpen={studioModalOpen}
+        onClose={() => setStudioModalOpen(false)}
+        onSave={handleSaveEditedDocument}
       />
 
-      {/* 2. Aadhaar / Multi-Image A4 Layout Cropper Modal */}
-      <ImageCropModal
-        imageFile={selectedFile && selectedFile.type?.startsWith('image/') ? selectedFile : null}
-        isOpen={cropModalOpen}
-        onClose={() => setCropModalOpen(false)}
-        onSave={handleSaveEditedImage}
+      {/* PDF Studio & Page Manager Modal */}
+      <KioskPdfStudioModal
+        pdfFile={selectedFile && !selectedFile.type?.startsWith('image/') ? selectedFile : null}
+        isOpen={pdfStudioModalOpen}
+        onClose={() => setPdfStudioModalOpen(false)}
+        onSave={handleSaveEditedPdf}
       />
 
       {/* Footer */}
