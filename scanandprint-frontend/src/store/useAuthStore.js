@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import api from '../lib/axios'
 import toast from 'react-hot-toast'
 
-// Safely retrieve cached shop info from localStorage for instant UI rendering on reload
 const getInitialShop = () => {
   try {
     const saved = localStorage.getItem('shopData')
@@ -16,10 +15,9 @@ const initialShop = getInitialShop()
 const initialToken = localStorage.getItem('shopToken')
 
 export const useAuthStore = create((set, get) => ({
-  // Tab state: 'login' | 'register'
+
   activeTab: 'login',
 
-  // Current authenticated shop
   currentShop: initialShop,
   isAuthenticated: !!initialToken || !!initialShop,
   isLoading: false,
@@ -31,15 +29,13 @@ export const useAuthStore = create((set, get) => ({
   isSubmittingReview: false,
   error: null,
 
-  // Register multi-step state: 1 | 2 | 3
   registerStep: 1,
 
-  // Public Platform Settings (Pricing, Demo limits, Support, Policies, Maintenance)
   publicSettings: {
     monthlyPrice: 299,
     monthlyOriginalPrice: 499,
     yearlyPrice: 799,
-    yearlyOriginalPrice: 3588,
+    yearlyOriginalPrice: 3999,
     demoMode: true,
     demoDurationHours: 2,
     filePurgeMinutes: 60,
@@ -51,12 +47,10 @@ export const useAuthStore = create((set, get) => ({
   },
   isFetchingSettings: false,
 
-  // Login form state
   loginEmail: '',
   loginPassword: '',
   rememberMe: true,
 
-  // Register form state including print pricing rates
   registerData: {
     fullName: '',
     mobile: '',
@@ -69,13 +63,11 @@ export const useAuthStore = create((set, get) => ({
     cityState: '',
     printerBrand: 'Epson',
     printType: 'Both',
-    bwRate: 5,
+    bwRate: 10,
     colorRate: 10,
     hardwareReady: true,
     planType: 'MONTHLY_299',
   },
-
-  // Actions
 
   fetchPublicSettings: async () => {
     try {
@@ -88,7 +80,7 @@ export const useAuthStore = create((set, get) => ({
             monthlyPrice: d.monthlyPrice ?? 299,
             monthlyOriginalPrice: d.monthlyOriginalPrice ?? 499,
             yearlyPrice: d.yearlyPrice ?? 799,
-            yearlyOriginalPrice: d.yearlyOriginalPrice ?? 3588,
+            yearlyOriginalPrice: d.yearlyOriginalPrice ?? 3999,
             demoMode: d.demoMode ?? true,
             demoDurationHours: d.demoDurationHours ?? 2,
             filePurgeMinutes: d.filePurgeMinutes ?? 60,
@@ -166,19 +158,14 @@ export const useAuthStore = create((set, get) => ({
       },
     }),
 
-  // Async API Actions
   login: async (email, password) => {
     try {
       set({ isLoading: true, error: null })
       const res = await api.post('/auth/login', { email, password })
       if (res.data.success) {
         const { shop, token } = res.data.data
-        if (token) {
-          localStorage.setItem('shopToken', token)
-        }
-        if (shop) {
-          localStorage.setItem('shopData', JSON.stringify(shop))
-        }
+        if (token) localStorage.setItem('shopToken', token)
+        if (shop) localStorage.setItem('shopData', JSON.stringify(shop))
         set({ currentShop: shop, isAuthenticated: true })
         return true
       }
@@ -191,7 +178,6 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // 1. Initialize Registration with Plan (Returns Razorpay Order or Free Trial Token)
   registerInit: async (registerPayload) => {
     try {
       set({ isLoading: true, error: null })
@@ -216,19 +202,14 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // 2. Verify Razorpay Payment Signature & Activate Session
   verifySubscriptionPayment: async (paymentPayload) => {
     try {
       set({ isLoading: true, error: null })
       const res = await api.post('/auth/verify-subscription-payment', paymentPayload)
       if (res.data.success) {
         const { shop, token } = res.data.data
-        if (token) {
-          localStorage.setItem('shopToken', token)
-        }
-        if (shop) {
-          localStorage.setItem('shopData', JSON.stringify(shop))
-        }
+        if (token) localStorage.setItem('shopToken', token)
+        if (shop) localStorage.setItem('shopData', JSON.stringify(shop))
         set({ currentShop: shop, isAuthenticated: true })
         return shop
       }
@@ -242,7 +223,6 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // 3. Create Subscription Order for Renewal / Upgrade
   createSubscriptionOrder: async (planType = 'MONTHLY_299', shopId) => {
     try {
       set({ isLoading: true, error: null })
@@ -270,44 +250,14 @@ export const useAuthStore = create((set, get) => ({
       const res = await api.post('/auth/register', registerPayload)
       if (res.data.success) {
         const { shop, token } = res.data.data
-        if (token) {
-          localStorage.setItem('shopToken', token)
-        }
-        if (shop) {
-          localStorage.setItem('shopData', JSON.stringify(shop))
-        }
+        if (token) localStorage.setItem('shopToken', token)
+        if (shop) localStorage.setItem('shopData', JSON.stringify(shop))
         set({ currentShop: shop, isAuthenticated: true })
         return true
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Registration failed'
       set({ error: errorMsg })
-      throw new Error(errorMsg)
-    } finally {
-      set({ isLoading: false })
-    }
-  },
-
-  demoRegister: async ({ mobile, password, shopName }) => {
-    try {
-      set({ isLoading: true, error: null })
-      const res = await api.post('/auth/demo-register', { mobile, password, shopName })
-      if (res.data.success) {
-        const { shop, token } = res.data.data
-        if (token) {
-          localStorage.setItem('shopToken', token)
-        }
-        if (shop) {
-          localStorage.setItem('shopData', JSON.stringify(shop))
-        }
-        set({ currentShop: shop, isAuthenticated: true })
-        toast.success('🎉 2-Hour Free Demo Access Activated!')
-        return shop
-      }
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message || 'Demo registration failed'
-      set({ error: errorMsg })
-      toast.error(errorMsg)
       throw new Error(errorMsg)
     } finally {
       set({ isLoading: false })

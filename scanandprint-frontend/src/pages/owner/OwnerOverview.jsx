@@ -253,17 +253,17 @@ export default function OwnerOverview() {
           </Link>
         </div>
 
-        <div className="w-full overflow-x-auto min-w-0">
-          <table className="w-full text-left text-sm border-collapse block md:table min-w-0 md:min-w-[680px]">
+        <div className="w-full min-w-0">
+          <table className="w-full text-left text-sm border-collapse block md:table min-w-0">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-stone-200/80 text-stone-500 font-bold text-xs uppercase tracking-wider">
-                <th className="py-3 px-4 md:w-[18%]">Job ID</th>
-                <th className="py-3 px-4 md:w-[26%]">File Name</th>
-                <th className="py-3 px-4 md:w-[18%]">Pages & Copies</th>
-                <th className="py-3 px-4 md:w-[8%]">Type</th>
-                <th className="py-3 px-4 md:w-[8%]">Amount</th>
-                <th className="py-3 px-4 md:w-[10%] text-center">Status</th>
-                <th className="py-3 px-4 md:w-[12%] text-right">Actions</th>
+                <th className="py-3 px-3 md:w-[15%]">Job ID</th>
+                <th className="py-3 px-3 md:w-[24%]">File Name</th>
+                <th className="py-3 px-3 md:w-[16%]">Pages &amp; Copies</th>
+                <th className="py-3 px-3 md:w-[8%]">Type</th>
+                <th className="py-3 px-3 md:w-[8%]">Amount</th>
+                <th className="py-3 px-3 md:w-[12%] text-center">Status</th>
+                <th className="py-3 px-3 md:w-[17%] text-right">Actions</th>
               </tr>
             </thead>
 
@@ -288,16 +288,16 @@ export default function OwnerOverview() {
                   className="block md:table-row bg-stone-50/40 md:bg-transparent border border-stone-200/80 md:border-0 rounded-2xl md:rounded-none p-4 md:p-0 hover:bg-stone-50/60 transition-colors"
                 >
                   {/* Job ID */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-bold text-stone-900 font-mono text-xs overflow-hidden">
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-3 font-bold text-stone-900 font-mono text-xs overflow-hidden max-w-28">
                     <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Job ID</span>
                     <span className="truncate block font-mono text-stone-900" title={j.jobId}>{j.jobId}</span>
                   </td>
 
                   {/* File Name */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 font-semibold text-stone-800 overflow-hidden">
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-3 font-semibold text-stone-800 overflow-hidden max-w-28 sm:max-w-36 md:max-w-36 lg:max-w-44">
                     <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0 mr-2">File</span>
                     <span
-                      className="truncate block max-w-40 sm:max-w-70 md:max-w-full text-right md:text-left text-xs sm:text-sm font-medium text-stone-800"
+                      className="line-clamp-1 truncate block max-w-full text-right md:text-left text-xs sm:text-sm font-medium text-stone-800 break-all"
                       title={j.originalFileName}
                     >
                       {j.originalFileName}
@@ -305,9 +305,9 @@ export default function OwnerOverview() {
                   </td>
 
                   {/* Pages & Copies */}
-                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-4 text-xs font-medium text-stone-600 whitespace-nowrap overflow-hidden">
+                  <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-3 text-xs font-medium text-stone-600 whitespace-nowrap overflow-hidden">
                     <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Details</span>
-                    <span className="truncate block">{j.totalPages} pages × {j.copies} copy</span>
+                    <span className="truncate block">{j.totalPages}p × {j.copies}c</span>
                   </td>
 
                   {/* Type */}

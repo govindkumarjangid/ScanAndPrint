@@ -92,7 +92,6 @@ const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
 // Lazy Loaded 404
 const NotFound = lazy(() => import('./pages/NotFound'))
 
-// Adaptive Toaster: Dark mode toasts for /admin routes and original light toasts for everything else
 function AdaptiveToaster() {
   const location = useLocation()
   const isAdmin = location.pathname.startsWith('/admin')

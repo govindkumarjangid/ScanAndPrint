@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import SEO from '../../components/common/SEO'
 import { Check, Sparkles, ArrowRight, Zap, Clock, pricingFaqItems } from '../../assets/assets'
 import Accordion from "../../components/ui/Accordion"
-import DemoRegisterModal from '../../components/pricing/DemoRegisterModal'
 import { useAuthStore } from '../../store/useAuthStore'
 
 export default function Pricing() {
-  const [demoModalOpen, setDemoModalOpen] = useState(false)
   const { publicSettings, fetchPublicSettings } = useAuthStore()
   
   const monthlyPrice = publicSettings?.monthlyPrice || 299
@@ -299,12 +297,6 @@ export default function Pricing() {
           </Link>
         </div>
       </div>
-
-      {/* Quick 2-Hour Demo Registration Modal */}
-      <DemoRegisterModal
-        isOpen={demoModalOpen}
-        onClose={() => setDemoModalOpen(false)}
-      />
     </div>
   )
 }

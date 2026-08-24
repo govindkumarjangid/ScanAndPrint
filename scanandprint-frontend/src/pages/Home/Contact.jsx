@@ -12,6 +12,7 @@ import {
   Clock,
   ShieldCheck,
 } from '../../assets/assets'
+import { Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import api from '../../lib/axios'
 import toast from 'react-hot-toast'
@@ -182,10 +183,20 @@ export default function Contact() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="btn btn-primary py-3.5 mt-1 w-max px-8"
+                  disabled={loading}
+                  className="btn btn-primary py-3.5 mt-1 w-max px-8 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>{loading ? 'Sending Message...' : 'Submit Message'}</span>
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Sending Message...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Submit Message</span>
+                    </>
+                  )}
                 </button>
               </form>
             )}

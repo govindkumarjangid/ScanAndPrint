@@ -145,7 +145,6 @@ export const useJobStore = create((set, get) => ({
     }
   },
 
-  // Real-time WebSocket Optimistic Updates
   addOrUpdateJob: (newJob) => {
     if (!newJob || (!newJob.jobId && !newJob._id)) return
     set((state) => {

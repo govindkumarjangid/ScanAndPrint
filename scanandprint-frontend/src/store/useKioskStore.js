@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import api from '../lib/axios'
 import toast from 'react-hot-toast'
 
-// Helper to dynamically load Razorpay Checkout script
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
     if (window.Razorpay) {
@@ -25,7 +24,6 @@ export const useKioskStore = create((set, get) => ({
   isRazorpayLoading: false,
   error: null,
 
-  // Job Flow State
   jobId: null,
   createdJob: null,
   tempId: null,
@@ -47,10 +45,10 @@ export const useKioskStore = create((set, get) => ({
       set({ error: msg })
       if (shopCode === 'DEMO_SHOP') {
         const fallbackShop = {
-          shopCode: 'DEMO_SHOP',
-          shopName: 'Sharma Cyber Cafe & Prints',
-          ownerName: 'Rahul Kumar',
-          address: 'Main Market, Opposite Railway Station, New Delhi',
+          shopCode: 'GOVIND_SHOP',
+          shopName: 'Govind Cyber Cafe & Prints',
+          ownerName: 'Govind Kumar',
+          address: 'Main Market, Opposite Railway Station, Jaipur',
           bwRate: 5,
           colorRate: 10,
           isOnline: true,
@@ -67,7 +65,6 @@ export const useKioskStore = create((set, get) => ({
     }
   },
 
-  // Optimistic Background Pre-Upload (Step 1 cache for instant Step 3 checkout)
   preUploadFile: async (file) => {
     if (!file) return null
     try {
@@ -93,7 +90,6 @@ export const useKioskStore = create((set, get) => ({
     }
   },
 
-  // Single-Flight Atomic Quick Dispatch (<80ms Instant Printing)
   quickDispatchJob: async (formData) => {
     try {
       set({ isVerifyingPayment: true, error: null })
@@ -173,30 +169,25 @@ export const useKioskStore = create((set, get) => ({
     }
   },
 
-  // Razorpay Checkout Integration
   initiateRazorpayPayment: async ({ formData, totalAmount, customerPhone }) => {
     const { createJob, verifyPayment, shopInfo } = get()
     set({ isRazorpayLoading: true, error: null })
 
     try {
-      // 1. Create print job in backend (reads pre-upload cache or creates job in <100ms)
       const jobResult = await createJob(formData)
       const currentJob = jobResult?.job
       const currentJobId = currentJob?.jobId || `JOB_${Date.now().toString().slice(-6)}`
 
-      // 2. Load Razorpay SDK Script
       const isLoaded = await loadRazorpayScript()
-      if (!isLoaded) {
+      if (!isLoaded)
         throw new Error('Razorpay SDK failed to load. Please check internet connection.')
-      }
 
       const activeRazorpayKey = shopInfo?.paymentSettings?.razorpayKeyId || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TBRpwJ4pTFgPiY'
 
-      // 3. Launch Razorpay Checkout Modal
       return new Promise((resolve, reject) => {
         const options = {
           key: activeRazorpayKey,
-          amount: Math.round(totalAmount * 100), // Amount in paise
+          amount: Math.round(totalAmount * 100),
           currency: 'INR',
           name: shopInfo?.shopName || 'Scan&Print',
           description: `Print Job ${currentJobId} (${currentJob?.totalPages || 1} Pages)`,
@@ -221,7 +212,7 @@ export const useKioskStore = create((set, get) => ({
             shopCode: shopInfo?.shopCode || 'SHOP',
           },
           theme: {
-            color: '#F0245C', // Brand Color
+            color: '#F0245C',
           },
           modal: {
             ondismiss: () => {
@@ -246,7 +237,6 @@ export const useKioskStore = create((set, get) => ({
     }
   },
 
-  // Single-Flight Pay Cash at Counter Mode (⚡ < 80ms Total Latency)
   payAtCounter: async (formData) => {
     const { quickDispatchJob } = get()
     if (formData instanceof FormData) {
@@ -255,7 +245,6 @@ export const useKioskStore = create((set, get) => ({
     return await quickDispatchJob(formData)
   },
 
-  // Single-Flight Instant Demo Mode Bypass (⚡ < 80ms Total Latency)
   bypassPaymentDemo: async (formData) => {
     const { quickDispatchJob } = get()
     if (formData instanceof FormData) {

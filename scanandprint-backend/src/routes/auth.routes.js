@@ -4,7 +4,6 @@ import {
   registerInit,
   verifySubscriptionPayment,
   createSubscriptionOrder,
-  demoRegisterShop,
   loginShop,
   getShopProfile,
   updateShopRates,
@@ -34,7 +33,6 @@ router.route('/register').post(validateRequest(registerSchema), registerShop)
 router.route('/register-init').post(validateRequest(registerSchema), registerInit)
 router.route('/verify-subscription-payment').post(verifySubscriptionPayment)
 router.route('/create-subscription-order').post(authenticateShop, createSubscriptionOrder)
-router.route('/demo-register').post(demoRegisterShop)
 router.route('/login').post(validateRequest(loginSchema), loginShop)
 router.route('/logout').post(authenticateShop, logoutShop)
 

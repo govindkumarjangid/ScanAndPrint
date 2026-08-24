@@ -3,7 +3,7 @@ import api from '../lib/axios'
 import toast from 'react-hot-toast'
 
 export const useAdminStore = create((set, get) => ({
-  // States
+
   overviewLoading: false,
   overviewData: {
     totalRevenue: 0,
@@ -12,16 +12,16 @@ export const useAdminStore = create((set, get) => ({
     totalAgents: 0,
   },
   recentShops: [],
-  
+
   shopsLoading: false,
   shopsData: [],
-  
+
   transactionsLoading: false,
   transactionsData: [],
-  
+
   agentsLoading: false,
   agentsData: [],
-  
+
   analyticsLoading: false,
   analyticsData: {
     dailyTrend: [],
@@ -37,7 +37,7 @@ export const useAdminStore = create((set, get) => ({
     monthlyPrice: 299,
     monthlyOriginalPrice: 499,
     yearlyPrice: 799,
-    yearlyOriginalPrice: 3588,
+    yearlyOriginalPrice: 3999,
     maintenanceMode: false,
     demoMode: false,
     supportEmail: 'scanqrandprint@gmail.com',
@@ -49,7 +49,6 @@ export const useAdminStore = create((set, get) => ({
   },
   savedSuccess: false,
 
-  // Actions
   adminLogin: async (email, password) => {
     try {
       const res = await api.post('/auth/admin/login', { email, password })
@@ -75,8 +74,6 @@ export const useAdminStore = create((set, get) => ({
         const stats = data.stats || data
         const recent = Array.isArray(data.recentShops) ? data.recentShops : []
         const analytics = data.analytics || null
-
-        // If analytics provided by backend, use it directly
         if (analytics) {
           set({
             overviewData: stats,
@@ -84,21 +81,17 @@ export const useAdminStore = create((set, get) => ({
             analyticsData: analytics,
           })
         } else {
-          // Client-side fallback derivation so charts never render blank
           let freeCount = 0
           let monthlyCount = 0
           let yearlyCount = 0
-
           recent.forEach((s) => {
             const p = s.planType || (s.isDemoAccount ? 'FREE_TRIAL' : 'MONTHLY_299')
             if (p === 'FREE_TRIAL' || s.isDemoAccount) freeCount++
             else if (p === 'YEARLY_799') yearlyCount++
             else monthlyCount++
           })
-
           const totalPaid = monthlyCount + yearlyCount
           const conversionRate = recent.length > 0 ? Math.round((totalPaid / recent.length) * 100) : 0
-
           set({
             overviewData: stats,
             recentShops: recent,
@@ -148,7 +141,7 @@ export const useAdminStore = create((set, get) => ({
       set({ analyticsLoading: false })
     }
   },
-  
+
   fetchShops: async (page = 1, limit = 10, search = '') => {
     set({ shopsLoading: true })
     try {
@@ -298,7 +291,7 @@ export const useAdminStore = create((set, get) => ({
       set({ isSavingSettings: false })
     }
   },
-  
+
   logout: () => {
     localStorage.removeItem('adminToken')
     window.location.href = '/admin-login'

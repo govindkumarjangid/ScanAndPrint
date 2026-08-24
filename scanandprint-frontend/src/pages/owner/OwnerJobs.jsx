@@ -217,20 +217,20 @@ export default function OwnerJobs() {
       </div>
 
       {/* Orders table */}
-      <div className="bg-white rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs overflow-hidden">
-        <div className="w-full overflow-x-auto min-w-0">
-          <table className="w-full text-left text-sm border-collapse block md:table min-w-0 md:min-w-[840px]">
+      <div className="bg-white rounded-3xl p-4 sm:p-6 lg:p-8 border border-stone-200/80 shadow-xs overflow-hidden">
+        <div className="w-full min-w-0">
+          <table className="w-full text-left text-sm border-collapse block md:table min-w-0">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-stone-200/80 text-stone-500 font-bold text-xs uppercase tracking-wider">
-                <th className="py-3.5 px-3 md:w-[15%]">Job ID</th>
-                <th className="py-3.5 px-3 md:w-[21%]">Document File</th>
-                <th className="py-3.5 px-3 md:w-[10%]">Customer</th>
-                <th className="py-3.5 px-3 md:w-[10%]">Pages / Copies</th>
-                <th className="py-3.5 px-3 md:w-[6%]">Type</th>
-                <th className="py-3.5 px-3 md:w-[7%]">Amount</th>
-                <th className="py-3.5 px-3 md:w-[9%]">Time</th>
-                <th className="py-3.5 px-3 md:w-[10%] text-center">Status</th>
-                <th className="py-3.5 px-3 md:w-[12%] text-right">Actions</th>
+                <th className="py-3 px-2.5 md:w-[13%]">Job ID</th>
+                <th className="py-3 px-2.5 md:w-[22%]">Document File</th>
+                <th className="py-3 px-2.5 md:w-[11%]">Customer</th>
+                <th className="py-3 px-2.5 md:w-[11%]">Pages/Copies</th>
+                <th className="py-3 px-2.5 md:w-[7%]">Type</th>
+                <th className="py-3 px-2.5 md:w-[8%]">Amount</th>
+                <th className="py-3 px-2.5 md:w-[9%]">Time</th>
+                <th className="py-3 px-2.5 md:w-[9%] text-center">Status</th>
+                <th className="py-3 px-2.5 md:w-[10%] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="block md:table-row-group space-y-4 md:space-y-0 md:divide-y md:divide-stone-100">
@@ -262,39 +262,39 @@ export default function OwnerJobs() {
                     className="block md:table-row bg-stone-50/40 md:bg-transparent border border-stone-200/80 md:border-0 rounded-2xl md:rounded-none p-4 md:p-0 hover:bg-stone-50/60 transition-colors"
                   >
                     {/* Job ID */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 font-bold text-stone-900 font-mono text-xs overflow-hidden">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-2.5 font-bold text-stone-900 font-mono text-xs overflow-hidden max-w-28">
                       <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Job ID</span>
                       <span className="truncate block font-mono text-stone-900" title={j.jobId || j.id}>{j.jobId || j.id}</span>
                     </td>
 
                     {/* File Name */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 overflow-hidden">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-2.5 overflow-hidden max-w-28 sm:max-w-36 md:max-w-36 lg:max-w-44">
                       <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">File</span>
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <FileText className="w-4 h-4 text-stone-400 shrink-0 hidden sm:block" />
-                        <span className="font-bold text-stone-800 truncate block text-xs" title={j.originalFileName || j.fileName || 'document.pdf'}>
+                      <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+                        <FileText className="w-3.5 h-3.5 text-stone-400 shrink-0 hidden sm:block" />
+                        <span className="font-bold text-stone-800 line-clamp-1 truncate block text-xs break-all" title={j.originalFileName || j.fileName || 'document.pdf'}>
                           {j.originalFileName || j.fileName || 'document.pdf'}
                         </span>
                       </div>
                     </td>
 
                     {/* Customer Phone */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 text-xs font-medium text-stone-600 overflow-hidden">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-2.5 text-xs font-medium text-stone-600 overflow-hidden max-w-24">
                       <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Customer</span>
-                      <span className="truncate block">{j.customerPhone ? `+91 ${j.customerPhone}` : 'Counter Walk-in'}</span>
+                      <span className="truncate block">{j.customerPhone ? `+91 ${j.customerPhone}` : 'Walk-in'}</span>
                     </td>
 
                     {/* Pages & Copies */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 text-xs font-medium text-stone-600 overflow-hidden">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-2.5 text-xs font-medium text-stone-600 overflow-hidden whitespace-nowrap">
                       <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Pages/Copies</span>
-                      <span className="truncate block">{j.totalPages || 1}p × {j.copies || 1}c {j.isDuplex ? '(2-Sided)' : ''}</span>
+                      <span className="truncate block">{j.totalPages || 1}p × {j.copies || 1}c {j.isDuplex ? '(2S)' : ''}</span>
                     </td>
 
                     {/* Type */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 whitespace-nowrap">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-2.5 whitespace-nowrap">
                       <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Type</span>
                       <span
-                        className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${(j.colorType === 'COLOR' || j.type === 'Color')
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${(j.colorType === 'COLOR' || j.type === 'Color')
                             ? 'bg-rose-100 text-rose-800'
                             : 'bg-stone-200 text-stone-800'
                           }`}
@@ -304,19 +304,19 @@ export default function OwnerJobs() {
                     </td>
 
                     {/* Amount  */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 font-extrabold text-stone-900 border-t border-stone-100 md:border-0 mt-2 pt-3 md:mt-0 md:pt-4 whitespace-nowrap">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-2.5 font-extrabold text-stone-900 border-t border-stone-100 md:border-0 mt-2 pt-3 md:mt-0 md:pt-3.5 whitespace-nowrap">
                       <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Amount</span>
                       ₹{j.totalAmount || j.amount || 10}
                     </td>
 
                     {/* Time */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 text-xs font-medium text-stone-500 whitespace-nowrap">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-2.5 text-[11px] font-medium text-stone-500 whitespace-nowrap">
                       <span className="md:hidden text-stone-500 font-sans font-medium shrink-0">Time</span>
                       {j.createdAt ? new Date(j.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (j.time || 'Just now')}
                     </td>
 
                     {/* Status */}
-                    <td className="flex justify-between items-center md:table-cell py-2 md:py-4 px-0 md:px-3 pb-1 md:pb-4 whitespace-nowrap text-center">
+                    <td className="flex justify-between items-center md:table-cell py-2 md:py-3.5 px-0 md:px-2.5 pb-1 md:pb-3.5 whitespace-nowrap text-center">
                       <span className="md:hidden text-stone-500 font-sans text-xs font-medium shrink-0">Status</span>
                       <div className="flex items-center md:justify-center">
                         {(() => {

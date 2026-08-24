@@ -1,7 +1,8 @@
 import { authService } from '../services/auth.service.js'
-import { sendSuccess } from '../utils/apiResponse.js'
+import { sendSuccess, sendError } from '../utils/apiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import AdminSettings from '../models/AdminSettings.model.js'
+import { sendContactEmail } from '../services/email.service.js'
 
 const cookieOptions = {
   httpOnly: true,
@@ -87,20 +88,6 @@ export const registerShop = asyncHandler(async (req, res, next) => {
 
   return sendSuccess(res, 201, 'Subscription Order created. Please complete payment to activate.', result)
 })
-
-// 2-Hour free trial demo registration
-export const demoRegisterShop = asyncHandler(async (req, res, next) => {
-  const { accessToken, refreshToken, shop } = await authService.demoRegister(req.body)
-
-  res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 }) // 2 hours
-  res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
-
-  return sendSuccess(res, 201, '2-Hour Free Demo access activated successfully!', {
-    token: accessToken,
-    shop,
-  })
-})
-
 
 // login a shop
 export const loginShop = asyncHandler(async (req, res, next) => {
