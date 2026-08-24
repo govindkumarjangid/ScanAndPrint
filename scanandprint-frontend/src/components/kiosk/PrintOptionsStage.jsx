@@ -69,22 +69,22 @@ export default function PrintOptionsStage({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
-      className="max-w-xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col gap-5"
+      className="max-w-xl w-full mx-auto px-3 sm:px-4 py-3 sm:py-6 flex flex-col gap-4 sm:gap-5"
     >
       {/* Top Header Row with Change File */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black text-stone-900 font-heading">
+      <div className="flex items-start sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-xl sm:text-2xl font-black text-stone-900 font-heading leading-tight">
             Print Configuration
           </h2>
-          <p className="text-xs sm:text-sm text-stone-500 font-medium">
+          <p className="text-xs sm:text-sm text-stone-500 font-medium mt-0.5">
             Customize print settings for your document
           </p>
         </div>
         <button
           type="button"
           onClick={onBack}
-          className="btn btn-ghost btn-sm text-stone-500 hover:text-stone-800 flex items-center gap-1 text-xs cursor-pointer"
+          className="btn btn-ghost btn-sm text-stone-600 hover:text-stone-900 flex items-center gap-1 text-xs cursor-pointer shrink-0 bg-stone-100/80 hover:bg-stone-200/80 rounded-xl px-2.5 py-1.5"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Change File</span>
@@ -92,24 +92,24 @@ export default function PrintOptionsStage({
       </div>
 
       {/* Main Options Form */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-stone-200/80 shadow-md flex flex-col gap-5">
+      <div className="bg-white rounded-3xl p-4 sm:p-6 border border-stone-200/80 shadow-md flex flex-col gap-4 sm:gap-5">
         
         {/* Image Cropping & Editing Shortcut Banner */}
         {isImage && (
-          <div className="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200/80 flex items-center justify-between gap-3">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200/80 flex items-center justify-between gap-2.5 sm:gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-white text-brand border border-rose-100 flex items-center justify-center shadow-xs shrink-0">
+              <div className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-white text-brand border border-rose-100 flex items-center justify-center shadow-xs shrink-0">
                 <Crop className="w-4 h-4" />
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-xs font-extrabold text-stone-900 truncate">Image Studio &amp; Crop</span>
-                <span className="text-[11px] text-stone-500 font-medium truncate">Trim borders, multi-image A4 layout, or passport photos</span>
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium truncate">Trim borders, multi-image A4, passport photos</span>
               </div>
             </div>
             <button
               type="button"
               onClick={onOpenStudioModal || onOpenImageEditor}
-              className="btn btn-primary py-1.5 px-3 rounded-xl text-xs font-bold shrink-0 shadow-xs flex items-center gap-1 cursor-pointer"
+              className="btn btn-primary py-1.5 px-2.5 sm:px-3 rounded-xl text-xs font-bold shrink-0 shadow-xs flex items-center gap-1 cursor-pointer"
             >
               <Crop className="w-3.5 h-3.5" />
               <span>Edit Image</span>
@@ -119,20 +119,20 @@ export default function PrintOptionsStage({
 
         {/* PDF Studio & Page Manager Shortcut Banner */}
         {!isImage && selectedFile && (
-          <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200/80 flex items-center justify-between gap-3">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200/80 flex items-center justify-between gap-2.5 sm:gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-white text-purple-600 border border-purple-100 flex items-center justify-center shadow-xs shrink-0">
+              <div className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-white text-purple-600 border border-purple-100 flex items-center justify-center shadow-xs shrink-0">
                 <Layers className="w-4 h-4" />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-extrabold text-stone-900 truncate">PDF Studio &amp; Page Manager</span>
-                <span className="text-[11px] text-stone-500 font-medium truncate">Page thumbnails, rotate orientation, delete &amp; merge</span>
+                <span className="text-xs font-extrabold text-stone-900 truncate">PDF Studio &amp; Pages</span>
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium truncate">Thumbnails, rotation, delete &amp; merge</span>
               </div>
             </div>
             <button
               type="button"
               onClick={onOpenPdfStudioModal || onOpenStudioModal}
-              className="btn bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-3 rounded-xl text-xs font-bold shrink-0 shadow-xs flex items-center gap-1 cursor-pointer"
+              className="bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-2.5 sm:px-3 rounded-xl text-xs font-bold shrink-0 shadow-xs flex items-center gap-1 cursor-pointer transition-colors"
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Edit PDF</span>
@@ -145,16 +145,16 @@ export default function PrintOptionsStage({
           <div className="flex flex-col gap-2">
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700 flex items-center justify-between">
               <span>Pages to Print</span>
-              <span className="text-[11px] font-bold text-stone-500 lowercase">
-                Total document: {totalDocPages} pages
+              <span className="text-[10px] sm:text-[11px] font-bold text-stone-500 lowercase">
+                Total: {totalDocPages} pages
               </span>
             </label>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={() => handleRangeModeChange('all')}
-                className={`py-2.5 px-3 rounded-2xl border text-center font-extrabold text-xs transition-all cursor-pointer ${
+                className={`py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-2xl border text-center font-extrabold text-[11px] sm:text-xs transition-all cursor-pointer ${
                   pageRangeMode === 'all'
                     ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
                     : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
@@ -166,7 +166,7 @@ export default function PrintOptionsStage({
               <button
                 type="button"
                 onClick={() => handleRangeModeChange('first')}
-                className={`py-2.5 px-3 rounded-2xl border text-center font-extrabold text-xs transition-all cursor-pointer ${
+                className={`py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-2xl border text-center font-extrabold text-[11px] sm:text-xs transition-all cursor-pointer ${
                   pageRangeMode === 'first'
                     ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
                     : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
@@ -178,7 +178,7 @@ export default function PrintOptionsStage({
               <button
                 type="button"
                 onClick={() => handleRangeModeChange('custom')}
-                className={`py-2.5 px-3 rounded-2xl border text-center font-extrabold text-xs transition-all cursor-pointer ${
+                className={`py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-2xl border text-center font-extrabold text-[11px] sm:text-xs transition-all cursor-pointer ${
                   pageRangeMode === 'custom'
                     ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
                     : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
@@ -189,7 +189,7 @@ export default function PrintOptionsStage({
             </div>
 
             {pageRangeMode === 'custom' && (
-              <div className="mt-1.5 flex flex-col gap-1">
+              <div className="mt-1 flex flex-col gap-1">
                 <input
                   type="text"
                   placeholder="e.g. 1-3, 5, 8-10"
@@ -216,19 +216,19 @@ export default function PrintOptionsStage({
           <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
             Print Color Mode
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setColorType('BLACK_AND_WHITE')}
-              className={`p-3.5 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+              className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
                 colorType === 'BLACK_AND_WHITE'
                   ? 'bg-stone-900 text-white border-stone-900 shadow-md ring-2 ring-stone-900/10'
                   : 'bg-stone-50 text-stone-800 border-stone-200 hover:bg-stone-100'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-extrabold text-sm">Black & White</span>
-                {colorType === 'BLACK_AND_WHITE' && <Check className="w-4 h-4 text-emerald-400 stroke-3" />}
+                <span className="font-extrabold text-xs sm:text-sm">Black &amp; White</span>
+                {colorType === 'BLACK_AND_WHITE' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 stroke-3 shrink-0" />}
               </div>
               <span
                 className={`text-xs ${
@@ -242,15 +242,15 @@ export default function PrintOptionsStage({
             <button
               type="button"
               onClick={() => setColorType('COLOR')}
-              className={`p-3.5 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+              className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
                 colorType === 'COLOR'
                   ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20 ring-2 ring-brand/10'
                   : 'bg-rose-50/50 text-stone-800 border-rose-200 hover:bg-rose-100/50'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-extrabold text-sm">Color Print</span>
-                {colorType === 'COLOR' && <Check className="w-4 h-4 text-white stroke-3" />}
+                <span className="font-extrabold text-xs sm:text-sm">Color Print</span>
+                {colorType === 'COLOR' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white stroke-3 shrink-0" />}
               </div>
               <span
                 className={`text-xs ${
@@ -268,23 +268,23 @@ export default function PrintOptionsStage({
           <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
             Print Sides &amp; Book Duplex
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setIsDuplex(false)}
-              className={`p-3.5 rounded-2xl border flex flex-col gap-1 text-left transition-all cursor-pointer ${
+              className={`p-3 sm:p-3.5 rounded-2xl border flex flex-col justify-between gap-1 text-left transition-all cursor-pointer ${
                 !isDuplex
                   ? 'bg-rose-50/70 border-brand ring-2 ring-brand/20 shadow-xs'
                   : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-stone-900">Single-Sided</span>
-                <span className="text-[10px] font-bold bg-white text-stone-600 px-2 py-0.5 rounded-md border border-stone-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span className="text-xs sm:text-sm font-black text-stone-900 leading-tight">Single-Sided</span>
+                <span className="text-[9px] sm:text-[10px] font-bold bg-white text-stone-600 px-1.5 py-0.5 rounded-md border border-stone-200 w-max shrink-0">
                   1-Side
                 </span>
               </div>
-              <span className="text-[10px] text-stone-500 font-medium">
+              <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-tight">
                 1 page per sheet (Front only)
               </span>
             </button>
@@ -292,30 +292,30 @@ export default function PrintOptionsStage({
             <button
               type="button"
               onClick={() => setIsDuplex(true)}
-              className={`p-3.5 rounded-2xl border flex flex-col gap-1 text-left transition-all cursor-pointer ${
+              className={`p-3 sm:p-3.5 rounded-2xl border flex flex-col justify-between gap-1 text-left transition-all cursor-pointer ${
                 isDuplex
                   ? 'bg-rose-50/70 border-brand ring-2 ring-brand/20 shadow-xs'
                   : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-stone-900">Double-Sided Book</span>
-                <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span className="text-xs sm:text-sm font-black text-stone-900 leading-tight">Double-Sided</span>
+                <span className="text-[9px] sm:text-[10px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md w-max shrink-0">
                   Front &amp; Back
                 </span>
               </div>
-              <span className="text-[10px] text-stone-500 font-medium">
-                Front = Page 1, Back = Page 2 (Book style)
+              <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-tight">
+                Front = Page 1, Back = Page 2 (Book)
               </span>
             </button>
           </div>
         </div>
 
         {/* 4. Number of Copies */}
-        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+        <div className="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
           <div className="flex flex-col">
             <span className="text-xs font-extrabold text-stone-900">Copies (Sets)</span>
-            <span className="text-[11px] text-stone-500 font-medium">Number of print copies</span>
+            <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium">Number of print copies</span>
           </div>
           <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-stone-300 shadow-2xs">
             <button
@@ -348,12 +348,12 @@ export default function PrintOptionsStage({
             value={customerPhone}
             onChange={(e) => setCustomerPhone(e.target.value)}
             placeholder="98765 43210 (For SMS / WhatsApp Receipt)"
-            className="w-full h-11 px-4 rounded-xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-xs font-medium outline-none"
+            className="w-full h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl border border-stone-300 bg-stone-50/50 focus:bg-white focus:border-brand text-xs font-medium outline-none"
           />
         </div>
 
         {/* 5. Transparent Price Breakdown Card */}
-        <div className="bg-linear-to-br from-rose-50/70 to-rose-100/40 p-4 rounded-2xl border border-rose-200/80 flex items-center justify-between">
+        <div className="bg-linear-to-br from-rose-50/70 to-rose-100/40 p-3.5 sm:p-4 rounded-2xl border border-rose-200/80 flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-[10px] font-extrabold text-stone-500 uppercase tracking-wider">
               Total Calculation
@@ -363,7 +363,7 @@ export default function PrintOptionsStage({
             </span>
           </div>
           <div className="text-right">
-            <span className="text-2xl font-extrabold text-brand font-heading">
+            <span className="text-xl sm:text-2xl font-extrabold text-brand font-heading">
               ₹{totalAmount}
             </span>
           </div>
@@ -373,7 +373,7 @@ export default function PrintOptionsStage({
         <button
           type="button"
           onClick={onProceedToPayment}
-          className="btn btn-primary py-3.5 shadow-lg w-full text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer"
+          className="btn btn-primary py-3.5 shadow-lg w-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>Proceed to Payment (₹{totalAmount})</span>
           <ArrowRight className="w-4 h-4" />

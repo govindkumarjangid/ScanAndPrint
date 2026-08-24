@@ -284,15 +284,61 @@ export async function renderA4MultiImageCanvas({
 }
 
 /**
+ * Calculate Grid Columns & Rows for Passport / Photo Tiling
+ */
+export function getPassportGridDimensions(total) {
+  let cols = 4
+  if (total <= 2) cols = 2
+  else if (total <= 6) cols = 3
+  else if (total <= 24) cols = 4
+  else if (total === 30 || total === 40) cols = 5
+  else if (total <= 35) cols = 5
+  else cols = 6
+
+  const rows = Math.ceil(total / cols)
+  return { cols, rows }
+}
+
+/**
+ * Draw image with aspect ratio preservation (object-fit: cover) to prevent collapse / stretching
+ */
+export function drawImageCover(ctx, img, x, y, w, h) {
+  const imgW = img.naturalWidth || img.width
+  const imgH = img.naturalHeight || img.height
+  if (!imgW || !imgH || !w || !h) return
+
+  const imgAspect = imgW / imgH
+  const targetAspect = w / h
+
+  let sX = 0
+  let sY = 0
+  let sW = imgW
+  let sH = imgH
+
+  if (imgAspect > targetAspect) {
+    // Source image is wider than target cell -> center crop sides
+    sW = imgH * targetAspect
+    sX = (imgW - sW) / 2
+  } else {
+    // Source image is taller than target cell -> center crop top/bottom
+    sH = imgW / targetAspect
+    sY = (imgH - sH) / 2
+  }
+
+  ctx.drawImage(img, sX, sY, sW, sH, x, y, w, h)
+}
+
+/**
  * Render Passport Photo Grid Canvas
- * (3.5cm x 4.5cm per photo on A4 sheet)
- * Supports custom photo counts (2, 4, 6, 8, 12, 16, 20, 24, 30, 32+) & zero-gap tiling
+ * Full page edge-to-edge layout without side spacing & zero image collapse
  */
 export async function renderPassportGridCanvas({
   imageSrc,
-  copiesCount = 8,
+  copiesCount = 20,
   showCutLines = true,
-  noGap = false, // zero space between photos
+  noGap = true,
+  rotation = 0,
+  filters = { brightness: 100, contrast: 100 },
 }) {
   const canvas = document.createElement('canvas')
   const A4_W = 2480
@@ -307,58 +353,50 @@ export async function renderPassportGridCanvas({
 
   const img = await createImage(imageSrc)
   const total = Math.max(1, copiesCount)
+  const { cols, rows } = getPassportGridDimensions(total)
 
-  // Decide columns based on total count
-  let cols = 4
-  if (total <= 2) cols = 2
-  else if (total <= 6) cols = 3
-  else if (total <= 24) cols = 4
-  else if (total <= 35) cols = 5
-  else cols = 6
-
-  const rows = Math.ceil(total / cols)
-  const aspect = 3.5 / 4.5 // Standard passport aspect ratio (0.7778)
-
-  const pageMargin = 120
-  const availW = A4_W - pageMargin * 2
-  const availH = A4_H - pageMargin * 2
-
-  const marginX = noGap ? 0 : 40
-  const marginY = noGap ? 0 : 40
-
-  let photoW = (availW - (cols - 1) * marginX) / cols
-  let photoH = photoW / aspect
-
-  // If total height exceeds available height, scale down
-  if (rows * photoH + (rows - 1) * marginY > availH) {
-    photoH = (availH - (rows - 1) * marginY) / rows
-    photoW = photoH * aspect
-  }
-
-  // Cap photo size to maximum 450px width
-  if (photoW > 450) {
-    photoW = 450
-    photoH = photoW / aspect
-  }
-
-  const gridTotalW = cols * photoW + (cols - 1) * marginX
-  const gridTotalH = rows * photoH + (rows - 1) * marginY
-
-  const startX = (A4_W - gridTotalW) / 2
-  const startY = pageMargin // Align to top of A4 paper with standard margin
+  // Full-page edge-to-edge cell sizing (Zero side gaps)
+  const photoW = A4_W / cols
+  const photoH = A4_H / rows
 
   for (let i = 0; i < total; i++) {
     const col = i % cols
     const row = Math.floor(i / cols)
 
-    const x = startX + col * (photoW + marginX)
-    const y = startY + row * (photoH + marginY)
+    const x = col * photoW
+    const y = row * photoH
 
-    ctx.drawImage(img, x, y, photoW, photoH)
+    ctx.save()
 
+    // Apply brightness and contrast filters
+    const filterParts = []
+    if (filters?.brightness && filters.brightness !== 100) {
+      filterParts.push(`brightness(${filters.brightness}%)`)
+    }
+    if (filters?.contrast && filters.contrast !== 100) {
+      filterParts.push(`contrast(${filters.contrast}%)`)
+    }
+    if (filterParts.length > 0) {
+      ctx.filter = filterParts.join(' ')
+    }
+
+    // Apply rotation if needed
+    if (rotation) {
+      const centerX = x + photoW / 2
+      const centerY = y + photoH / 2
+      ctx.translate(centerX, centerY)
+      ctx.rotate(getRadianAngle(rotation))
+      drawImageCover(ctx, img, -photoW / 2, -photoH / 2, photoW, photoH)
+    } else {
+      drawImageCover(ctx, img, x, y, photoW, photoH)
+    }
+
+    ctx.restore()
+
+    // Draw hairline cutting guideline on every cell
     if (showCutLines || noGap) {
-      ctx.strokeStyle = noGap ? '#9CA3AF' : '#E5E7EB'
-      ctx.lineWidth = noGap ? 2 : 2
+      ctx.strokeStyle = '#D1D5DB'
+      ctx.lineWidth = 2
       ctx.strokeRect(x, y, photoW, photoH)
     }
   }

@@ -24,6 +24,7 @@ import {
   renderPerspectiveCropCanvas,
   renderA4MultiImageCanvas,
   renderPassportGridCanvas,
+  getPassportGridDimensions,
   canvasToPdfFile,
   canvasToImageFile,
 } from '../../lib/kioskCanvasUtil'
@@ -431,20 +432,15 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
           globalFilters: { brightness, contrast },
         })
       } else if (activeMode === 'passport') {
-        // Mode 2: Passport Photo Grid (16+ copies, top-aligned, seamless zero-gap)
-        const primaryImageSrc = activeItem?.url || imageSrc
-        const passportCropCanvas = await renderCroppedImageCanvas({
-          imageSrc: primaryImageSrc,
-          cropBox: { x: 5, y: 5, w: 90, h: 90 },
-          rotation: activeItem?.rotation || 0,
-          filters: { brightness, contrast, saturation: 100, isGrayscale: false, isSepia: false },
-        })
-        const passportDataUrl = passportCropCanvas.toDataURL('image/png')
+        // Mode 2: Passport Photo Grid (Full-page edge-to-edge layout, zero dead margins & aspect ratio preservation)
+        const primaryImageSrc = activeItem?.rawUrl || activeItem?.url || imageSrc
         finalCanvas = await renderPassportGridCanvas({
-          imageSrc: passportDataUrl,
+          imageSrc: primaryImageSrc,
           copiesCount: passportCount,
-          showCutLines: false,
+          showCutLines: true,
           noGap: true,
+          rotation: activeItem?.rotation || 0,
+          filters: { brightness, contrast },
         })
       }
 
@@ -700,10 +696,10 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
                 </div>
               )}
 
-              {/* TAB 2: PASSPORT PHOTO GRID PREVIEW (16+ COPIES, LIVE TILING WITH ZERO-GAP) */}
+              {/* TAB 2: PASSPORT PHOTO GRID PREVIEW (16+ COPIES, LIVE FULL PAGE TILING) */}
               {activeMode === 'passport' && (
                 <div
-                  className="relative h-full max-h-full max-w-full bg-white rounded-xl shadow-2xl border-2 border-stone-400 p-2.5 sm:p-5 overflow-hidden text-stone-900 flex flex-col"
+                  className="relative h-full max-h-full max-w-full bg-white rounded-xl shadow-2xl border-2 border-stone-400 p-0 overflow-hidden text-stone-900 flex flex-col"
                   style={{
                     aspectRatio: '1 / 1.414',
                     height: '100%',
@@ -712,31 +708,21 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
                     width: 'auto',
                   }}
                 >
-                  <div className="flex items-center justify-between pb-1.5 sm:pb-2 border-b border-stone-200 mb-2 sm:mb-3 shrink-0">
-                    <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-stone-800">
-                      Passport Sheet ({passportCount} Copies)
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200">
-                      3.5 × 4.5 cm
-                    </span>
-                  </div>
-
                   <div
-                    className={`grid ${getPassportGridCols(passportCount) === 4
-                        ? 'grid-cols-4'
-                        : getPassportGridCols(passportCount) === 5
-                          ? 'grid-cols-5'
-                          : 'grid-cols-6'
-                      } gap-0 border border-stone-300 w-full content-start items-start justify-center p-1 overflow-y-auto overflow-x-hidden flex-1`}
+                    className="grid w-full h-full gap-0 overflow-hidden"
+                    style={{
+                      gridTemplateColumns: `repeat(${getPassportGridDimensions(passportCount).cols}, minmax(0, 1fr))`,
+                      gridTemplateRows: `repeat(${getPassportGridDimensions(passportCount).rows}, minmax(0, 1fr))`,
+                    }}
                   >
                     {Array.from({ length: passportCount }).map((_, i) => (
                       <div
                         key={i}
-                        className="aspect-3.5/4.5 bg-stone-50 overflow-hidden relative border-r border-b border-stone-300 last:border-none"
+                        className="w-full h-full bg-stone-50 overflow-hidden relative border-r border-b border-stone-200"
                       >
-                        {(activeItem?.url || imageSrc) && (
+                        {(activeItem?.rawUrl || activeItem?.url || imageSrc) && (
                           <img
-                            src={activeItem?.url || imageSrc}
+                            src={activeItem?.rawUrl || activeItem?.url || imageSrc}
                             alt={`Passport Copy ${i + 1}`}
                             className="w-full h-full object-cover"
                             style={{
