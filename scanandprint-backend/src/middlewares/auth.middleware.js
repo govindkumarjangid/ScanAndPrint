@@ -1,6 +1,7 @@
 import { verifyToken } from '../utils/jwt.util.js'
 import { sendError } from '../utils/apiResponse.js'
 import { shopRepository } from '../repositories/shop.repository.js'
+import { getShopSession } from '../configs/redis.config.js'
 
 // authenticate shop middleware
 export const authenticateShop = async (req, res, next) => {
@@ -19,7 +20,22 @@ export const authenticateShop = async (req, res, next) => {
     if (!decoded || !decoded.shopId)
       return sendError(res, 401, 'Unauthorized: Invalid token payload')
 
-    const shop = await shopRepository.findById(decoded.shopId)
+    // Single active session check (Redis + fast in-memory fallback)
+    const activeSessionId = await getShopSession(decoded.shopId)
+
+    // Reject if sessionId is missing or does not match current active session
+    if (!decoded.sessionId || decoded.sessionId !== activeSessionId) {
+      return res.status(401).json({
+        success: false,
+        code: 'SESSION_INVALIDATED',
+        message: 'Your session has expired or you have logged in from another device.',
+      })
+    }
+
+    const shop = await shopRepository.findById(decoded.shopId, {
+      select: '-passwordHash -__v',
+      lean: true,
+    })
 
     if (!shop)
       return sendError(res, 401, 'Unauthorized: Shop account not found')
@@ -45,12 +61,15 @@ export const authenticateShop = async (req, res, next) => {
     }
 
     if (isExpired && shop.subscriptionStatus !== 'EXPIRED') {
+      await shopRepository.updateById(shop._id, {
+        subscriptionStatus: 'EXPIRED',
+        isSubscriptionActive: false,
+      })
       shop.subscriptionStatus = 'EXPIRED'
       shop.isSubscriptionActive = false
-      await shop.save()
     }
 
-    req.shop = shop.toObject ? shop.toObject() : shop
+    req.shop = shop
     req.isSubscriptionActive = !isExpired
 
     // Allowed endpoints even when expired (for renewing and viewing status)

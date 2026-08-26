@@ -17,6 +17,7 @@ import {
   submitContactForm,
   logoutShop,
   loginAdmin,
+  refreshToken,
 } from '../controllers/auth.controller.js'
 import { authenticateShop } from '../middlewares/auth.middleware.js'
 import { validateRequest } from '../middlewares/validate.middleware.js'
@@ -35,6 +36,7 @@ router.route('/verify-subscription-payment').post(verifySubscriptionPayment)
 router.route('/create-subscription-order').post(authenticateShop, createSubscriptionOrder)
 router.route('/login').post(validateRequest(loginSchema), loginShop)
 router.route('/logout').post(authenticateShop, logoutShop)
+router.route('/refresh-token').post(refreshToken)
 
 // Admin Route
 router.route('/admin/login').post(loginAdmin)
@@ -54,10 +56,5 @@ router.route('/printers').put(validateRequest(updatePrintersSchema), updateShopP
 router.route('/change-password').put(changeShopPassword)
 router.route('/payment-settings').put(updateShopPaymentSettings)
 router.route('/review').post(submitShopReview)
-
-// Auto-refresh token endpoint
-router.route('/refresh-token').post((req, res) => {
-  res.status(200).json({ success: true, message: 'Token valid' })
-})
 
 export default router

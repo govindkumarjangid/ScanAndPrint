@@ -226,7 +226,7 @@ export default function OwnerLayout() {
       socket.off('SUBSCRIPTION_ACTIVATED', handleSubActivated)
       socket.off('NEW_DEVICE_PENDING_APPROVAL', handleNewDevicePending)
     }
-  }, [currentShop?.shopCode, currentShop?._id, logout, fetchProfile, fetchPublicSettings, navigate])
+  }, [currentShop?.shopCode, currentShop?._id])
 
   const isDemo = Boolean(currentShop?.isDemoAccount)
   const isYearly = currentShop?.planType === 'YEARLY_799'

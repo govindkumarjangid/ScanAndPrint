@@ -8,7 +8,9 @@ export const shopRepository = {
 
   async findById(shopId, options = {}) {
     let query = Shop.findById(shopId)
-    if (options.lean) query = query.lean()
+    if (options.select) query = query.select(options.select)
+    if (options.includePassword) query = query.select('+passwordHash')
+    if (options.lean !== false) query = query.lean()
     return await query
   },
 

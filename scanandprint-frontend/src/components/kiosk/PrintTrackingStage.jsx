@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { CheckCircle2, Printer, Plus, Cloud, Sparkles, Receipt, FileText, ArrowRight, Clock, XCircle } from 'lucide-react'
 import { useKioskStore } from '../../store/useKioskStore'
@@ -21,6 +21,28 @@ export default function PrintTrackingStage({
   const [printStatus, setPrintStatus] = useState(() => (isCounterPayment ? 'WAITING_COUNTER_APPROVAL' : 'PAYMENT_VERIFIED'))
 
   const activeJobId = jobId || createdJob?.jobId || `JOB_${Date.now().toString().slice(-6)}`
+  const hasPlayedSoundRef = useRef(false)
+
+  // Reset audio trigger flag when new job arrives
+  useEffect(() => {
+    hasPlayedSoundRef.current = false
+  }, [activeJobId])
+
+  // Instant success sound trigger (full volume) when status becomes COMPLETED / PRINTED
+  useEffect(() => {
+    if (printStatus === 'COMPLETED' && !hasPlayedSoundRef.current) {
+      hasPlayedSoundRef.current = true
+      try {
+        const audio = new Audio('/audio/greet.mpeg')
+        audio.volume = 1.0
+        audio.play().catch((err) => {
+          console.warn('[Audio Autoplay]: Could not play greet sound:', err.message)
+        })
+      } catch (err) {
+        console.warn('[Audio Error]:', err.message)
+      }
+    }
+  }, [printStatus])
 
   // Live Socket.IO Listener for instant approval/completion without refresh
   useEffect(() => {

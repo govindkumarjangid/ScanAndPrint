@@ -69,28 +69,42 @@ export const useAuthStore = create((set, get) => ({
     planType: 'MONTHLY_299',
   },
 
-  fetchPublicSettings: async () => {
+  _lastSettingsFetch: 0,
+  _lastProfileFetch: 0,
+
+  fetchPublicSettings: async (force = false) => {
+    const now = Date.now()
+    const state = get()
+    // Prevent overfetching if fetched in last 5 minutes unless forced
+    if (!force && state._lastSettingsFetch && now - state._lastSettingsFetch < 300000) {
+      return state.publicSettings
+    }
+    if (state.isFetchingSettings) return state.publicSettings
+
     try {
       set({ isFetchingSettings: true })
       const res = await api.get('/auth/settings')
       if (res.data.success && res.data.data) {
         const d = res.data.data
+        const newSettings = {
+          monthlyPrice: d.monthlyPrice ?? 299,
+          monthlyOriginalPrice: d.monthlyOriginalPrice ?? 499,
+          yearlyPrice: d.yearlyPrice ?? 799,
+          yearlyOriginalPrice: d.yearlyOriginalPrice ?? 3999,
+          demoMode: d.demoMode ?? true,
+          demoDurationHours: d.demoDurationHours ?? 2,
+          filePurgeMinutes: d.filePurgeMinutes ?? 60,
+          supportEmail: d.supportEmail || 'scanqrandprint@gmail.com',
+          supportPhone: d.supportPhone || '+91 7073904473',
+          supportAddress: d.supportAddress || 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015',
+          systemNotice: d.systemNotice || '',
+          maintenanceMode: Boolean(d.maintenanceMode),
+        }
         set({
-          publicSettings: {
-            monthlyPrice: d.monthlyPrice ?? 299,
-            monthlyOriginalPrice: d.monthlyOriginalPrice ?? 499,
-            yearlyPrice: d.yearlyPrice ?? 799,
-            yearlyOriginalPrice: d.yearlyOriginalPrice ?? 3999,
-            demoMode: d.demoMode ?? true,
-            demoDurationHours: d.demoDurationHours ?? 2,
-            filePurgeMinutes: d.filePurgeMinutes ?? 60,
-            supportEmail: d.supportEmail || 'scanqrandprint@gmail.com',
-            supportPhone: d.supportPhone || '+91 7073904473',
-            supportAddress: d.supportAddress || 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015',
-            systemNotice: d.systemNotice || '',
-            maintenanceMode: Boolean(d.maintenanceMode),
-          },
+          _lastSettingsFetch: Date.now(),
+          publicSettings: newSettings,
         })
+        return newSettings
       }
     } catch (error) {
       console.warn('Failed to fetch public settings', error)
@@ -277,7 +291,12 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  fetchProfile: async () => {
+  fetchProfile: async (force = false) => {
+    const now = Date.now()
+    const state = get()
+    if (!force && state._lastProfileFetch && now - state._lastProfileFetch < 10000) {
+      return state.currentShop
+    }
     try {
       set({ isLoading: true })
       const res = await api.get('/auth/me')
@@ -289,7 +308,7 @@ export const useAuthStore = create((set, get) => ({
           return null
         }
         localStorage.setItem('shopData', JSON.stringify(shop))
-        set({ currentShop: shop, isAuthenticated: true })
+        set({ currentShop: shop, isAuthenticated: true, _lastProfileFetch: Date.now() })
         return shop
       }
     } catch (error) {

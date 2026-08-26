@@ -199,12 +199,24 @@ export const getPublicReviews = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 200, 'Reviews fetched successfully', { reviews })
 })
 
-// public: get system settings (pricing, demo mode)
+let cachedPublicSettings = null
+let cachedPublicSettingsExpiry = 0
+
+// public: get system settings (pricing, demo mode with 60s memory cache)
 export const getPublicSettings = asyncHandler(async (req, res, next) => {
-  let settings = await AdminSettings.findOne()
+  const now = Date.now()
+  if (cachedPublicSettings && now < cachedPublicSettingsExpiry) {
+    return sendSuccess(res, 200, 'Settings fetched successfully', cachedPublicSettings)
+  }
+
+  let settings = await AdminSettings.findOne().lean()
   if (!settings) {
     settings = await AdminSettings.create({})
+    settings = settings.toObject ? settings.toObject() : settings
   }
+
+  cachedPublicSettings = settings
+  cachedPublicSettingsExpiry = now + 60 * 1000 // 60s TTL
   return sendSuccess(res, 200, 'Settings fetched successfully', settings)
 })
 
@@ -219,8 +231,40 @@ export const submitContactForm = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 200, 'Your message has been sent successfully to our support team!', result)
 })
 
+// refresh shop access token with session validation
+export const refreshToken = asyncHandler(async (req, res, next) => {
+  const token =
+    req.cookies?.refreshToken ||
+    req.body?.refreshToken ||
+    (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null)
+
+  if (!token) {
+    return sendError(res, 401, 'Refresh token is required')
+  }
+
+  try {
+    const result = await authService.refreshToken(token)
+    res.cookie('accessToken', result.accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
+    return sendSuccess(res, 200, 'Token refreshed successfully', result)
+  } catch (err) {
+    if (err.code === 'SESSION_INVALIDATED') {
+      res.clearCookie('accessToken', cookieOptions)
+      res.clearCookie('refreshToken', cookieOptions)
+      return res.status(401).json({
+        success: false,
+        code: 'SESSION_INVALIDATED',
+        message: err.message || 'Your session has expired or you have logged in from another device.',
+      })
+    }
+    return sendError(res, 401, err.message || 'Invalid refresh token')
+  }
+})
+
 // logout shop
 export const logoutShop = asyncHandler(async (req, res, next) => {
+  if (req.shop?._id) {
+    await authService.logout(req.shop._id)
+  }
   res.clearCookie('accessToken', cookieOptions)
   res.clearCookie('refreshToken', cookieOptions)
   return sendSuccess(res, 200, 'Logged out successfully')

@@ -1,14 +1,18 @@
 import crypto from 'crypto'
 import Razorpay from 'razorpay'
+import { nanoid } from 'nanoid'
 import { shopRepository } from '../repositories/shop.repository.js'
 import { hashPassword, comparePassword } from '../utils/password.util.js'
 import { generateToken } from '../utils/jwt.util.js'
 import { generateShopCode, generateSecretApiKey } from '../utils/shopCode.util.js'
 import { envConfig } from '../configs/env.config.js'
+import { setShopSession, getShopSession, deleteShopSession } from '../configs/redis.config.js'
 import Admin from '../models/Admin.model.js'
 import AdminSettings from '../models/AdminSettings.model.js'
 import SubscriptionPayment from '../models/SubscriptionPayment.model.js'
 import { memoryCache } from '../utils/cache.util.js'
+
+const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60 // 7 days matching refresh token expiry
 
 export const authService = {
 
@@ -73,7 +77,7 @@ export const authService = {
         subscriptionExpiresAt: demoExpiresAt,
       })
 
-      const tokens = this._generateAuthTokens(newShop)
+      const tokens = await this._generateAuthTokens(newShop)
       return {
         isFreeTrial: true,
         tokens,
@@ -231,8 +235,8 @@ export const authService = {
       { upsert: true, returnDocument: 'after' }
     )
 
-    // Issue standard JWT session tokens
-    return this._generateAuthTokens(updatedShop)
+    // Issue standard JWT session tokens with single active session
+    return await this._generateAuthTokens(updatedShop)
   },
 
   // Create Razorpay Order for Renewal or Plan Upgrade (Existing Shops)
@@ -332,7 +336,9 @@ export const authService = {
       }
     }
 
-    return this._generateAuthTokens(shop)
+    // Single-active-session: generate new sessionId for this login
+    const sessionId = nanoid()
+    return await this._generateAuthTokens(shop, sessionId)
   },
 
   // Admin login for superadmin access
@@ -356,12 +362,18 @@ export const authService = {
     return { accessToken, admin: { email: admin.email, role: 'superadmin' } };
   },
 
-  // Generate auth tokens for a shop
-  _generateAuthTokens(shop) {
+  // Generate auth tokens for a shop with embedded sessionId
+  async _generateAuthTokens(shop, sessionId = null) {
+    const currentSessionId = sessionId || nanoid()
+
+    // Store active sessionId in Redis + memory (7 days TTL) - kicks out any previous session
+    await setShopSession(shop._id, currentSessionId, SESSION_TTL_SECONDS)
+
     const payload = {
       shopId: shop._id,
       shopCode: shop.shopCode,
       email: shop.email,
+      sessionId: currentSessionId,
     }
 
     const accessToken = generateToken(payload, process.env.JWT_EXPIRES_IN || '15m')
@@ -375,6 +387,71 @@ export const authService = {
     }
 
     return { accessToken, refreshToken, shop: shopResponse }
+  },
+
+  // Refresh access token while validating against the active Redis session
+  async refreshToken(token) {
+    if (!token) {
+      const err = new Error('Refresh token is required')
+      err.statusCode = 401
+      throw err
+    }
+
+    let decoded
+    try {
+      decoded = verifyToken(token)
+    } catch (jwtErr) {
+      const err = new Error('Invalid or expired refresh token')
+      err.statusCode = 401
+      throw err
+    }
+
+    if (!decoded || !decoded.shopId) {
+      const err = new Error('Invalid token payload')
+      err.statusCode = 401
+      throw err
+    }
+
+    // Fetch active session for this shop (with 0ms memory fallback)
+    const activeSessionId = await getShopSession(decoded.shopId)
+
+    // Verify request is from current active session (single active session check)
+    if (!decoded.sessionId || decoded.sessionId !== activeSessionId) {
+      const err = new Error('Your session has expired or you have logged in from another device.')
+      err.code = 'SESSION_INVALIDATED'
+      err.statusCode = 401
+      throw err
+    }
+
+    const shop = await shopRepository.findById(decoded.shopId)
+    if (!shop) {
+      const err = new Error('Shop account not found')
+      err.statusCode = 401
+      throw err
+    }
+    if (shop.isSuspended) {
+      const err = new Error('Account suspended by Administrator')
+      err.statusCode = 403
+      throw err
+    }
+
+    // Preserve the verified active sessionId in the new access token
+    const payload = {
+      shopId: shop._id,
+      shopCode: shop.shopCode,
+      email: shop.email,
+      sessionId: decoded.sessionId,
+    }
+
+    const accessToken = generateToken(payload, process.env.JWT_EXPIRES_IN || '15m')
+    return { accessToken }
+  },
+
+  // Invalidate active session on logout
+  async logout(shopId) {
+    if (shopId) {
+      await deleteShopSession(shopId)
+    }
   },
 
   // Refresh the access token using a valid refresh token
