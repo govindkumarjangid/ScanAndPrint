@@ -370,8 +370,8 @@ function showCounterOrderPopup(jobData) {
     return
   }
 
-  let popupWidth = 440
-  let popupHeight = 355
+  let popupWidth = 360
+  let popupHeight = 260
   let x = 100
   let y = 100
 

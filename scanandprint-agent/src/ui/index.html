@@ -137,13 +137,8 @@
           </div>
         </div>
 
-        <!-- Advanced Server URL (Collapsible) -->
-        <details style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-          <summary style="cursor: pointer; font-weight: 700; color: var(--text-secondary);"><i class='bx bx-cog'></i> Advanced Server URL (Default: https://scanandprint.onrender.com)</summary>
-          <div class="form-group" style="margin-top: 8px;">
-            <input type="url" id="serverUrl" class="mono-font" placeholder="https://scanandprint.onrender.com" value="https://scanandprint.onrender.com">
-          </div>
-        </details>
+        <!-- Server URL hidden from screen (Internal direct connection) -->
+        <input type="hidden" id="serverUrl" value="https://scanandprint.onrender.com" style="display: none !important;">
 
         <button type="submit" id="saveBtn" class="btn btn-primary">
           <span>Save Credentials & Connect <i class='bx bx-rocket'></i></span>
