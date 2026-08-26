@@ -156,8 +156,9 @@ export const useKioskStore = create((set, get) => ({
       set({ isVerifyingPayment: true, error: null })
       const res = await api.post('/kiosk/payment/verify', { jobId, paymentTxnId })
       if (res.data.success) {
-        set({ isPaymentVerified: true, paymentTxnId })
-        return res.data.data.job
+        const verifiedJob = res.data.data.job
+        set({ isPaymentVerified: true, paymentTxnId, createdJob: verifiedJob })
+        return verifiedJob
       }
     } catch (error) {
       console.warn('Payment verify error:', error)
@@ -199,7 +200,12 @@ export const useKioskStore = create((set, get) => ({
             try {
               toast.success('Payment Received! Routing to printer in real-time...')
               const verifiedJob = await verifyPayment(currentJobId, response.razorpay_payment_id)
-              set({ isRazorpayLoading: false, isPaymentVerified: true })
+              set({
+                isRazorpayLoading: false,
+                isPaymentVerified: true,
+                paymentTxnId: response.razorpay_payment_id,
+                createdJob: verifiedJob || currentJob,
+              })
               resolve(verifiedJob)
             } catch (err) {
               toast.error('Payment verification failed')
@@ -245,6 +251,7 @@ export const useKioskStore = create((set, get) => ({
     if (formData instanceof FormData) {
       formData.set('paymentMethod', 'CASH_COUNTER')
     }
+    set({ isPaymentVerified: false, paymentTxnId: null })
     return await quickDispatchJob(formData)
   },
 
@@ -253,6 +260,7 @@ export const useKioskStore = create((set, get) => ({
     if (formData instanceof FormData) {
       formData.set('paymentMethod', 'DEMO_BYPASS')
     }
+    set({ isPaymentVerified: true, paymentTxnId: 'DEMO_PAID' })
     return await quickDispatchJob(formData)
   },
 

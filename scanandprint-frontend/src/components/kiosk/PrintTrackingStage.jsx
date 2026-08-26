@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle2, Printer, Plus, Cloud, Sparkles, Receipt, FileText, ArrowRight, Clock, XCircle } from 'lucide-react'
+import { CheckCircle2, Printer, Plus, Cloud, Sparkles, Receipt, FileText, ArrowRight, Clock, XCircle, ShieldCheck } from 'lucide-react'
 import { useKioskStore } from '../../store/useKioskStore'
 import { getSocket } from '../../lib/socket'
 
@@ -13,12 +13,22 @@ export default function PrintTrackingStage({
   totalAmount,
   onNewOrder,
 }) {
-  const { jobId, createdJob, paymentTxnId } = useKioskStore()
+  const { jobId, createdJob, paymentTxnId, isPaymentVerified } = useKioskStore()
   const isAgentOnline = Boolean(shopInfo?.isOnline)
-  const pm = String(createdJob?.paymentMethod || '').toUpperCase()
-  const isOnlineGateway = pm === 'RAZORPAY' || pm === 'ONLINE_GATEWAY' || pm === 'DEMO_BYPASS'
-  const isCounterPayment = !isOnlineGateway
-  const [printStatus, setPrintStatus] = useState(() => (isCounterPayment ? 'WAITING_COUNTER_APPROVAL' : 'PAYMENT_VERIFIED'))
+
+  // Explicit Payment Method Determination
+  const pm = String(createdJob?.paymentMethod || '').toUpperCase().trim()
+  const isOnlinePayment =
+    Boolean(isPaymentVerified) ||
+    Boolean(paymentTxnId) ||
+    pm === 'RAZORPAY' ||
+    pm === 'ONLINE_GATEWAY' ||
+    pm === 'ONLINE' ||
+    pm === 'UPI_ONLINE' ||
+    pm === 'DEMO_BYPASS'
+
+  const isCounterPayment = !isOnlinePayment
+  const [printStatus, setPrintStatus] = useState(() => (isOnlinePayment ? 'PAYMENT_VERIFIED' : 'WAITING_COUNTER_APPROVAL'))
 
   const activeJobId = jobId || createdJob?.jobId || `JOB_${Date.now().toString().slice(-6)}`
   const hasPlayedSoundRef = useRef(false)
@@ -66,7 +76,7 @@ export default function PrintTrackingStage({
         } else if (s === 'PRINTING' || s === 'SPOOLING') {
           setPrintStatus('PRINTING')
         } else if (s === 'DISPATCHED_TO_AGENT') {
-          if (!isCounterPayment) setPrintStatus('DISPATCHED_TO_AGENT')
+          if (isOnlinePayment) setPrintStatus('DISPATCHED_TO_AGENT')
         } else if (
           s === 'FAILED' ||
           s === 'CANCELLED' ||
@@ -83,16 +93,16 @@ export default function PrintTrackingStage({
     return () => {
       socket.off('JOB_STATUS_UPDATED', handleJobStatus)
     }
-  }, [activeJobId, isCounterPayment])
+  }, [activeJobId, isOnlinePayment])
 
-  // Fast forward simulation ONLY for pre-verified Online payments
+  // Fast forward simulation for Online payments (smooth UI progress)
   useEffect(() => {
-    if (isCounterPayment) return
+    if (!isOnlinePayment) return
 
     if (isAgentOnline) {
-      const timer1 = setTimeout(() => setPrintStatus('DISPATCHED_TO_AGENT'), 1200)
-      const timer2 = setTimeout(() => setPrintStatus('PRINTING'), 2800)
-      const timer3 = setTimeout(() => setPrintStatus('COMPLETED'), 5000)
+      const timer1 = setTimeout(() => setPrintStatus((prev) => (prev === 'COMPLETED' ? prev : 'DISPATCHED_TO_AGENT')), 1000)
+      const timer2 = setTimeout(() => setPrintStatus((prev) => (prev === 'COMPLETED' ? prev : 'PRINTING')), 2200)
+      const timer3 = setTimeout(() => setPrintStatus('COMPLETED'), 4500)
 
       return () => {
         clearTimeout(timer1)
@@ -102,7 +112,7 @@ export default function PrintTrackingStage({
     } else {
       setPrintStatus('QUEUED_IN_CLOUD')
     }
-  }, [isAgentOnline, isCounterPayment])
+  }, [isAgentOnline, isOnlinePayment])
 
   return (
     <motion.div
@@ -124,6 +134,11 @@ export default function PrintTrackingStage({
         ) : printStatus === 'CANCELLED' ? (
           <div className="w-18 h-18 rounded-3xl bg-rose-100 text-rose-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
             <XCircle className="w-10 h-10 stroke-[2.5]" />
+          </div>
+        ) : isOnlinePayment ? (
+          <div className="w-18 h-18 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 relative">
+            <Printer className="w-9 h-9 stroke-[2.2] animate-bounce" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full animate-ping" />
           </div>
         ) : printStatus === 'WAITING_COUNTER_APPROVAL' ? (
           <div className="w-18 h-18 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 relative">
@@ -147,9 +162,13 @@ export default function PrintTrackingStage({
           </span>
           <h2 className="text-xl sm:text-2xl font-extrabold text-stone-900 font-heading mt-1">
             {printStatus === 'COMPLETED'
-              ? 'Print Complete! 🎉'
+              ? isOnlinePayment
+                ? 'Print Complete! 🎉'
+                : 'Cash Approved & Printed! 🎉'
               : printStatus === 'CANCELLED'
               ? 'Order Cancelled ❌'
+              : isOnlinePayment
+              ? 'Payment Verified! Auto-Printing 🖨️'
               : printStatus === 'WAITING_COUNTER_APPROVAL'
               ? 'Pay Cash at Counter 💵'
               : printStatus === 'QUEUED_IN_CLOUD'
@@ -158,9 +177,13 @@ export default function PrintTrackingStage({
           </h2>
           <p className="text-xs text-stone-500 font-medium leading-relaxed max-w-sm">
             {printStatus === 'COMPLETED'
-              ? 'Please collect your fresh warm printout from the printer counter.'
+              ? isOnlinePayment
+                ? 'Your payment was verified and document has printed! Please collect your fresh printout.'
+                : 'Cash payment approved by shopkeeper and printed! Please collect your fresh printout.'
               : printStatus === 'CANCELLED'
               ? 'This print order was cancelled or rejected by the shopkeeper at the counter.'
+              : isOnlinePayment
+              ? `₹${totalAmount} received successfully via Online Payment. Document is printing directly on the shop printer.`
               : printStatus === 'WAITING_COUNTER_APPROVAL'
               ? `Please pay ₹${totalAmount} cash to the shopkeeper at the counter. Once approved, your document will print automatically.`
               : printStatus === 'QUEUED_IN_CLOUD'
@@ -188,6 +211,19 @@ export default function PrintTrackingStage({
           </div>
 
           <div className="flex justify-between text-stone-700">
+            <span>Payment Mode</span>
+            <span className={`font-bold flex items-center gap-1 ${isOnlinePayment ? 'text-emerald-700' : 'text-amber-800'}`}>
+              {isOnlinePayment ? (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Online Paid (UPI / Card)
+                </>
+              ) : (
+                'Cash at Counter'
+              )}
+            </span>
+          </div>
+
+          <div className="flex justify-between text-stone-700">
             <span>Pages & Copies</span>
             <span className="text-stone-900 font-bold">
               {selectedPagesCount} {selectedPagesCount === 1 ? 'Page' : 'Pages'} · {copies} {copies === 1 ? 'Set' : 'Sets'} ({colorType === 'COLOR' ? 'Color' : 'B&W'})
@@ -195,8 +231,24 @@ export default function PrintTrackingStage({
           </div>
 
           <div className="flex justify-between border-t border-stone-200/80 pt-2 text-stone-900 font-extrabold text-sm">
-            <span>{printStatus === 'COMPLETED' ? 'Amount Paid' : 'Amount to Pay at Counter'}</span>
-            <span className={`${printStatus === 'COMPLETED' ? 'text-emerald-600' : printStatus === 'CANCELLED' ? 'text-rose-600 line-through' : 'text-amber-700'} font-heading`}>
+            <span>
+              {isOnlinePayment
+                ? printStatus === 'COMPLETED'
+                  ? 'Total Amount Paid (Online)'
+                  : 'Amount Paid Online (Verified)'
+                : printStatus === 'COMPLETED'
+                ? 'Cash Paid at Counter'
+                : 'Amount to Pay at Counter'}
+            </span>
+            <span
+              className={`${
+                isOnlinePayment || printStatus === 'COMPLETED'
+                  ? 'text-emerald-600'
+                  : printStatus === 'CANCELLED'
+                  ? 'text-rose-600 line-through'
+                  : 'text-amber-700'
+              } font-heading font-extrabold text-base`}
+            >
               ₹{totalAmount}
             </span>
           </div>
@@ -205,27 +257,37 @@ export default function PrintTrackingStage({
         {/* Timeline Progress List */}
         <div className="w-full bg-stone-50 p-4 rounded-2xl border border-stone-200 flex flex-col gap-2.5 text-left text-xs font-bold">
           {/* Step 1 */}
-          <div className={`flex items-center gap-2.5 ${printStatus === 'COMPLETED' ? 'text-emerald-700' : printStatus === 'CANCELLED' ? 'text-rose-700' : isCounterPayment ? 'text-amber-700 font-extrabold' : 'text-emerald-700'}`}>
+          <div
+            className={`flex items-center gap-2.5 ${
+              printStatus === 'CANCELLED'
+                ? 'text-rose-700'
+                : isOnlinePayment || printStatus === 'COMPLETED'
+                ? 'text-emerald-700'
+                : 'text-amber-700 font-extrabold'
+            }`}
+          >
             {printStatus === 'CANCELLED' ? (
               <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            ) : isOnlinePayment || printStatus === 'COMPLETED' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : (
-              <CheckCircle2 className={`w-4 h-4 ${printStatus === 'COMPLETED' || !isCounterPayment ? 'text-emerald-600' : 'text-amber-500'} shrink-0`} />
+              <Clock className="w-4 h-4 text-amber-500 shrink-0 animate-spin" style={{ animationDuration: '4s' }} />
             )}
             <span>
               {printStatus === 'CANCELLED'
                 ? `1. Counter Payment Denied (₹${totalAmount})`
-                : isCounterPayment
-                ? printStatus === 'COMPLETED'
-                  ? `1. Cash Paid at Counter (₹${totalAmount})`
-                  : `1. Pay ₹${totalAmount} Cash at Counter`
-                : `1. Payment Verified (₹${totalAmount})`}
+                : isOnlinePayment
+                ? `1. Online Payment Verified (₹${totalAmount})`
+                : printStatus === 'COMPLETED'
+                ? `1. Cash Paid at Counter (₹${totalAmount})`
+                : `1. Pay ₹${totalAmount} Cash at Counter`}
             </span>
           </div>
 
           {/* Step 2 */}
           <div
             className={`flex items-center gap-2.5 ${
-              printStatus === 'COMPLETED' || printStatus === 'PRINTING'
+              printStatus === 'COMPLETED' || printStatus === 'PRINTING' || (isOnlinePayment && printStatus === 'DISPATCHED_TO_AGENT')
                 ? 'text-emerald-700'
                 : printStatus === 'CANCELLED'
                 ? 'text-rose-700'
@@ -236,19 +298,23 @@ export default function PrintTrackingStage({
           >
             {printStatus === 'CANCELLED' ? (
               <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            ) : printStatus === 'COMPLETED' || printStatus === 'PRINTING' || (isOnlinePayment && printStatus === 'DISPATCHED_TO_AGENT') ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : printStatus === 'WAITING_COUNTER_APPROVAL' ? (
+              <Clock className="w-4 h-4 text-amber-500 shrink-0" />
             ) : (
-              <CheckCircle2 className={`w-4 h-4 ${printStatus === 'COMPLETED' || printStatus === 'PRINTING' ? 'text-emerald-600' : 'text-stone-300'} shrink-0`} />
+              <CheckCircle2 className="w-4 h-4 text-stone-300 shrink-0" />
             )}
             <span>
               {printStatus === 'CANCELLED'
                 ? '2. Order Rejected by Shopkeeper'
-                : isCounterPayment
-                ? printStatus === 'COMPLETED'
-                  ? '2. Approved by Shopkeeper'
-                  : '2. Waiting for Shopkeeper Approval'
-                : isAgentOnline
-                ? '2. Dispatched to Shop PC Agent'
-                : '2. Queued in Cloud'}
+                : isOnlinePayment
+                ? printStatus === 'COMPLETED' || printStatus === 'PRINTING'
+                  ? '2. Dispatched to Printer Hardware'
+                  : '2. Routing to Printer Agent'
+                : printStatus === 'COMPLETED'
+                ? '2. Approved by Shopkeeper'
+                : '2. Waiting for Shopkeeper Approval'}
             </span>
           </div>
 
@@ -257,8 +323,6 @@ export default function PrintTrackingStage({
             className={`flex items-center gap-2.5 ${
               printStatus === 'PRINTING' || printStatus === 'COMPLETED'
                 ? 'text-emerald-700'
-                : printStatus === 'CANCELLED'
-                ? 'text-stone-400'
                 : 'text-stone-400'
             }`}
           >
