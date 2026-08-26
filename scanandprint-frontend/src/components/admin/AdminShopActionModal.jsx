@@ -10,12 +10,6 @@ import {
   Plus,
   Loader2,
   FileText,
-  Calendar,
-  Phone,
-  Mail,
-  MapPin,
-  CheckCircle2,
-  Sparkles,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import AdminDemoTimer from '../ui/AdminDemoTimer'
@@ -160,8 +154,8 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
           </div>
 
           {/* Content Body */}
-          <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-5">
-            
+          <div className="p-6 overflow-y-auto overflow-x-hidden flex-1 flex flex-col gap-5">
+
             {activeTab === 'actions' ? (
               <>
                 {/* 1. Trial Extension Card */}
@@ -179,28 +173,28 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
                       disabled={isSubmitting}
                       className="py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 font-bold text-xs border border-stone-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <Plus className="w-3.5 h-3.5" /> +2 Hrs
+                       +2 Hrs
                     </button>
                     <button
                       onClick={() => handleExtend(24)}
                       disabled={isSubmitting}
                       className="py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 font-bold text-xs border border-stone-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <Plus className="w-3.5 h-3.5" /> +24 Hrs
+                       +24 Hrs
                     </button>
                     <button
                       onClick={() => handleExtend(48)}
                       disabled={isSubmitting}
                       className="py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 font-bold text-xs border border-stone-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <Plus className="w-3.5 h-3.5" /> +48 Hrs
+                       +48 Hrs
                     </button>
                     <button
                       onClick={() => handleExtend(168)}
                       disabled={isSubmitting}
                       className="py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 font-bold text-xs border border-stone-800 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <Plus className="w-3.5 h-3.5" /> +7 Days
+                       +7 Days
                     </button>
                   </div>
                 </div>
@@ -293,18 +287,23 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
                   jobs.map((job) => (
                     <div
                       key={job._id}
-                      className="p-3 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between text-xs"
+                      className="p-3 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between text-xs gap-3 min-w-0"
                     >
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-4 h-4 text-stone-400" />
-                        <div>
-                          <div className="font-bold text-stone-200">{job.originalFileName || `Job #${job.jobId}`}</div>
-                          <div className="text-[11px] text-stone-500 mt-0.5">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <FileText className="w-4 h-4 text-stone-400 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div
+                            className="font-bold text-stone-200 truncate block text-xs"
+                            title={job.originalFileName || `Job #${job.jobId}`}
+                          >
+                            {job.originalFileName || `Job #${job.jobId}`}
+                          </div>
+                          <div className="text-[11px] text-stone-500 mt-0.5 whitespace-nowrap">
                             {job.totalPages} pgs · {job.copies} copies · ₹{job.totalAmount}
                           </div>
                         </div>
                       </div>
-                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shrink-0 ${
                         job.status === 'PRINTED_SUCCESSFULLY'
                           ? 'bg-emerald-950 text-emerald-300 border-emerald-900'
                           : 'bg-stone-900 text-stone-400 border-stone-800'
