@@ -42,6 +42,7 @@ export default function CustomerKiosk() {
   const [copies, setCopies] = useState(1)
   const [isDuplex, setIsDuplex] = useState(false)
   const [customerPhone, setCustomerPhone] = useState('')
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState('online')
   const [studioModalOpen, setStudioModalOpen] = useState(false)
   const [pdfStudioModalOpen, setPdfStudioModalOpen] = useState(false)
 
@@ -426,7 +427,10 @@ export default function CustomerKiosk() {
             totalAmount={totalAmount}
             customerPhone={customerPhone}
             onBack={() => setStep(2)}
-            onPaymentSuccess={() => setStep(4)}
+            onPaymentSuccess={(mode) => {
+              setSelectedPaymentMode(mode || 'online')
+              setStep(4)
+            }}
             getJobFormData={getJobFormData}
           />
         )}
@@ -440,6 +444,7 @@ export default function CustomerKiosk() {
             colorType={colorType}
             copies={copies}
             totalAmount={totalAmount}
+            paymentMethod={selectedPaymentMode}
             onNewOrder={handleNewOrder}
           />
         )}

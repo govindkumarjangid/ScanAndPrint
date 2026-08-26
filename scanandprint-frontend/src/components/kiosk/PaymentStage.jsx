@@ -53,7 +53,7 @@ export default function PaymentStage({
         totalAmount,
         customerPhone,
       })
-      onPaymentSuccess()
+      onPaymentSuccess('online')
     } catch (err) {
       console.warn('Razorpay checkout note:', err.message)
     }
@@ -66,7 +66,7 @@ export default function PaymentStage({
       formData.append('paymentMethod', 'CASH_COUNTER')
       await payAtCounter(formData)
       toast.success('Order placed! Please pay at counter.')
-      onPaymentSuccess()
+      onPaymentSuccess('counter')
     } catch (err) {
       toast.error('Failed to submit counter print job')
     }
@@ -78,7 +78,7 @@ export default function PaymentStage({
       const formData = getJobFormData()
       await bypassPaymentDemo(formData)
       toast.success('⚡ Free Demo Print: Spooled directly to printer!')
-      onPaymentSuccess()
+      onPaymentSuccess('online')
     } catch (err) {
       toast.error('Failed to dispatch demo print')
     }

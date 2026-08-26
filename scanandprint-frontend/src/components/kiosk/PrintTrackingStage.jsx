@@ -11,14 +11,16 @@ export default function PrintTrackingStage({
   colorType,
   copies,
   totalAmount,
+  paymentMethod: propPaymentMethod,
   onNewOrder,
 }) {
   const { jobId, createdJob, paymentTxnId, isPaymentVerified } = useKioskStore()
   const isAgentOnline = Boolean(shopInfo?.isOnline)
 
-  // Explicit Payment Method Determination
-  const pm = String(createdJob?.paymentMethod || '').toUpperCase().trim()
+  // Explicit Payment Method Determination (from Prop or Store)
+  const pm = String(propPaymentMethod || createdJob?.paymentMethod || '').toUpperCase().trim()
   const isOnlinePayment =
+    propPaymentMethod === 'online' ||
     Boolean(isPaymentVerified) ||
     Boolean(paymentTxnId) ||
     pm === 'RAZORPAY' ||
