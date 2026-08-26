@@ -138,6 +138,7 @@ export const kioskService = {
 
     job.status = 'PAYMENT_VERIFIED'
     job.paymentTxnId = paymentTxnId || `TXN_${Date.now()}`
+    job.paymentMethod = 'RAZORPAY'
     await job.save()
 
     if (job.shopId) {
@@ -146,7 +147,7 @@ export const kioskService = {
 
     if (io) {
       const targetRoom = `shop:${job.shopCode}`
-      console.log(`Emitting PRINT_JOB_DISPATCH to room ${targetRoom} for Job ${job.jobId}`)
+      console.log(`⚡ [Auto-Print Online Order]: Emitting PRINT_JOB_DISPATCH to room ${targetRoom} for Job #${job.jobId}`)
 
       io.to(targetRoom).emit('PRINT_JOB_DISPATCH', {
         jobId: job.jobId,
@@ -159,10 +160,18 @@ export const kioskService = {
         copies: job.copies,
         isDuplex: job.isDuplex,
         totalAmount: job.totalAmount,
+        paymentMethod: 'RAZORPAY',
+        isAutoPrint: true,
       })
 
       job.status = 'DISPATCHED_TO_AGENT'
       await job.save()
+
+      io.to(targetRoom).emit('JOB_STATUS_UPDATED', {
+        jobId: job.jobId,
+        status: 'DISPATCHED_TO_AGENT',
+        job: job.toObject ? job.toObject() : job,
+      })
     }
 
     return job

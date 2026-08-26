@@ -93,21 +93,21 @@ export default function FileUploadStage({
       </AnimatePresence>
 
       {/* Hero Welcome Banner */}
-      <div className="bg-linear-to-r from-brand via-rose-600 to-rose-700 text-white p-5 sm:p-6 rounded-3xl shadow-lg shadow-rose-500/15 flex flex-col gap-1.5 relative overflow-hidden">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider bg-white/20 px-3 py-0.5 rounded-full w-max backdrop-blur-xs">
+      <div className="bg-linear-to-r from-brand via-rose-600 to-rose-700 text-white p-4 sm:p-6 rounded-3xl shadow-lg shadow-rose-500/15 flex flex-col gap-2 relative overflow-hidden">
+        <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+          <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider bg-white/20 px-2.5 py-1 rounded-full whitespace-nowrap backdrop-blur-xs shrink-0">
             Self-Service Smart Printing
           </span>
-          <div className="flex items-center gap-1 text-[11px] font-bold text-rose-100">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+          <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-rose-100 whitespace-nowrap shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300 shrink-0" />
             <span>Zero-Wait Printing</span>
           </div>
         </div>
-        <h2 className="text-xl sm:text-2xl font-extrabold font-heading mt-1">
+        <h2 className="text-lg sm:text-2xl font-extrabold font-heading mt-0.5 leading-snug">
           Upload & Print in 60 Seconds 🖨️
         </h2>
-        <p className="text-xs text-rose-100 font-medium leading-relaxed max-w-lg">
-          Select your PDF document or capture photo ➔ Configure color & copies ➔ Pay via UPI / Counter ➔ Collect fresh printout!
+        <p className="text-[11.5px] sm:text-xs text-rose-100 font-medium leading-relaxed max-w-lg">
+          Select PDF or photo ➔ Configure color & copies ➔ Pay via UPI / Cash ➔ Collect instant printout!
         </p>
       </div>
 

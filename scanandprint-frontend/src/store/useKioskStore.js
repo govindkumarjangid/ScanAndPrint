@@ -174,6 +174,9 @@ export const useKioskStore = create((set, get) => ({
     set({ isRazorpayLoading: true, error: null })
 
     try {
+      if (formData instanceof FormData) {
+        formData.set('paymentMethod', 'RAZORPAY')
+      }
       const jobResult = await createJob(formData)
       const currentJob = jobResult?.job
       const currentJobId = currentJob?.jobId || `JOB_${Date.now().toString().slice(-6)}`

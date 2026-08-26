@@ -147,15 +147,30 @@ export default function OwnerLayout() {
     const handleNewJob = (data) => {
       if (data?.job) {
         useJobStore.getState().addOrUpdateJob(data.job)
+        const paymentMethod = String(data.job.paymentMethod || '').toUpperCase().trim()
         const isCounter =
-          data.job.paymentMethod === 'CASH_COUNTER' ||
-          data.job.paymentMethod === 'COUNTER' ||
-          data.job.paymentMethod === 'counter'
-        if (isCounter) {
+          paymentMethod === 'CASH_COUNTER' ||
+          paymentMethod === 'COUNTER' ||
+          paymentMethod === 'CASH' ||
+          paymentMethod === 'UPI_QR' ||
+          paymentMethod === 'PENDING_CASH'
+
+        const isOnlinePaid =
+          paymentMethod === 'RAZORPAY' ||
+          paymentMethod === 'ONLINE' ||
+          paymentMethod === 'ONLINE_GATEWAY' ||
+          paymentMethod === 'UPI_ONLINE' ||
+          paymentMethod === 'DEMO_BYPASS' ||
+          data.job.status === 'PAYMENT_VERIFIED' ||
+          data.job.status === 'DISPATCHED_TO_AGENT' ||
+          data.job.status === 'PRINTED_SUCCESSFULLY' ||
+          data.job.status === 'COMPLETED'
+
+        if (isCounter && !isOnlinePaid) {
           setPendingCounterOrder(data.job)
           playChime()
         } else {
-          toast.success(`📄 New Print Order: ${data.job.originalFileName || data.job.jobId} (₹${data.job.totalAmount})`, {
+          toast.success(`📄 New Online Order Paid: ${data.job.originalFileName || data.job.jobId} (₹${data.job.totalAmount}) - Auto-Printing...`, {
             icon: '🖨️',
             duration: 5000,
           })

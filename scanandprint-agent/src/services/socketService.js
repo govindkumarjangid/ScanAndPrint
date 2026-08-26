@@ -389,8 +389,23 @@ class SocketService {
       })
 
       const paymentMethod = String(jobData?.paymentMethod || '').toUpperCase().trim()
-      const isAutoOnlineGateway = paymentMethod === 'RAZORPAY' || paymentMethod === 'ONLINE_GATEWAY' || paymentMethod === 'DEMO_BYPASS'
-      const isCounterOrder = !isAutoOnlineGateway
+      const isAutoOnlineGateway =
+        jobData?.isAutoPrint === true ||
+        paymentMethod === 'RAZORPAY' ||
+        paymentMethod === 'ONLINE_GATEWAY' ||
+        paymentMethod === 'ONLINE' ||
+        paymentMethod === 'UPI_ONLINE' ||
+        paymentMethod === 'DEMO_BYPASS' ||
+        jobData?.status === 'PAYMENT_VERIFIED'
+
+      const isCounterOrder = !isAutoOnlineGateway && (
+        paymentMethod === 'CASH_COUNTER' ||
+        paymentMethod === 'COUNTER' ||
+        paymentMethod === 'CASH' ||
+        paymentMethod === 'UPI_QR' ||
+        paymentMethod === 'PENDING_CASH' ||
+        jobData?.isCounterOrder === true
+      )
 
       // If Counter / Cash / UPI QR: Show bottom-right native confirmation popup and wait for shopkeeper approval
       if (isCounterOrder) {
@@ -401,8 +416,8 @@ class SocketService {
         return
       }
 
-      // If Razorpay Verified Gateway: Auto-Print directly to Hardware Spooler (Zero-Click Auto Print)
-      console.log(`[SocketService] 🖨️ Auto-Printing Verified Gateway Job #${jobId} directly...`)
+      // If Online Gateway: Zero-Click Automatic Hardware Print
+      console.log(`[SocketService] 🖨️ Zero-Click Auto-Printing Verified Gateway Job #${jobId} directly...`)
 
       try {
         const result = await printService.executePrintJob(jobData)
