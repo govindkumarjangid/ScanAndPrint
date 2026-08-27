@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getConfig: () => ipcRenderer.invoke('get-config'),
   saveConfig: (config) => ipcRenderer.invoke('save-config', config),
   getPrinters: () => ipcRenderer.invoke('get-printers'),
-  testPrint: (printerName) => ipcRenderer.invoke('test-print', printerName),
+  testPrint: (printerName, mode) => ipcRenderer.invoke('test-print', printerName, mode),
   createDesktopShortcut: () => ipcRenderer.invoke('create-desktop-shortcut'),
   openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
   reconnectSocket: () => ipcRenderer.invoke('reconnect-socket'),

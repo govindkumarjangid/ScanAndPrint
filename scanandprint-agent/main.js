@@ -262,8 +262,8 @@ function setupIpcHandlers() {
     return await printerManager.getAvailablePrinters()
   })
 
-  ipcMain.handle('test-print', async (event, printerName) => {
-    return await printerManager.testPrint(printerName)
+  ipcMain.handle('test-print', async (event, printerName, mode = 'Black & White') => {
+    return await printerManager.testPrint(printerName, mode)
   })
 
   ipcMain.handle('create-desktop-shortcut', () => {

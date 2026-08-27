@@ -356,9 +356,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (isElectron) {
       try {
-        const result = await window.electronAPI.testPrint(printerName)
+        const result = await window.electronAPI.testPrint(printerName, modeLabel)
         if (result && result.success) {
-          showToast(` Test print sent successfully to ${printerName}!`, 'success')
+          showToast(`✓ Test print sent successfully to ${printerName}!`, 'success')
           logActivity('PRINT', `✓ Test page spool completed on ${printerName}`, 'online')
         } else {
           showToast(` Test print failed: ${result?.error || 'Unknown error'}`, 'error')
