@@ -28,7 +28,6 @@ export default function OwnerLayout() {
   const [selectedRenewPlan, setSelectedRenewPlan] = useState('MONTHLY_299')
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [selectedUpgradePlan, setSelectedUpgradePlan] = useState('YEARLY_799')
-  const [pendingCounterOrder, setPendingCounterOrder] = useState(null)
 
   const navigate = useNavigate()
   const {
@@ -81,7 +80,7 @@ export default function OwnerLayout() {
 
     const socket = getSocket()
     const joinRoom = () => {
-      socket.emit('JOIN_SHOP_DASHBOARD', { shopCode })
+      socket.emit('JOIN_SHOP_DASHBOARD', { shopCode, shopId: currentShop?._id })
       socket.emit('CHECK_AGENT_STATUS', { shopCode })
     }
 
@@ -124,8 +123,8 @@ export default function OwnerLayout() {
         logout()
       } else {
         if (data?.planType || data?.demoExpiresAt || data?.subscriptionExpiresAt) {
-          useAuthStore.setState((state) => ({
-            currentShop: {
+          useAuthStore.setState((state) => {
+            const updated = {
               ...state.currentShop,
               ...(data.planType && { planType: data.planType }),
               ...(data.isDemoAccount !== undefined && { isDemoAccount: data.isDemoAccount }),
@@ -133,14 +132,19 @@ export default function OwnerLayout() {
               ...(data.subscriptionExpiresAt && { subscriptionExpiresAt: data.subscriptionExpiresAt }),
               isSubscriptionActive: true,
               subscriptionStatus: 'ACTIVE',
-            },
-          }))
-          toast.success('🎉 Your subscription / demo validity has been updated by Admin!', {
-            icon: '🚀',
-            duration: 6000,
+            }
+            try {
+              localStorage.setItem('shopData', JSON.stringify(updated))
+            } catch (e) {}
+            return { currentShop: updated }
+          })
+          setIsDemoExpired(false)
+          toast.success('🎉 Demo extended by Administrator in real-time!', {
+            icon: '⏱️',
+            duration: 5000,
           })
         }
-        fetchProfile()
+        fetchProfile(true)
       }
     }
 
@@ -167,7 +171,6 @@ export default function OwnerLayout() {
           data.job.status === 'COMPLETED'
 
         if (isCounter && !isOnlinePaid) {
-          setPendingCounterOrder(data.job)
           playChime()
         } else {
           toast.success(`📄 New Online Order Paid: ${data.job.originalFileName || data.job.jobId} (₹${data.job.totalAmount}) - Auto-Printing...`, {
@@ -333,18 +336,16 @@ export default function OwnerLayout() {
         let formattedDesktop = ''
         let formattedMobile = ''
 
-        if (currentShop?.isDemoAccount) {
-          formattedDesktop = `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
-          formattedMobile = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
-          setDemoTimeLeft(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`)
-          setIsDemoExpired(false)
-        } else if (days > 0) {
+        if (days > 0) {
           formattedDesktop = `${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
           formattedMobile = `${days}d ${pad(hours)}h`
+          setDemoTimeLeft(`${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`)
         } else {
           formattedDesktop = `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
           formattedMobile = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+          setDemoTimeLeft(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`)
         }
+        setIsDemoExpired(false)
 
         setLiveCountdown({
           days,
@@ -627,7 +628,7 @@ export default function OwnerLayout() {
               {/* Subscription Badge with Expiry Date & Remaining Time */}
               {isDemo ? (
                 <span
-                  title={`2-Hour Demo Free Trial · ${liveCountdown?.formattedDesktop || demoTimeLeft || '00:00:00'} remaining`}
+                  title={`Free Demo Trial · ${liveCountdown?.formattedDesktop || demoTimeLeft || '00:00:00'} remaining`}
                   className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs shrink-0 font-mono"
                 >
                   <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-700 shrink-0" />
@@ -1022,107 +1023,6 @@ export default function OwnerLayout() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Live Cash Counter Order Approval Modal */}
-      <AnimatePresence>
-        {pendingCounterOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-xs">
-            <motion.div
-              initial={{ scale: 0.92, opacity: 0, y: 15 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.92, opacity: 0, y: 15 }}
-              className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full border border-stone-200 shadow-2xl flex flex-col gap-4 text-center relative"
-            >
-              {/* Header */}
-              <div className="flex flex-col items-center gap-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-stone-900 text-white flex items-center justify-center text-xs font-bold">
-                    ⚙
-                  </div>
-                  <h2 className="text-xl font-extrabold text-stone-900 font-heading">
-                    Counter Payment Order
-                  </h2>
-                </div>
-                <p className="text-xs text-stone-500 font-medium">
-                  Customer counter par cash dega — print approve karein?
-                </p>
-              </div>
-
-              {/* Order Info Card */}
-              <div className="bg-stone-50 border border-stone-200/90 rounded-2xl p-3.5 text-left flex flex-col gap-1.5 text-xs font-semibold">
-                <div className="flex">
-                  <span className="w-20 text-stone-900 font-bold">Print</span>
-                  <span className="text-stone-700">
-                    {pendingCounterOrder.colorType === 'COLOR' ? '🌈 Color' : '⚫ B&W'} • {pendingCounterOrder.totalPages || 1} page (pages: {pendingCounterOrder.totalPages || 1}) • {pendingCounterOrder.copies || 1} copy
-                  </span>
-                </div>
-                <div className="flex">
-                  <span className="w-20 text-stone-900 font-bold">Amount</span>
-                  <span className="text-stone-900 font-extrabold">
-                    ₹{pendingCounterOrder.totalAmount} <span className="font-medium text-stone-500">(counter par lena hai)</span>
-                  </span>
-                </div>
-                <div className="flex">
-                  <span className="w-20 text-stone-900 font-bold">File</span>
-                  <span className="text-stone-800 font-bold truncate max-w-60">
-                    {pendingCounterOrder.originalFileName || 'document.pdf'}
-                  </span>
-                </div>
-                <div className="flex">
-                  <span className="w-20 text-stone-900 font-bold">Time</span>
-                  <span className="text-stone-600">
-                    {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                  </span>
-                </div>
-              </div>
-
-              {/* Decision Buttons */}
-              <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const jId = pendingCounterOrder.jobId
-                      setPendingCounterOrder(null)
-                      try {
-                        await useJobStore.getState().triggerPrintNow(jId)
-                        toast.success('✅ Approved! Spooling to printer...')
-                      } catch (e) {
-                        toast.error('Failed to trigger print')
-                      }
-                    }}
-                    className="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
-                  >
-                    <span>☑</span>
-                    <span>Approve & Print</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const jId = pendingCounterOrder.jobId
-                      setPendingCounterOrder(null)
-                      try {
-                        await useJobStore.getState().cancelJob(jId)
-                        toast.error('❌ Order Denied')
-                      } catch (e) {
-                        toast.error('Failed to cancel order')
-                      }
-                    }}
-                    className="py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold flex items-center justify-center gap-1.5 shadow-md shadow-rose-600/20 cursor-pointer"
-                  >
-                    <span>✕</span>
-                    <span>Deny</span>
-                  </button>
-                </div>
-                <p className="text-[11px] text-stone-400 font-medium">
-                  Deny karne par order cancel + file delete ho jayegi
-                </p>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
     </div>
   )
 }

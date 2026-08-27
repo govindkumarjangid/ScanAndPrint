@@ -48,10 +48,14 @@ export const authService = {
     const secretApiKey = generateSecretApiKey()
 
     // 2. Fetch active platform pricing & settings
-    const settings = await AdminSettings.findOne().lean()
-    const monthlyPrice = settings?.monthlyPrice || 299
-    const yearlyPrice = settings?.yearlyPrice || 799
-    const demoDurationHours = settings?.demoDurationHours || 2
+    let settings = await AdminSettings.findOne().lean()
+    if (!settings) {
+      const created = await AdminSettings.create({})
+      settings = created.toObject ? created.toObject() : created
+    }
+    const monthlyPrice = Number(settings?.monthlyPrice) || 299
+    const yearlyPrice = Number(settings?.yearlyPrice) || 799
+    const demoDurationHours = Number(settings?.demoDurationHours) > 0 ? Number(settings.demoDurationHours) : 2
 
     // 3. Handle Free Trial (Demo) Immediate Activation
     if (planType === 'FREE_TRIAL') {

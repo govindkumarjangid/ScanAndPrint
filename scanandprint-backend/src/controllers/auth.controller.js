@@ -201,6 +201,11 @@ export const getPublicReviews = asyncHandler(async (req, res, next) => {
 let cachedPublicSettings = null
 let cachedPublicSettingsExpiry = 0
 
+export const invalidatePublicSettingsCache = () => {
+  cachedPublicSettings = null
+  cachedPublicSettingsExpiry = 0
+}
+
 // public: get system settings (pricing, demo mode with 60s memory cache)
 export const getPublicSettings = asyncHandler(async (req, res, next) => {
   const now = Date.now()

@@ -17,7 +17,7 @@ import api from '../../lib/axios'
 import toast from 'react-hot-toast'
 
 export default function AdminShopActionModal({ shop, isOpen, onClose }) {
-  const { extendShopDemo, updateShopPlan, toggleShopStatus } = useAdminStore()
+  const { extendShopDemo, updateShopPlan, toggleShopStatus, settingsData, fetchSettings } = useAdminStore()
   const [activeTab, setActiveTab] = useState('actions') // 'actions' | 'jobs'
   const [jobs, setJobs] = useState([])
   const [jobsLoading, setJobsLoading] = useState(false)
@@ -26,6 +26,9 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
   useEffect(() => {
     if (isOpen && shop?._id) {
       fetchJobs()
+      if (!settingsData?.demoDurationHours && typeof fetchSettings === 'function') {
+        fetchSettings()
+      }
     }
   }, [isOpen, shop])
 
@@ -214,7 +217,7 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
                       disabled={isSubmitting}
                       className="py-2.5 px-2 rounded-xl bg-amber-950/70 hover:bg-amber-900 text-amber-200 font-bold text-[11px] border border-amber-800/80 flex items-center justify-center gap-1 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <span>Free Demo (2h)</span>
+                      <span>Free Demo ({settingsData?.demoDurationHours || 2}h)</span>
                     </button>
                     <button
                       onClick={() => handlePlanChange('MONTHLY_299', 30)}

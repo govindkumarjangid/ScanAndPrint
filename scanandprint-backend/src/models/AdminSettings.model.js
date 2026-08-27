@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const adminSettingsSchema = new mongoose.Schema({
   demoMode: {
     type: Boolean,
-    default: false
+    default: true
   },
   demoPagesLimit: {
     type: Number,

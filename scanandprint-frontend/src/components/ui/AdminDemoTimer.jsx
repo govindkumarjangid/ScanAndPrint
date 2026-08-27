@@ -55,7 +55,7 @@ export default function AdminDemoTimer({
         const pad = (num) => String(num).padStart(2, '0')
 
         if (days > 0) {
-          setTimeLeft(`${days}d ${pad(hours)}h ${pad(minutes)}m`)
+          setTimeLeft(`${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`)
         } else {
           setTimeLeft(`${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`)
         }

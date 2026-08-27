@@ -8,6 +8,7 @@ import { generateToken } from '../utils/jwt.util.js'
 import { sendSuccess, sendError } from '../utils/apiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { activeAgentsMap } from '../socket.js'
+import { invalidatePublicSettingsCache } from './auth.controller.js'
 
 // login admin
 export const login = asyncHandler(async (req, res) => {
@@ -523,6 +524,8 @@ export const updateSettings = asyncHandler(async (req, res) => {
     await settings.save()
   }
 
+  invalidatePublicSettingsCache()
+
   const io = req.app.get('io')
   if (io)
     io.emit('GLOBAL_SETTINGS_UPDATED', settings)
@@ -561,20 +564,21 @@ export const extendDemoTrial = asyncHandler(async (req, res) => {
   shop.isSubscriptionActive = true
   await shop.save()
 
-  // Real-time WebSocket emission to Shop & Admin rooms
+  // Real-time WebSocket emission to Shop & Admin rooms (guaranteed delivery)
   const io = req.app.get('io')
   if (io) {
-    const shopRoom = `shop:${shop.shopCode}`
+    const cleanCode = String(shop.shopCode).trim().toUpperCase()
     const payload = {
       shopId: shop._id,
-      shopCode: shop.shopCode,
+      shopCode: cleanCode,
       planType: 'FREE_TRIAL',
       status: 'Demo Active',
       isDemoAccount: true,
       demoExpiresAt: shop.demoExpiresAt,
       isSuspended: false,
     }
-    io.to(shopRoom).emit('SHOP_STATUS_UPDATED', payload)
+    io.to(`shop:${cleanCode}`).emit('SHOP_STATUS_UPDATED', payload)
+    io.to(`shop:${shop._id}`).emit('SHOP_STATUS_UPDATED', payload)
     io.to('admin:room').emit('ADMIN_SHOP_UPDATED', payload)
   }
 
@@ -598,10 +602,13 @@ export const updateShopPlan = asyncHandler(async (req, res) => {
 
   if (planType === 'FREE_TRIAL') {
     shop.isDemoAccount = true
+    let settings = await AdminSettings.findOne().lean()
+    const defaultHours = Number(settings?.demoDurationHours) > 0 ? Number(settings.demoDurationHours) : 2
+    const grantHours = Number(days) > 0 ? Number(days) * 24 : defaultHours
     const baseDemoTime = shop.demoExpiresAt && new Date(shop.demoExpiresAt).getTime() > Date.now()
       ? new Date(shop.demoExpiresAt).getTime()
       : Date.now()
-    shop.demoExpiresAt = new Date(baseDemoTime + 2 * 60 * 60 * 1000)
+    shop.demoExpiresAt = new Date(baseDemoTime + grantHours * 60 * 60 * 1000)
   } else {
     shop.isDemoAccount = false
     const baseSubTime = shop.subscriptionExpiresAt && new Date(shop.subscriptionExpiresAt).getTime() > Date.now()
@@ -612,25 +619,31 @@ export const updateShopPlan = asyncHandler(async (req, res) => {
 
   await shop.save()
 
-  // Real-time WebSocket emission to Shop & Admin rooms
+  // Real-time WebSocket emission to Shop & Admin rooms (guaranteed delivery)
   const io = req.app.get('io')
   if (io) {
-    const shopRoom = `shop:${shop.shopCode}`
+    const cleanCode = String(shop.shopCode).trim().toUpperCase()
     const payload = {
       shopId: shop._id,
-      shopCode: shop.shopCode,
+      shopCode: cleanCode,
       planType: shop.planType,
-      status: isSubscriptionActive ? 'Active' : 'Expired',
+      status: shop.isDemoAccount ? 'Demo Active' : (isSubscriptionActive ? 'Active' : 'Expired'),
       isDemoAccount: shop.isDemoAccount,
       demoExpiresAt: shop.demoExpiresAt,
       subscriptionExpiresAt: shop.subscriptionExpiresAt,
       isSuspended: Boolean(shop.isSuspended),
     }
-    io.to(shopRoom).emit('SHOP_STATUS_UPDATED', payload)
+    io.to(`shop:${cleanCode}`).emit('SHOP_STATUS_UPDATED', payload)
+    io.to(`shop:${shop._id}`).emit('SHOP_STATUS_UPDATED', payload)
     io.to('admin:room').emit('ADMIN_SHOP_UPDATED', payload)
   }
 
-  return sendSuccess(res, 200, 'Shop plan updated successfully', shop)
+  return sendSuccess(res, 200, 'Shop plan updated successfully', {
+    shopId: shop._id,
+    planType: shop.planType,
+    demoExpiresAt: shop.demoExpiresAt,
+    subscriptionExpiresAt: shop.subscriptionExpiresAt,
+  })
 })
 
 // Toggle Shop Status (Suspend / Activate)

@@ -46,10 +46,15 @@ export const setupSocket = (io) => {
     // Dashboard Client Joins Shop Room to receive live status & live print jobs
     socket.on('JOIN_SHOP_DASHBOARD', async (data) => {
       const shopCode = String(data?.shopCode || '').trim().toUpperCase()
+      const shopId = String(data?.shopId || '').trim()
       if (shopCode) {
         const shopRoom = `shop:${shopCode}`
         socket.join(shopRoom)
         console.log(`👤 [Dashboard Connected]: Joined room ${shopRoom}`)
+      }
+      if (shopId) {
+        socket.join(`shop:${shopId}`)
+      }
 
         let isOnline = activeAgentsMap.has(shopCode)
         const agentData = activeAgentsMap.get(shopCode)

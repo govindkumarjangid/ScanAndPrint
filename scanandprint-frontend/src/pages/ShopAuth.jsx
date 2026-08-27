@@ -269,7 +269,7 @@ export default function ShopAuth() {
         })
 
         setShowSuccessModal(true)
-        toast.success('🎉 2-Hour Free Demo Activated!')
+        toast.success(`🎉 ${demoDurationHours}-Hour Free Demo Activated!`)
         setTimeout(() => navigate('/owner/dashboard'), 1500)
         return
       }
