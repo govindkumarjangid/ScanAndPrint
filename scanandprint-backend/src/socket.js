@@ -56,29 +56,28 @@ export const setupSocket = (io) => {
         socket.join(`shop:${shopId}`)
       }
 
-        let isOnline = activeAgentsMap.has(shopCode)
-        const agentData = activeAgentsMap.get(shopCode)
-        let printers = agentData?.printers || []
+      let isOnline = activeAgentsMap.has(shopCode)
+      const agentData = activeAgentsMap.get(shopCode)
+      let printers = agentData?.printers || []
 
-        if (!isOnline) {
-          try {
-            const shop = await shopRepository.findByCode(shopCode)
-            if (shop && shop.isOnline && shop.lastHeartbeatAt) {
-              const diffMs = Date.now() - new Date(shop.lastHeartbeatAt).getTime()
-              if (diffMs < 90000) {
-                isOnline = true
-                printers = shop.connectedPrinters || []
-              }
+      if (!isOnline) {
+        try {
+          const shop = await shopRepository.findByCode(shopCode)
+          if (shop && shop.isOnline && shop.lastHeartbeatAt) {
+            const diffMs = Date.now() - new Date(shop.lastHeartbeatAt).getTime()
+            if (diffMs < 90000) {
+              isOnline = true
+              printers = shop.connectedPrinters || []
             }
-          } catch (e) {}
-        }
-
-        socket.emit('AGENT_STATUS_CHANGE', {
-          isOnline,
-          shopCode,
-          printers,
-        })
+          }
+        } catch (e) { }
       }
+
+      socket.emit('AGENT_STATUS_CHANGE', {
+        isOnline,
+        shopCode,
+        printers,
+      })
     })
 
     // Kiosk Client Joins Shop Room to receive live status & live print job updates
@@ -148,7 +147,7 @@ export const setupSocket = (io) => {
               printers = shop.connectedPrinters || []
             }
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       socket.emit('AGENT_STATUS_CHANGE', {
@@ -168,45 +167,45 @@ export const setupSocket = (io) => {
       }
     })
 
-function isVirtualOrLocal(ip) {
-  if (!ip) return true
-  const s = String(ip).replace(/^::ffff:/, '').trim()
-  if (s === '127.0.0.1' || s === '::1' || s.startsWith('127.')) return true
-  if (s.startsWith('169.254.')) return true
-  if (s.startsWith('192.168.23.') || s.startsWith('192.168.248.') || s.startsWith('192.168.56.')) return true
-  return false
-}
-
-function resolveClientIp(socket, data) {
-  // 1. Exact physical adapter IP detected on counter machine
-  const agentIp = data?.localIp || data?.ipAddress || data?.deviceMeta?.ipAddress || data?.meta?.ipAddress
-  if (agentIp && !isVirtualOrLocal(agentIp)) {
-    return String(agentIp).trim()
-  }
-
-  // 2. Proxied WAN IP
-  const forwarded = socket.handshake?.headers?.['x-forwarded-for'] || socket.handshake?.headers?.['x-real-ip'] || socket.handshake?.headers?.['cf-connecting-ip']
-  if (forwarded) {
-    const rawIp = String(forwarded).split(',')[0].trim().replace(/^::ffff:/, '')
-    if (rawIp && !isVirtualOrLocal(rawIp)) {
-      return rawIp
+    function isVirtualOrLocal(ip) {
+      if (!ip) return true
+      const s = String(ip).replace(/^::ffff:/, '').trim()
+      if (s === '127.0.0.1' || s === '::1' || s.startsWith('127.')) return true
+      if (s.startsWith('169.254.')) return true
+      if (s.startsWith('192.168.23.') || s.startsWith('192.168.248.') || s.startsWith('192.168.56.')) return true
+      return false
     }
-  }
 
-  // 3. Socket TCP remote IP
-  const socketAddress = socket.handshake?.address || socket.conn?.remoteAddress || ''
-  const cleanSocketAddress = String(socketAddress).replace(/^::ffff:/, '').trim()
-  if (cleanSocketAddress && !isVirtualOrLocal(cleanSocketAddress)) {
-    return cleanSocketAddress
-  }
+    function resolveClientIp(socket, data) {
+      // 1. Exact physical adapter IP detected on counter machine
+      const agentIp = data?.localIp || data?.ipAddress || data?.deviceMeta?.ipAddress || data?.meta?.ipAddress
+      if (agentIp && !isVirtualOrLocal(agentIp)) {
+        return String(agentIp).trim()
+      }
 
-  // 4. Public WAN IP
-  if (data?.publicIp && !isVirtualOrLocal(data.publicIp)) {
-    return String(data.publicIp).trim()
-  }
+      // 2. Proxied WAN IP
+      const forwarded = socket.handshake?.headers?.['x-forwarded-for'] || socket.handshake?.headers?.['x-real-ip'] || socket.handshake?.headers?.['cf-connecting-ip']
+      if (forwarded) {
+        const rawIp = String(forwarded).split(',')[0].trim().replace(/^::ffff:/, '')
+        if (rawIp && !isVirtualOrLocal(rawIp)) {
+          return rawIp
+        }
+      }
 
-  return agentIp || cleanSocketAddress || '127.0.0.1'
-}
+      // 3. Socket TCP remote IP
+      const socketAddress = socket.handshake?.address || socket.conn?.remoteAddress || ''
+      const cleanSocketAddress = String(socketAddress).replace(/^::ffff:/, '').trim()
+      if (cleanSocketAddress && !isVirtualOrLocal(cleanSocketAddress)) {
+        return cleanSocketAddress
+      }
+
+      // 4. Public WAN IP
+      if (data?.publicIp && !isVirtualOrLocal(data.publicIp)) {
+        return String(data.publicIp).trim()
+      }
+
+      return agentIp || cleanSocketAddress || '127.0.0.1'
+    }
 
     // Agent Register / Handshake Event (Desktop Agent Connects)
     socket.on('AGENT_REGISTER', async (data) => {
