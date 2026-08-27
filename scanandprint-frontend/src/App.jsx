@@ -64,6 +64,7 @@ const RefundPolicy = lazy(() => import('./pages/Home/RefundPolicy'))
 const TermsConditions = lazy(() => import('./pages/Home/TermsConditions'))
 const RegisterShop = lazy(() => import('./pages/RegisterShop'))
 const ShopLogin = lazy(() => import('./pages/ShopLogin'))
+const IdCardPrintPage = lazy(() => import('./pages/IdCardPrintPage'))
 
 // Lazy Loaded Customer Kiosk
 const CustomerKiosk = lazy(() => import('./pages/kiosk/CustomerKiosk'))
@@ -211,6 +212,10 @@ export default function App() {
             <Route path="/p/:shopCode" element={<CustomerKiosk />} />
             <Route path="/p" element={<CustomerKiosk />} />
             <Route path="/kiosk/:shopCode" element={<CustomerKiosk />} />
+
+            {/* Standalone ID Card 2-in-1 Print Studio */}
+            <Route path="/id-card-print" element={<IdCardPrintPage />} />
+            <Route path="/id-card" element={<IdCardPrintPage />} />
 
             {/* Auth Routes */}
             <Route path="/register" element={<RegisterShop />} />

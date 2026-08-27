@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { AlertCircle, Store, RefreshCw, ArrowLeft } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 import KioskHeader from '../../components/kiosk/KioskHeader'
 import FileUploadStage from '../../components/kiosk/FileUploadStage'
@@ -11,7 +12,7 @@ import PrintOptionsStage from '../../components/kiosk/PrintOptionsStage'
 import PaymentStage from '../../components/kiosk/PaymentStage'
 import PrintTrackingStage from '../../components/kiosk/PrintTrackingStage'
 import { useKioskStore } from '../../store/useKioskStore'
-import { getExactPageCount } from '../../lib/pdfUtil'
+import { getExactPageCount, combineFilesToPdf } from '../../lib/pdfUtil'
 import { getSocket } from '../../lib/socket'
 import PageLoader from '../../components/common/PageLoader'
 
@@ -33,6 +34,7 @@ export default function CustomerKiosk() {
   const [shopInfo, setShopInfo] = useState(storeShopInfo)
   const [step, setStep] = useState(1)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [selectedFiles, setSelectedFiles] = useState([])
   const [totalDocPages, setTotalDocPages] = useState(1)
   const [selectedPagesCount, setSelectedPagesCount] = useState(1)
   const [pageRangeMode, setPageRangeMode] = useState('all')
@@ -120,27 +122,74 @@ export default function CustomerKiosk() {
     }
   }, [shopCode])
 
-  // Exact PDF Page Count Detection & Instant Optimistic Pre-Upload
-  const handleFileSelect = async (file) => {
-    setSelectedFile(file)
+  // Exact PDF Page Count Detection, Multi-File Combination (Up to 5) & Instant Optimistic Pre-Upload
+  const handleFileSelect = async (filesInput) => {
+    const fileList = Array.isArray(filesInput) ? filesInput : [filesInput]
+    if (!fileList.length) return
+
+    let chosen = fileList
+    if (fileList.length > 5) {
+      toast.error('Maximum 5 items can be selected at once. First 5 items selected.')
+      chosen = fileList.slice(0, 5)
+    }
+
+    setSelectedFiles(chosen)
+
+    const allImages = chosen.every(
+      (f) => f.type?.startsWith('image/') || /\.(jpg|jpeg|png|webp)$/i.test(f.name)
+    )
+
+    if (chosen.length > 1 && allImages) {
+      // User uploaded multiple images:
+      // Open directly in Editor Studio so all images are arranged cleanly on A4 without overlapping!
+      setSelectedFile(chosen[0])
+      setStudioModalOpen(true)
+      toast.success(`${chosen.length} images opened in Editor Studio! Arranged without overlapping.`)
+      return
+    }
+
     setIsAnalyzingPdf(true)
 
-    // Trigger non-blocking optimistic pre-upload immediately in background
-    preUploadFile(file)
-
     try {
-      const realCount = await getExactPageCount(file)
+      let finalFile = chosen[0]
+
+      if (chosen.length > 1) {
+        toast.loading('Combining files into unified document...', { id: 'combining-kiosk-files' })
+        finalFile = await combineFilesToPdf(chosen)
+        toast.success(`Combined ${chosen.length} files successfully!`, { id: 'combining-kiosk-files' })
+      }
+
+      setSelectedFile(finalFile)
+      preUploadFile(finalFile)
+
+      const realCount = await getExactPageCount(finalFile)
       setTotalDocPages(realCount)
       setSelectedPagesCount(realCount)
       setPageRangeMode('all')
       setCustomRangeStr('')
     } catch (err) {
-      console.warn('Page count error:', err)
-      setTotalDocPages(1)
-      setSelectedPagesCount(1)
+      console.warn('File processing error:', err)
+      if (chosen[0]) {
+        setSelectedFile(chosen[0])
+        preUploadFile(chosen[0])
+      }
+      setTotalDocPages(chosen.length || 1)
+      setSelectedPagesCount(chosen.length || 1)
     } finally {
       setIsAnalyzingPdf(false)
     }
+  }
+
+  const handleRemoveFile = async (indexToRemove) => {
+    const updated = selectedFiles.filter((_, idx) => idx !== indexToRemove)
+    if (!updated.length) {
+      setSelectedFiles([])
+      setSelectedFile(null)
+      setTotalDocPages(1)
+      setSelectedPagesCount(1)
+      return
+    }
+    await handleFileSelect(updated)
   }
 
   const handleSaveEditedDocument = (editedDocFile) => {
@@ -252,6 +301,7 @@ export default function CustomerKiosk() {
   const handleNewOrder = () => {
     resetJobFlow()
     setSelectedFile(null)
+    setSelectedFiles([])
     setTotalDocPages(1)
     setSelectedPagesCount(1)
     setPageRangeMode('all')
@@ -374,10 +424,12 @@ export default function CustomerKiosk() {
         {step === 1 && (
           <FileUploadStage
             selectedFile={selectedFile}
+            selectedFiles={selectedFiles}
             totalPages={totalDocPages}
             isAnalyzingPdf={isAnalyzingPdf}
             isPreUploading={isPreUploading}
             onFileSelect={handleFileSelect}
+            onRemoveFile={handleRemoveFile}
             onOpenStudioModal={() => setStudioModalOpen(true)}
             onOpenPdfStudioModal={() => setPdfStudioModalOpen(true)}
             onOpenImageEditor={() => setStudioModalOpen(true)}
@@ -452,7 +504,12 @@ export default function CustomerKiosk() {
 
       {/* Unified Image Crop & 2-in-1 Aadhaar / ID Studio Modal */}
       <KioskStudioModal
-        imageFile={selectedFile && selectedFile.type?.startsWith('image/') ? selectedFile : null}
+        imageFile={
+          selectedFile && selectedFile.type?.startsWith('image/')
+            ? selectedFile
+            : (selectedFiles?.find((f) => f.type?.startsWith('image/')) || null)
+        }
+        imageFiles={selectedFiles?.length > 0 ? selectedFiles : []}
         isOpen={studioModalOpen}
         onClose={() => setStudioModalOpen(false)}
         onSave={handleSaveEditedDocument}

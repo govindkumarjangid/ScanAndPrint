@@ -1,9 +1,10 @@
 import { PDFDocument, degrees } from 'pdf-lib'
 import * as pdfjsLib from 'pdfjs-dist'
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
-// Configure PDF.js worker
-if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '3.11.174'}/pdf.worker.min.js`
+// Configure PDF.js worker locally from Vite bundle or public folder (no broken CDN URLs!)
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker || '/pdf.worker.min.mjs'
 }
 
 /**
@@ -37,8 +38,26 @@ export async function getExactPageCount(file) {
 export async function renderPdfPagesToThumbnails(file, onProgress) {
   if (!file) return []
 
-  const arrayBuffer = await file.arrayBuffer()
-  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer })
+  if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker || '/pdf.worker.min.mjs'
+  }
+
+  let arrayBuffer
+  if (file instanceof ArrayBuffer) {
+    arrayBuffer = file
+  } else if (file instanceof Uint8Array) {
+    arrayBuffer = file.buffer
+  } else if (file.arrayBuffer) {
+    arrayBuffer = await file.arrayBuffer()
+  } else {
+    throw new Error('Unsupported file format for PDF thumbnails')
+  }
+
+  const data = new Uint8Array(arrayBuffer)
+  const loadingTask = pdfjsLib.getDocument({
+    data,
+    useSystemFonts: true,
+  })
   const pdf = await loadingTask.promise
   const numPages = pdf.numPages
   const pages = []
@@ -262,6 +281,134 @@ export async function exportEditedPdf({ originalFile, pages = [], additionalFile
   const baseName = originalFile.name ? originalFile.name.replace(/\.[^/.]+$/, '') : 'document'
 
   return new File([blob], `${baseName}_edited.pdf`, {
+    type: 'application/pdf',
+    lastModified: Date.now(),
+  })
+}
+
+/**
+ * Combines up to 5 files (images, photos, or PDFs) into a single print-ready unified PDF.
+ * Each image is scaled to fit an A4 page proportionally with balanced margins.
+ *
+ * @param {File[]} files - Array of 1 to 5 files
+ * @returns {Promise<File>}
+ */
+export async function combineFilesToPdf(files) {
+  if (!files || files.length === 0) {
+    throw new Error('No files provided to combine')
+  }
+
+  // If single PDF, return directly
+  if (files.length === 1 && ((files[0].type && files[0].type.includes('pdf')) || files[0].name?.toLowerCase().endsWith('.pdf'))) {
+    return files[0]
+  }
+
+  const outPdfDoc = await PDFDocument.create()
+  const a4Width = 595.28
+  const a4Height = 841.89
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+    const isPdf = (file.type && file.type.includes('pdf')) || file.name?.toLowerCase().endsWith('.pdf')
+
+    if (isPdf) {
+      try {
+        const bytes = await file.arrayBuffer()
+        const srcDoc = await PDFDocument.load(bytes, { ignoreEncryption: true })
+        const copiedPages = await outPdfDoc.copyPages(srcDoc, srcDoc.getPageIndices())
+        copiedPages.forEach((p) => outPdfDoc.addPage(p))
+      } catch (err) {
+        console.warn('Error appending PDF in combineFilesToPdf:', err)
+      }
+    } else {
+      // Image file (JPG, PNG, WEBP, etc.)
+      try {
+        let imgBytes
+        let isPng = file.type === 'image/png' || file.name?.toLowerCase().endsWith('.png')
+        let isJpg = file.type === 'image/jpeg' || file.name?.toLowerCase().endsWith('.jpg') || file.name?.toLowerCase().endsWith('.jpeg')
+
+        if (isPng || isJpg) {
+          imgBytes = await file.arrayBuffer()
+        } else {
+          // Rasterize WEBP or other browser image formats to PNG via canvas
+          imgBytes = await new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file)
+            const img = new Image()
+            img.onload = () => {
+              URL.revokeObjectURL(url)
+              const canvas = document.createElement('canvas')
+              canvas.width = img.naturalWidth || 1200
+              canvas.height = img.naturalHeight || 1600
+              const ctx = canvas.getContext('2d')
+              ctx.drawImage(img, 0, 0)
+              canvas.toBlob(async (blob) => {
+                if (!blob) return reject(new Error('Canvas rasterization failed'))
+                resolve(await blob.arrayBuffer())
+              }, 'image/png')
+            }
+            img.onerror = () => {
+              URL.revokeObjectURL(url)
+              reject(new Error('Failed to load image'))
+            }
+            img.src = url
+          })
+          isPng = true
+        }
+
+        let embeddedImg = null
+        if (isPng) {
+          try {
+            embeddedImg = await outPdfDoc.embedPng(imgBytes)
+          } catch (e) {
+            embeddedImg = await outPdfDoc.embedJpg(imgBytes)
+          }
+        } else {
+          try {
+            embeddedImg = await outPdfDoc.embedJpg(imgBytes)
+          } catch (e) {
+            embeddedImg = await outPdfDoc.embedPng(imgBytes)
+          }
+        }
+
+        if (embeddedImg) {
+          const page = outPdfDoc.addPage([a4Width, a4Height])
+          const imgWidth = embeddedImg.width
+          const imgHeight = embeddedImg.height
+
+          // Printable area with margins
+          const maxW = a4Width - 48
+          const maxH = a4Height - 48
+          const scale = Math.min(maxW / imgWidth, maxH / imgHeight, 1)
+
+          const renderW = imgWidth * scale
+          const renderH = imgHeight * scale
+          const posX = (a4Width - renderW) / 2
+          const posY = (a4Height - renderH) / 2
+
+          page.drawImage(embeddedImg, {
+            x: posX,
+            y: posY,
+            width: renderW,
+            height: renderH,
+          })
+        }
+      } catch (imgErr) {
+        console.warn('Error processing image in combineFilesToPdf:', imgErr)
+      }
+    }
+  }
+
+  if (outPdfDoc.getPageCount() === 0) {
+    throw new Error('Could not process the selected files into a printable document')
+  }
+
+  const pdfBytes = await outPdfDoc.save()
+  const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+  const combinedName = files.length === 1
+    ? `${files[0].name.replace(/\.[^/.]+$/, '')}.pdf`
+    : `combined_${files.length}_items.pdf`
+
+  return new File([blob], combinedName, {
     type: 'application/pdf',
     lastModified: Date.now(),
   })

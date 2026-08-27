@@ -18,6 +18,9 @@ import {
   ScanLine,
   Maximize2,
   ArrowLeft,
+  CreditCard,
+  Sparkles,
+  Wand2,
 } from 'lucide-react'
 import {
   renderCroppedImageCanvas,
@@ -29,9 +32,64 @@ import {
   canvasToImageFile,
 } from '../../lib/kioskCanvasUtil'
 import toast from 'react-hot-toast'
+import {
+  createImageElement,
+  detectCardCorners,
+  extractCardPerspective,
+} from '../../utils/jscanifyUtil'
 
-export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave }) {
-  // Master Tabs: 'doc_studio' (Doc Scanner & Layout) | 'passport' (Passport Photo Grid)
+/**
+ * Calculates non-overlapping position & dimensions (% of A4 canvas)
+ * for N images so they fit on the A4 page without overlapping!
+ */
+export function getNonOverlappingSlot(index, totalCount) {
+  if (totalCount <= 1) {
+    return { x: 7, y: 6, width: 86, height: 86 }
+  }
+  if (totalCount === 2) {
+    // 2 Items: Top Half & Bottom Half (Zero overlap!)
+    return index === 0
+      ? { x: 7, y: 4, width: 86, height: 44 }
+      : { x: 7, y: 52, width: 86, height: 44 }
+  }
+  if (totalCount === 3) {
+    // 3 Items: 1 Top, 2 Bottom side-by-side (Zero overlap!)
+    if (index === 0) return { x: 7, y: 4, width: 86, height: 44 }
+    if (index === 1) return { x: 5, y: 52, width: 43, height: 44 }
+    return { x: 52, y: 52, width: 43, height: 44 }
+  }
+  if (totalCount === 4) {
+    // 4 Items: 2x2 Grid (Zero overlap!)
+    const col = index % 2
+    const row = Math.floor(index / 2)
+    return {
+      x: col === 0 ? 5 : 52,
+      y: row === 0 ? 4 : 52,
+      width: 43,
+      height: 44,
+    }
+  }
+  // 5 Items: 2 Top, 3 Bottom (Zero overlap!)
+  if (index < 2) {
+    return {
+      x: index === 0 ? 5 : 52,
+      y: 4,
+      width: 43,
+      height: 44,
+    }
+  } else {
+    const col3 = index - 2
+    return {
+      x: 4 + col3 * 32,
+      y: 52,
+      width: 28,
+      height: 44,
+    }
+  }
+}
+
+export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, onClose, onSave }) {
+  // Master Tabs: 'doc_studio' (Doc Scanner & Layout) | 'passport' (Passport Photo Grid) | 'id_card' (ID Card 2-in-1)
   const [activeMode, setActiveMode] = useState('doc_studio')
   const [exportFormat, setExportFormat] = useState('pdf') // 'pdf' | 'png'
   const [isProcessing, setIsProcessing] = useState(false)
@@ -73,97 +131,85 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
   const [passportCount, setPassportCount] = useState(16) // 16, 20, 24, 30, 32, 36, 40, 48
   const [passportNoGap, setPassportNoGap] = useState(true) // Always zero space between photos
 
-  // Load Initial Image with Dynamic Natural Aspect Ratio Fitting
+  // Load Images (single or multiple) with Non-Overlapping A4 Grid Layout
   useEffect(() => {
-    if (imageFile) {
-      const url = URL.createObjectURL(imageFile)
-      setImageSrc(url)
+    const filesToLoad = (imageFiles && imageFiles.length > 0) ? imageFiles : (imageFile ? [imageFile] : [])
+    if (!filesToLoad.length) return
 
-      const img = new Image()
-      img.onload = () => {
-        const naturalW = img.naturalWidth || 1000
-        const naturalH = img.naturalHeight || 1000
-        const imgAspect = naturalW / naturalH // (width / height)
+    const loadAll = async () => {
+      const items = await Promise.all(
+        filesToLoad.map((file, idx) => {
+          return new Promise((resolve) => {
+            const url = URL.createObjectURL(file)
+            const img = new Image()
+            img.onload = () => {
+              const naturalW = img.naturalWidth || 1000
+              const naturalH = img.naturalHeight || 1000
+              const imgAspect = naturalW / naturalH
+              const slot = getNonOverlappingSlot(idx, filesToLoad.length)
 
-        // For bounding box to tightly fit the image on A4 canvas (1 / 1.4142 page aspect):
-        // Physical aspect = (w / h) * (1 / 1.4142) = imgAspect
-        // So h = w / (imgAspect * 1.4142)
-        let initialW = 76
-        let initialH = initialW / (imgAspect * 1.4142)
+              resolve({
+                id: 'item_' + Date.now() + '_' + idx,
+                url,
+                rawUrl: url,
+                name: file.name || `Image ${idx + 1}`,
+                x: slot.x,
+                y: slot.y,
+                width: slot.width,
+                height: slot.height,
+                aspectRatio: imgAspect,
+                naturalWidth: naturalW,
+                naturalHeight: naturalH,
+                rotation: 0,
+                corners: [
+                  { x: 5, y: 5 },
+                  { x: 95, y: 5 },
+                  { x: 95, y: 95 },
+                  { x: 5, y: 95 },
+                ],
+              })
+            }
+            img.onerror = () => {
+              const slot = getNonOverlappingSlot(idx, filesToLoad.length)
+              resolve({
+                id: 'item_' + Date.now() + '_' + idx,
+                url,
+                rawUrl: url,
+                name: file.name || `Image ${idx + 1}`,
+                x: slot.x,
+                y: slot.y,
+                width: slot.width,
+                height: slot.height,
+                aspectRatio: 1.33,
+                naturalWidth: 800,
+                naturalHeight: 600,
+                rotation: 0,
+                corners: [
+                  { x: 5, y: 5 },
+                  { x: 95, y: 5 },
+                  { x: 95, y: 95 },
+                  { x: 5, y: 95 },
+                ],
+              })
+            }
+            img.src = url
+          })
+        })
+      )
 
-        // If portrait/tall flyer/document, limit height so it fits comfortably on page
-        if (initialH > 78) {
-          initialH = 78
-          initialW = initialH * (imgAspect * 1.4142)
-        }
-        if (initialW > 88) {
-          initialW = 88
-          initialH = initialW / (imgAspect * 1.4142)
-        }
-
-        initialW = Math.round(initialW * 10) / 10
-        initialH = Math.round(initialH * 10) / 10
-        const initialX = Math.round(Math.max(2, (100 - initialW) / 2) * 10) / 10
-        const initialY = Math.round(Math.max(4, (100 - initialH) / 2) * 10) / 10
-
-        const initialItem = {
-          id: 'item_' + Date.now(),
-          url,
-          rawUrl: url,
-          name: imageFile.name || 'Document 1',
-          x: initialX,
-          y: initialY,
-          width: initialW,
-          height: initialH,
-          aspectRatio: imgAspect,
-          naturalWidth: naturalW,
-          naturalHeight: naturalH,
-          rotation: 0,
-          corners: [
-            { x: 5, y: 5 },
-            { x: 95, y: 5 },
-            { x: 95, y: 95 },
-            { x: 5, y: 95 },
-          ],
-        }
-
-        setCanvasItems([initialItem])
-        setSelectedItemId(initialItem.id)
+      setCanvasItems(items)
+      if (items.length > 0) {
+        setSelectedItemId(items[0].id)
+        setImageSrc(items[0].url)
       }
-
-      img.onerror = () => {
-        const fallbackItem = {
-          id: 'item_' + Date.now(),
-          url,
-          rawUrl: url,
-          name: imageFile.name || 'Document 1',
-          x: 12,
-          y: 8,
-          width: 76,
-          height: 42,
-          aspectRatio: 1.25,
-          rotation: 0,
-          corners: [
-            { x: 5, y: 5 },
-            { x: 95, y: 5 },
-            { x: 95, y: 95 },
-            { x: 5, y: 95 },
-          ],
-        }
-        setCanvasItems([fallbackItem])
-        setSelectedItemId(fallbackItem.id)
-      }
-      img.src = url
-
-      setBrightness(100)
-      setContrast(100)
-      setPassportCount(16)
-      setPassportNoGap(true)
-      setCroppingItem(null)
-
-      return () => URL.revokeObjectURL(url)
     }
-  }, [imageFile, isOpen])
+
+    loadAll()
+    setBrightness(100)
+    setContrast(100)
+    setPassportCount(16)
+    setPassportNoGap(true)
+  }, [imageFile, imageFiles])
 
   // Get active item
   const activeItem = canvasItems.find((i) => i.id === selectedItemId) || canvasItems[0] || null
@@ -316,6 +362,129 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
     })
   }
 
+  const [isAutoScanningAll, setIsAutoScanningAll] = useState(false)
+  const [isDetectingCropItem, setIsDetectingCropItem] = useState(false)
+
+  // 1-Click Master Auto-Crop & 2-in-1 Alignment for ID Cards / Documents
+  const handleAutoScanAndAlignAll = async () => {
+    if (!canvasItems.length) {
+      toast.error('Please add images first')
+      return
+    }
+
+    setIsAutoScanningAll(true)
+    const toastId = toast.loading('⚡ Auto-scanning document borders & removing background...')
+
+    try {
+      const updatedItems = []
+
+      for (let i = 0; i < canvasItems.length; i++) {
+        const item = canvasItems[i]
+        const src = item.rawUrl || item.url
+        try {
+          const img = await createImageElement(src)
+          const { cornersPct } = await detectCardCorners(img)
+          const { dataUrl } = await extractCardPerspective(img, cornersPct, 1400, 85.6 / 53.98)
+
+          updatedItems.push({
+            ...item,
+            rawUrl: src,
+            url: dataUrl,
+            corners: cornersPct,
+            rotation: 0,
+          })
+        } catch (err) {
+          console.warn(`Auto-scan failed for item ${item.name}:`, err)
+          updatedItems.push(item)
+        }
+      }
+
+      // Automatically align documents on the A4 page
+      const total = updatedItems.length
+
+      if (total === 2) {
+        // Front & Back 2-in-1 layout (Large Half-Page Fit, matching standard ID printouts)
+        // Standard ID card aspect ratio: 1.5858 (CR80).
+        // On A4 canvas (aspect ratio 1 / 1.4142 = 0.7071):
+        // Card width 72% -> Card height = 72 / (1.5858 * 1.4142) = 32.1%
+        const cardW = 72
+        const cardH = 32.1
+        const cardX = 14
+
+        updatedItems[0] = {
+          ...updatedItems[0],
+          x: cardX,
+          y: 10,
+          width: cardW,
+          height: cardH,
+          aspectRatio: 85.6 / 53.98,
+        }
+        updatedItems[1] = {
+          ...updatedItems[1],
+          x: cardX,
+          y: 57.5,
+          width: cardW,
+          height: cardH,
+          aspectRatio: 85.6 / 53.98,
+        }
+      } else if (total === 1) {
+        // Single Document: centered on page
+        const cardW = 76
+        const cardH = 33.9
+        const cardX = 12
+        const cardY = 33
+        updatedItems[0] = {
+          ...updatedItems[0],
+          x: cardX,
+          y: cardY,
+          width: cardW,
+          height: cardH,
+          aspectRatio: 85.6 / 53.98,
+        }
+      } else {
+        // 3+ items: distribute cleanly across quadrants
+        updatedItems.forEach((it, idx) => {
+          const slot = getNonOverlappingSlot(idx, total)
+          updatedItems[idx] = {
+            ...it,
+            ...slot,
+          }
+        })
+      }
+
+      setCanvasItems(updatedItems)
+      toast.success(
+        total === 2
+          ? '⚡ Both cards auto-cropped & aligned 2-in-1 on A4!'
+          : '⚡ Documents auto-cropped & aligned on A4!',
+        { id: toastId }
+      )
+    } catch (err) {
+      console.error('Auto-scan all error:', err)
+      toast.error('Failed to auto-scan documents: ' + (err.message || 'Unknown error'), { id: toastId })
+    } finally {
+      setIsAutoScanningAll(false)
+    }
+  }
+
+  // Auto-detect corners inside the 4-point cropper overlay
+  const handleAutoDetectInCropper = async () => {
+    if (!croppingItem) return
+    setIsDetectingCropItem(true)
+    try {
+      const src = croppingItem.rawUrl || croppingItem.url
+      const img = await createImageElement(src)
+      const { cornersPct } = await detectCardCorners(img)
+      setDocCorners(cornersPct)
+      toast.success('⚡ Card corners auto-detected!')
+    } catch (err) {
+      console.warn('Cropper auto-detect error:', err)
+      toast.error('Could not detect card corners automatically')
+    } finally {
+      setIsDetectingCropItem(false)
+    }
+  }
+
   // Open 4-Point Crop View for Specific Item
   const handleOpenCropForItem = (item) => {
     setCroppingItem(item)
@@ -425,9 +594,12 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
     const files = Array.from(e.target.files || [])
     if (!files.length) return
 
+    const newTotal = canvasItems.length + files.length
+
     files.forEach((file, idx) => {
       const url = URL.createObjectURL(file)
       const slotIndex = canvasItems.length + idx
+      const slot = getNonOverlappingSlot(slotIndex, newTotal)
 
       const img = new Image()
       img.onload = () => {
@@ -435,28 +607,15 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
         const naturalH = img.naturalHeight || 1000
         const imgAspect = naturalW / naturalH
 
-        let initialW = 76
-        let initialH = initialW / (imgAspect * 1.4142)
-        if (initialH > 44) {
-          initialH = 44
-          initialW = initialH * (imgAspect * 1.4142)
-        }
-        if (initialW > 88) {
-          initialW = 88
-          initialH = initialW / (imgAspect * 1.4142)
-        }
-        initialW = Math.round(initialW * 10) / 10
-        initialH = Math.round(initialH * 10) / 10
-
         const newItem = {
-          id: 'item_' + Date.now() + '_' + idx,
+          id: 'item_' + Date.now() + '_' + slotIndex,
           url,
           rawUrl: url,
           name: file.name || `Document ${slotIndex + 1}`,
-          x: Math.round(Math.max(2, (100 - initialW) / 2) * 10) / 10,
-          y: Math.min(55, 6 + slotIndex * 22),
-          width: initialW,
-          height: initialH,
+          x: slot.x,
+          y: slot.y,
+          width: slot.width,
+          height: slot.height,
           aspectRatio: imgAspect,
           naturalWidth: naturalW,
           naturalHeight: naturalH,
@@ -715,7 +874,7 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
             </button>
           </div>
 
-          {/* Main Studio Workspace (Stacked on Mobile, Side-by-Side on Desktop) */}
+          {/* Main Studio Workspace */}
           <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden min-h-0 relative">
 
             {/* LEFT / CENTER: Clean Light Mode Canvas Viewport */}
@@ -1040,24 +1199,41 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
                       <span>Back</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={handleApplyCropAndSave}
-                      disabled={isProcessing}
-                      className="px-4 py-1.5 sm:px-5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-lg cursor-pointer shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50"
-                    >
-                      {isProcessing ? (
-                        <>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleAutoDetectInCropper}
+                        disabled={isDetectingCropItem}
+                        className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg cursor-pointer shadow-xs flex items-center gap-1.5 transition-all disabled:opacity-50"
+                        title="Auto-detect document boundaries"
+                      >
+                        {isDetectingCropItem ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Saving...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Check className="w-3.5 h-3.5 stroke-3" />
-                          <span>Save</span>
-                        </>
-                      )}
-                    </button>
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5" />
+                        )}
+                        <span>Auto-Detect</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleApplyCropAndSave}
+                        disabled={isProcessing}
+                        className="px-4 py-1.5 sm:px-5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-lg cursor-pointer shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50"
+                      >
+                        {isProcessing ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-3.5 h-3.5 stroke-3" />
+                            <span>Save</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1071,16 +1247,39 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
                 <div className="flex flex-col gap-3.5 sm:gap-4">
                   {/* Add Images & Document List */}
                   <div className="flex flex-col gap-2.5">
-                    <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
-                      Document Images ({canvasItems.length})
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
+                        Document Images ({canvasItems.length})
+                      </label>
+                    </div>
+
+                    {/* 1-Click Master Auto-Crop & 2-in-1 Align Button */}
+                    <button
+                      type="button"
+                      onClick={handleAutoScanAndAlignAll}
+                      disabled={isAutoScanningAll || !canvasItems.length}
+                      className="w-full py-3 px-3.5 bg-linear-to-r from-amber-500 via-rose-500 to-brand hover:from-amber-600 hover:to-rose-700 text-white rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-rose-400/30"
+                      title="Automatically detect document borders, strip background, and align cards 2-in-1 on A4"
+                    >
+                      {isAutoScanningAll ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                          <span>Scanning &amp; Aligning...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 text-amber-200 fill-amber-200 shrink-0" />
+                          <span>⚡ 1-Click Auto-Crop &amp; Align (2-in-1)</span>
+                        </>
+                      )}
+                    </button>
 
                     {/* Parallel Action Buttons: [ + Add Images ] and [ 📐 Perspective Crop ] */}
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => multiFileInputRef.current?.click()}
-                        className="py-2.5 px-3 bg-brand hover:bg-rose-700 text-white rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                        className="py-2.5 px-3 bg-stone-900 hover:bg-black text-white rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all"
                       >
                         <Plus className="w-4 h-4 shrink-0" />
                         <span className="truncate">Add Images</span>
@@ -1092,10 +1291,10 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
                           if (activeItem) handleOpenCropForItem(activeItem)
                           else if (canvasItems[0]) handleOpenCropForItem(canvasItems[0])
                         }}
-                        className="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-brand rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+                        className="py-2.5 px-3 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs transition-all"
                       >
-                        <Crop className="w-4 h-4 shrink-0" />
-                        <span className="truncate">Perspective Crop</span>
+                        <Crop className="w-4 h-4 shrink-0 text-brand" />
+                        <span className="truncate">Adjust Crop</span>
                       </button>
                     </div>
 

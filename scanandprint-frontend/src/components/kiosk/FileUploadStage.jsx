@@ -13,14 +13,21 @@ import {
   FileCheck2,
   Image as ImageIcon,
   CheckCircle2,
+  X,
+  Plus,
+  Trash2,
+  Layers,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function FileUploadStage({
   selectedFile,
+  selectedFiles = [],
   totalPages,
   isAnalyzingPdf,
   isPreUploading,
   onFileSelect,
+  onRemoveFile,
   onOpenStudioModal,
   onOpenPdfStudioModal,
   onOpenImageEditor,
@@ -32,13 +39,18 @@ export default function FileUploadStage({
 
   const onDrop = (acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
-      onFileSelect(acceptedFiles[0])
+      if (acceptedFiles.length > 5) {
+        toast.error('Maximum 5 files can be selected at once. First 5 files were taken.')
+      }
+      const filesToUse = acceptedFiles.slice(0, 5)
+      onFileSelect(filesToUse)
     }
   }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    multiple: false,
+    multiple: true,
+    maxFiles: 5,
     maxSize: 50 * 1024 * 1024, // 50MB
     accept: {
       'application/pdf': ['.pdf'],
@@ -51,9 +63,12 @@ export default function FileUploadStage({
   })
 
   const handleCameraCapture = (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      onFileSelect(file)
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      if (files.length > 5) {
+        toast.error('Maximum 5 files can be selected at once. First 5 photos taken.')
+      }
+      onFileSelect(files.slice(0, 5))
     }
   }
 
@@ -111,11 +126,11 @@ export default function FileUploadStage({
         </p>
       </div>
 
-      {/* Hidden Camera Input */}
+      {/* Hidden Camera / Gallery Multiple Input */}
       <input
         type="file"
         accept="image/*"
-        capture="environment"
+        multiple
         ref={cameraInputRef}
         onChange={handleCameraCapture}
         className="hidden"
@@ -138,10 +153,10 @@ export default function FileUploadStage({
 
         <div className="flex flex-col gap-1">
           <h3 className="text-base sm:text-lg font-extrabold text-stone-900 font-heading">
-            {isDragActive ? 'Drop File Here Now' : 'Upload Document or Photo'}
+            {isDragActive ? 'Drop Files Here (Max 5)' : selectedFiles?.length > 0 ? 'Add More or Replace Files (Max 5)' : 'Upload Documents or Photos (Max 5)'}
           </h3>
           <p className="text-xs text-stone-500 font-medium max-w-xs">
-            Drag & drop PDF, Word DOCX or Images (JPG, PNG) or tap to browse
+            Select up to 5 items (PDF, Word DOCX, JPG, PNG, Photos)
           </p>
         </div>
 
@@ -155,7 +170,7 @@ export default function FileUploadStage({
             className="btn py-2 px-4 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-stone-300 bg-white text-stone-800 shadow-2xs hover:bg-rose-50 hover:border-brand hover:text-brand hover:shadow-xs transition-all cursor-pointer"
           >
             <Camera className="w-4 h-4 text-brand" />
-            <span>Camera Photo</span>
+            <span>Camera / Photos (Max 5)</span>
           </button>
 
           <div className="inline-flex items-center gap-1.5 bg-stone-100 text-stone-600 px-3 py-2 rounded-xl text-[11px] font-bold">
@@ -165,7 +180,7 @@ export default function FileUploadStage({
         </div>
       </div>
 
-      {/* Selected File Details Card (Fully Responsive & Wrap-Safe) */}
+      {/* Selected File Details Card (Single or Multi-Files up to 5) */}
       {selectedFile && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -175,11 +190,17 @@ export default function FileUploadStage({
           <div className="flex items-center justify-between gap-2.5 sm:gap-3.5">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-brand flex items-center justify-center shrink-0 font-bold text-xs shadow-xs">
-                {isImage ? <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6" /> : <FileText className="w-5 h-5 sm:w-6 sm:h-6" />}
+                {selectedFiles?.length > 1 ? (
+                  <Layers className="w-5 h-5 sm:w-6 sm:h-6" />
+                ) : isImage ? (
+                  <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                ) : (
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
+                )}
               </div>
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="font-extrabold text-xs sm:text-sm text-stone-900 truncate" title={selectedFile.name}>
-                  {selectedFile.name}
+                  {selectedFiles?.length > 1 ? `${selectedFiles.length} Items Selected (Combined Document)` : selectedFile.name}
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5 mt-0.5 sm:mt-1">
                   <span className="text-[10px] sm:text-[11px] font-semibold text-stone-600 whitespace-nowrap bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200/80">
@@ -224,6 +245,44 @@ export default function FileUploadStage({
             </button>
           </div>
 
+          {/* Multiple Selected Files Chips List */}
+          {selectedFiles?.length > 1 && (
+            <div className="pt-2 border-t border-stone-100 flex flex-col gap-1.5">
+              <span className="text-[11px] font-extrabold text-stone-500 uppercase tracking-wider">
+                Selected Files ({selectedFiles.length}/5)
+              </span>
+              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1 bg-stone-50 rounded-xl border border-stone-200">
+                {selectedFiles.map((file, idx) => (
+                  <div
+                    key={`${file.name}-${idx}`}
+                    className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-stone-200 shadow-2xs text-xs font-bold text-stone-700 max-w-full"
+                  >
+                    <span className="text-[10px] bg-rose-50 text-brand px-1 rounded font-black">
+                      {idx + 1}
+                    </span>
+                    <span className="truncate max-w-36 text-[11px]">{file.name}</span>
+                    <span className="text-[10px] text-stone-400 font-normal">
+                      ({(file.size / 1024).toFixed(0)} KB)
+                    </span>
+                    {onRemoveFile && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onRemoveFile(idx)
+                        }}
+                        className="hover:text-rose-600 text-stone-400 p-0.5 cursor-pointer ml-0.5"
+                        title="Remove file"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Image Action Button (Unified Crop & Document Studio) */}
           {isImage && (
             <div className="pt-2 border-t border-stone-100 flex flex-col gap-2">
@@ -241,7 +300,7 @@ export default function FileUploadStage({
                       Edit &amp; Crop Document Image
                     </span>
                     <span className="text-[10px] text-stone-500 font-medium truncate">
-                      4-Point Crop · A4 Layout · Passport Grid
+                      4-Point Crop · ID Card 2-in-1 · Passport Grid
                     </span>
                   </div>
                 </div>
