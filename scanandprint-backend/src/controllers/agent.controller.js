@@ -2,13 +2,12 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import fs from 'node:fs'
 import path from 'node:path'
-import ptp from 'pdf-to-printer'
-import { authService } from '../services/auth.service.js'
-import { agentService } from '../services/agent.service.js'
+import ptp from 'pdf-to-printer';
 import { sendSuccess, sendError } from '../utils/apiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ensurePdfBuffer } from '../utils/pdfConverter.util.js'
 import { activeAgentsMap } from '../socket.js'
+import { shopRepository } from '../repositories/shop.repository.js'
 
 const execFileAsync = promisify(execFile)
 
@@ -18,16 +17,13 @@ export const handleAgentAuth = asyncHandler(async (req, res, next) => {
   })
 })
 
-import { shopRepository } from '../repositories/shop.repository.js'
-
-// Query real-time in-memory Agent online status with cloud/multi-instance heartbeat fallback
+// Query real-time in-memory Agent online status
 export const getLiveAgentStatus = asyncHandler(async (req, res, next) => {
   const shopCode = String(req.params.shopCode || req.query.shopCode || '').trim().toUpperCase()
   let isOnline = Boolean(shopCode && activeAgentsMap.has(shopCode))
   let agentInfo = isOnline ? activeAgentsMap.get(shopCode) : null
   let printers = agentInfo?.printers || []
 
-  // If not in local RAM (e.g. Agent is connected to Cloud Render instance), check DB heartbeat (<90s)
   if (!isOnline && shopCode) {
     try {
       const shop = await shopRepository.findByCode(shopCode)
@@ -124,7 +120,7 @@ export const executeLocalPrint = asyncHandler(async (req, res, next) => {
       }
     }
 
-    // If still no buffer (e.g. Test Print Page button triggered), generate a quick test page!
+    // If still no buffer, generate a quick test page!
     if (!downloadedBuffer || downloadedBuffer.length === 0) {
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib')
       const doc = await PDFDocument.create()

@@ -3,76 +3,68 @@ import { sendError } from '../utils/apiResponse.js'
 import { shopRepository } from '../repositories/shop.repository.js'
 import { getShopSession } from '../configs/redis.config.js'
 
-// authenticate shop middleware
+// Authenticate shop middleware
 export const authenticateShop = async (req, res, next) => {
   try {
-    let token = null
-    if (req.cookies && req.cookies.accessToken) token = req.cookies.accessToken
-
-    else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer '))
-      token = req.headers.authorization.split(' ')[1]
+    const token = req.cookies?.accessToken || req.headers.authorization?.split(' ')[1];
 
     if (!token)
-      return sendError(res, 401, 'Unauthorized: Access token is missing or invalid')
+      return sendError(res, 401, 'Unauthorized: Access token is missing or invalid');
 
-    const decoded = verifyToken(token)
+    const decoded = verifyToken(token);
 
-    if (!decoded || !decoded.shopId)
-      return sendError(res, 401, 'Unauthorized: Invalid token payload')
+    if (!decoded?.shopId)
+      return sendError(res, 401, 'Unauthorized: Invalid token payload');
 
-    // Single active session check (Redis + fast in-memory fallback)
-    const activeSessionId = await getShopSession(decoded.shopId)
+    const activeSessionId = await getShopSession(decoded.shopId);
 
-    // Reject if sessionId is missing or does not match current active session
-    if (!decoded.sessionId || decoded.sessionId !== activeSessionId) {
+    if (!decoded.sessionId || decoded.sessionId !== activeSessionId)
       return res.status(401).json({
         success: false,
         code: 'SESSION_INVALIDATED',
-        message: 'Your session has expired or you have logged in from another device.',
-      })
-    }
+        message:
+          'Your session has expired or you have logged in from another device.',
+      });
 
-    const shop = await shopRepository.findById(decoded.shopId, {
-      select: '-passwordHash -__v',
-      lean: true,
-    })
+    const shop = await shopRepository.findById(
+      decoded.shopId,
+      {
+        select: '-passwordHash -__v',
+        lean: true,
+      }
+    );
 
     if (!shop)
-      return sendError(res, 401, 'Unauthorized: Shop account not found')
+      return sendError(res, 401, 'Unauthorized: Shop account not found');
 
-    if (shop.isSuspended) {
-      return sendError(res, 403, 'Account Suspended: Your shop has been suspended by Administrator. Please contact support.')
-    }
+    if (shop.isSuspended)
+      return sendError(res, 403, 'Account Suspended: Your shop has been suspended by Administrator. Please contact support.');
 
-    // Check if subscription or demo period has expired
-    const now = new Date()
-    let isExpired = false
+    const now = Date.now();
 
-    if (shop.isDemoAccount) {
-      if (!shop.demoExpiresAt || now > new Date(shop.demoExpiresAt)) {
-        isExpired = true
-      }
-    } else if (shop.subscriptionExpiresAt) {
-      if (now > new Date(shop.subscriptionExpiresAt)) {
-        isExpired = true
-      }
-    } else if (shop.subscriptionStatus === 'PENDING_PAYMENT' || !shop.isSubscriptionActive) {
-      isExpired = true
-    }
+    const isDemoExpired = shop.isDemoAccount && (!shop.demoExpiresAt || new Date(shop.demoExpiresAt).getTime() <= now);
+
+    const isSubscriptionExpired = !shop.isDemoAccount && shop.subscriptionExpiresAt && new Date(shop.subscriptionExpiresAt).getTime() <= now;
+
+    const isSubscriptionInactive = !shop.isDemoAccount && (shop.subscriptionStatus === 'PENDING_PAYMENT' || !shop.isSubscriptionActive);
+
+    const isExpired = isDemoExpired || isSubscriptionExpired || isSubscriptionInactive;
 
     if (isExpired && shop.subscriptionStatus !== 'EXPIRED') {
-      await shopRepository.updateById(shop._id, {
-        subscriptionStatus: 'EXPIRED',
-        isSubscriptionActive: false,
-      })
-      shop.subscriptionStatus = 'EXPIRED'
-      shop.isSubscriptionActive = false
+      await shopRepository.updateById(
+        shop._id,
+        {
+          subscriptionStatus: 'EXPIRED',
+          isSubscriptionActive: false,
+        }
+      );
+      shop.subscriptionStatus = 'EXPIRED';
+      shop.isSubscriptionActive = false;
     }
 
-    req.shop = shop
-    req.isSubscriptionActive = !isExpired
+    req.shop = shop;
+    req.isSubscriptionActive = !isExpired;
 
-    // Allowed endpoints even when expired (for renewing and viewing status)
     const openExpiredPaths = [
       '/me',
       '/profile',
@@ -80,82 +72,87 @@ export const authenticateShop = async (req, res, next) => {
       '/create-subscription-order',
       '/verify-subscription-payment',
       '/settings',
-      '/refresh-token'
-    ]
+      '/refresh-token',
+    ];
 
-    const isPathAllowed = openExpiredPaths.some(p => req.path.endsWith(p) || req.originalUrl.includes(p))
+    const isPathAllowed = openExpiredPaths.some((path) =>
+      req.path.endsWith(path) ||
+      req.originalUrl.includes(path)
+    );
 
-    if (isExpired && !isPathAllowed) {
+    if (isExpired && !isPathAllowed)
       return res.status(403).json({
         success: false,
         isSubscriptionExpired: true,
         isSubscriptionActive: false,
-        message: 'Your subscription plan has expired. Please renew your subscription to continue using Scan&Print.',
-      })
-    }
+        message:
+          'Your subscription plan has expired. Please renew your subscription to continue using Scan&Print.',
+      });
 
-    next()
+    next();
   } catch (error) {
-    return sendError(res, 401, 'Unauthorized: Token expired or invalid', error.message)
+    console.error('Shop authentication error:', error.message);
+    return sendError(res, 401, 'Unauthorized: Token expired or invalid');
   }
-}
-
-// authenticate agent middleware
+};
+// Authenticate agent middleware
 export const authenticateAgent = async (req, res, next) => {
   try {
-    const secretApiKey = req.headers['x-secret-api-key'] || req.query.secretApiKey
-    const shopCode = req.headers['x-shop-code'] || req.query.shopCode
+    const secretApiKey = req.headers['x-secret-api-key'] || req.query.secretApiKey;
+    const shopCode = req.headers['x-shop-code'] || req.query.shopCode;
 
     if (!secretApiKey || !shopCode)
-      return sendError(res, 401, 'Unauthorized: Agent API Key and Shop Code required')
+      return sendError(res, 401, 'Unauthorized: Agent API Key and Shop Code required');
 
-    const shop = await shopRepository.findByCodeAndSecret(shopCode, secretApiKey, { lean: true })
+    const shop = await shopRepository.findByCodeAndSecret(
+      shopCode,
+      secretApiKey,
+      { lean: true }
+    );
 
     if (!shop)
-      return sendError(res, 401, 'Unauthorized: Invalid Agent API Key or Shop Code')
+      return sendError(res, 401, 'Unauthorized: Invalid Agent API Key or Shop Code');
 
-    if (shop.isSuspended) {
-      return sendError(res, 403, 'Account Suspended: This shop has been suspended by Administrator.')
-    }
+    if (shop.isSuspended)
+      return sendError(res, 403, 'Account Suspended: This shop has been suspended by Administrator.');
 
-    const now = Date.now()
+    const now = Date.now();
+
     if (shop.isDemoAccount) {
-      const isDemoExpired = shop.demoExpiresAt ? new Date(shop.demoExpiresAt).getTime() <= now : true
-      if (isDemoExpired) {
-        return sendError(res, 403, 'Demo Expired: Demo trial access has expired. Please upgrade to a paid plan.')
-      }
+      const demoExpired = !shop.demoExpiresAt || new Date(shop.demoExpiresAt).getTime() <= now;
+      if (demoExpired)
+        return sendError(res, 403, 'Demo Expired: Demo trial access has expired. Please upgrade to a paid plan.');
     } else if (shop.subscriptionExpiresAt && new Date(shop.subscriptionExpiresAt).getTime() <= now) {
-      return sendError(res, 403, 'Subscription Expired: Subscription access has expired. Please renew.')
+      return sendError(res, 403, 'Subscription Expired: Subscription access has expired. Please renew.');
     }
 
-    req.shop = shop
-    next()
+    req.shop = shop;
+
+    next();
   } catch (error) {
-    return sendError(res, 500, 'Agent Authentication Error', error.message)
+    console.error('Agent authentication error:', error.message);
+    return sendError(res, 500, 'Agent Authentication Error');
   }
-}
+};
 
-// authenticate admin middleware
-export const authenticateAdmin = async (req, res, next) => {
+// Authenticate admin middleware
+export const authenticateAdmin = (req, res, next) => {
   try {
-    let token = null
-
-    if (req.cookies && req.cookies.adminAccessToken)
-      token = req.cookies.adminAccessToken
-    else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer '))
-      token = req.headers.authorization.split(' ')[1]
+    const token = req.cookies?.adminAccessToken || req.headers.authorization?.split(' ')[1];
 
     if (!token)
-      return sendError(res, 401, 'Unauthorized: Admin access token is missing or invalid')
+      return sendError(res, 401, 'Unauthorized: Admin access token is missing or invalid');
 
-    const decoded = verifyToken(token)
+    const decoded = verifyToken(token);
 
-    if (!decoded || !decoded.adminId)
-      return sendError(res, 401, 'Unauthorized: Invalid admin token payload')
+    if (!decoded?.adminId)
+      return sendError(res, 401, 'Unauthorized: Invalid admin token payload');
 
-    req.adminId = decoded.adminId
-    next()
+    req.adminId = decoded.adminId;
+
+    next();
   } catch (error) {
-    return sendError(res, 401, 'Unauthorized: Admin token expired or invalid', error.message)
+    console.error('Admin authentication error:', error.message);
+    return sendError(res, 401, 'Unauthorized: Admin token expired or invalid');
   }
-}
+};

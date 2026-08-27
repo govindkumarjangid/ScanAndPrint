@@ -1,44 +1,105 @@
 import mongoose from 'mongoose';
 import { envConfig } from './env.config.js';
+import dns from 'node:dns';
 
-export const connectDB = async () => {
+if (envConfig.nodeEnv === 'development')
+  dns.setServers(['1.1.1.1', '8.8.8.8']);
+
+let isConnected = false;
+
+const connectDB = async () => {
+
+  if (!envConfig.mongoUri)
+    throw new Error("MONGO_URI is not defined.");
+
+  if (mongoose.connection.readyState === 1) {
+    console.log('✅ MongoDB already connected.');
+    return mongoose.connection;
+  }
+
+  if (mongoose.connection.readyState === 2) {
+    console.log('⏳ MongoDB connection is already in progress...');
+    return mongoose.connection;
+  }
+
+  const options = {
+    dbName: 'ScanAndPrintDB',
+    serverSelectionTimeoutMS: 10_000,   // Connection timeout
+    connectTimeoutMS: 10_000,    // TCP connection timeout
+    socketTimeoutMS: 45_000,     // Socket timeout
+    maxPoolSize: 10,     // Connection pool
+    minPoolSize: 2,
+    heartbeatFrequencyMS: 10_000,  // Faster detection of broken connections
+    retryWrites: true,   // Retry writes when supported
+    bufferCommands: false, // Keep application from buffering queries forever
+  };
+
   try {
-    if (!envConfig.mongoUri)
-      throw new Error("MONGO_URI is not defined in the environment variables.");
+    console.log('⏳ Connecting to MongoDB...');
 
-    console.log('⏳ Attempting to connect to MongoDB...');
+    await mongoose.connect(envConfig.mongoUri, options);
 
-    if (mongoose.connection.readyState !== 0)
-      await mongoose.disconnect();
+    isConnected = true;
 
-    const options = { serverSelectionTimeoutMS: 5000, dbName: 'ScanAndPrintDB' };
+    console.log(`✅ MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
 
-    let conn;
-    try {
-      conn = await mongoose.connect(envConfig.mongoUri, options);
-    } catch (srvErr) {
-      if (envConfig.mongoUri.startsWith('mongodb+srv://')) {
-        console.warn('⚠️  SRV DNS lookup failed. Connecting via direct replica set hosts...');
-        const fallbackUri = envConfig.mongoUri
-          .replace('mongodb+srv://', 'mongodb://')
-          .replace('scanandprintcluster.44thqhk.mongodb.net', 'ac-7q7a7h9-shard-00-00.44thqhk.mongodb.net:27017,ac-7q7a7h9-shard-00-01.44thqhk.mongodb.net:27017,ac-7q7a7h9-shard-00-02.44thqhk.mongodb.net:27017')
-          + (envConfig.mongoUri.includes('?') ? '&' : '?') + 'ssl=true&authSource=admin';
-        conn = await mongoose.connect(fallbackUri, options);
-      } else {
-        throw srvErr;
-      }
-    }
-
-    console.log(`✅ MongoDB Connected Successfully: ${conn.connection.host}`);
-
-    mongoose.connection.on('disconnected', () => {
-      console.warn('🔴 MongoDB disconnected! Trying to reconnect...');
-    });
-
+    return mongoose.connection;
   } catch (error) {
-    console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
+    isConnected = false;
+
+    console.error('❌ MongoDB connection failed:', error.message);
+
+    throw error;
+  }
+
+};
+
+mongoose.connection.on('connected', () => {
+  isConnected = true;
+  console.log('🟢 MongoDB connected');
+});
+
+mongoose.connection.on('disconnected', () => {
+  isConnected = false;
+  console.warn('🟡 MongoDB disconnected');
+});
+
+mongoose.connection.on('reconnected', () => {
+  isConnected = true;
+  console.log('🟢 MongoDB reconnected');
+});
+
+mongoose.connection.on('error', (error) => {
+  console.error('🔴 MongoDB error:', error.message);
+});
+
+
+const disconnectDB = async () => {
+  try {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+      console.log('🛑 MongoDB connection closed.');
+    }
+  } catch (error) {
+    console.error(
+      '❌ Error while closing MongoDB:',
+      error.message
+    );
   }
 };
 
-export default connectDB;
+process.once('SIGINT', async () => {
+  await disconnectDB();
+  process.exit(0);
+});
+
+process.once('SIGTERM', async () => {
+  await disconnectDB();
+  process.exit(0);
+});
+
+export {
+  connectDB,
+  disconnectDB,
+  isConnected,
+};

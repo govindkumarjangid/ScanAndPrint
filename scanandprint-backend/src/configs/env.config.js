@@ -1,6 +1,6 @@
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
 
-dotenv.config()
+dotenv.config();
 
 export const envConfig = {
   port: process.env.PORT || 5000,
@@ -16,4 +16,3 @@ export const envConfig = {
   clientUrl: (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/+$/, ''),
   redisUrl: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
 }
-

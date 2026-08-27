@@ -73,32 +73,88 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
   const [passportCount, setPassportCount] = useState(16) // 16, 20, 24, 30, 32, 36, 40, 48
   const [passportNoGap, setPassportNoGap] = useState(true) // Always zero space between photos
 
-  // Load Initial Image
+  // Load Initial Image with Dynamic Natural Aspect Ratio Fitting
   useEffect(() => {
     if (imageFile) {
       const url = URL.createObjectURL(imageFile)
       setImageSrc(url)
 
-      // Initialize A4 Canvas with initial image
-      const initialItem = {
-        id: 'item_' + Date.now(),
-        url,
-        rawUrl: url,
-        name: imageFile.name || 'Document 1',
-        x: 12,
-        y: 8,
-        width: 76,
-        height: 42,
-        rotation: 0,
-        corners: [
-          { x: 5, y: 5 },
-          { x: 95, y: 5 },
-          { x: 95, y: 95 },
-          { x: 5, y: 95 },
-        ],
+      const img = new Image()
+      img.onload = () => {
+        const naturalW = img.naturalWidth || 1000
+        const naturalH = img.naturalHeight || 1000
+        const imgAspect = naturalW / naturalH // (width / height)
+
+        // For bounding box to tightly fit the image on A4 canvas (1 / 1.4142 page aspect):
+        // Physical aspect = (w / h) * (1 / 1.4142) = imgAspect
+        // So h = w / (imgAspect * 1.4142)
+        let initialW = 76
+        let initialH = initialW / (imgAspect * 1.4142)
+
+        // If portrait/tall flyer/document, limit height so it fits comfortably on page
+        if (initialH > 78) {
+          initialH = 78
+          initialW = initialH * (imgAspect * 1.4142)
+        }
+        if (initialW > 88) {
+          initialW = 88
+          initialH = initialW / (imgAspect * 1.4142)
+        }
+
+        initialW = Math.round(initialW * 10) / 10
+        initialH = Math.round(initialH * 10) / 10
+        const initialX = Math.round(Math.max(2, (100 - initialW) / 2) * 10) / 10
+        const initialY = Math.round(Math.max(4, (100 - initialH) / 2) * 10) / 10
+
+        const initialItem = {
+          id: 'item_' + Date.now(),
+          url,
+          rawUrl: url,
+          name: imageFile.name || 'Document 1',
+          x: initialX,
+          y: initialY,
+          width: initialW,
+          height: initialH,
+          aspectRatio: imgAspect,
+          naturalWidth: naturalW,
+          naturalHeight: naturalH,
+          rotation: 0,
+          corners: [
+            { x: 5, y: 5 },
+            { x: 95, y: 5 },
+            { x: 95, y: 95 },
+            { x: 5, y: 95 },
+          ],
+        }
+
+        setCanvasItems([initialItem])
+        setSelectedItemId(initialItem.id)
       }
-      setCanvasItems([initialItem])
-      setSelectedItemId(initialItem.id)
+
+      img.onerror = () => {
+        const fallbackItem = {
+          id: 'item_' + Date.now(),
+          url,
+          rawUrl: url,
+          name: imageFile.name || 'Document 1',
+          x: 12,
+          y: 8,
+          width: 76,
+          height: 42,
+          aspectRatio: 1.25,
+          rotation: 0,
+          corners: [
+            { x: 5, y: 5 },
+            { x: 95, y: 5 },
+            { x: 95, y: 95 },
+            { x: 5, y: 95 },
+          ],
+        }
+        setCanvasItems([fallbackItem])
+        setSelectedItemId(fallbackItem.id)
+      }
+      img.src = url
+
       setBrightness(100)
       setContrast(100)
       setPassportCount(16)
@@ -138,9 +194,23 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
             const newY = Math.max(0, Math.min(100 - origItem.height, origItem.y + deltaYPercent))
             return { ...item, x: newX, y: newY }
           } else if (type === 'resize_br') {
-            const newW = Math.max(10, Math.min(100 - origItem.x, origItem.width + deltaXPercent))
-            const newH = Math.max(8, Math.min(100 - origItem.y, origItem.height + deltaYPercent))
-            return { ...item, width: newW, height: newH }
+            const aspect =
+              origItem.aspectRatio ||
+              (origItem.naturalWidth && origItem.naturalHeight ? origItem.naturalWidth / origItem.naturalHeight : null) ||
+              origItem.width / (origItem.height * 1.4142) ||
+              1
+            const effectiveAspect = origItem.rotation % 180 === 0 ? aspect : 1 / aspect
+            let newW = Math.max(10, Math.min(100 - origItem.x, origItem.width + deltaXPercent))
+            let newH = newW / (effectiveAspect * 1.4142)
+            if (origItem.y + newH > 100) {
+              newH = 100 - origItem.y
+              newW = newH * (effectiveAspect * 1.4142)
+            }
+            return {
+              ...item,
+              width: Math.round(newW * 10) / 10,
+              height: Math.round(newH * 10) / 10,
+            }
           }
           return item
         })
@@ -249,7 +319,10 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
   // Open 4-Point Crop View for Specific Item
   const handleOpenCropForItem = (item) => {
     setCroppingItem(item)
-    // Pre-calculate image natural dimensions
+    if (item.naturalWidth && item.naturalHeight) {
+      setCropImgSize({ w: item.naturalWidth, h: item.naturalHeight })
+    }
+    // Pre-calculate image natural dimensions if not already stored
     const img = new Image()
     img.src = item.rawUrl || item.url
     img.onload = () => {
@@ -259,11 +332,11 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
       item.corners && item.corners.length === 4
         ? item.corners.map((c) => ({ ...c }))
         : [
-          { x: 5, y: 5 },
-          { x: 95, y: 5 },
-          { x: 95, y: 95 },
-          { x: 5, y: 95 },
-        ]
+            { x: 2, y: 2 },
+            { x: 98, y: 2 },
+            { x: 98, y: 98 },
+            { x: 2, y: 98 },
+          ]
     )
   }
 
@@ -281,26 +354,57 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
       })
 
       const croppedDataUrl = croppedCanvas.toDataURL('image/png')
-      const cropAspect = croppedCanvas.width / croppedCanvas.height
+      const actualW = croppedCanvas.width
+      const actualH = croppedCanvas.height
+      const cropAspect = actualW / actualH // aspect ratio (w / h)
 
-      // Maintain placed width on A4, adjust height proportionally to A4 ratio
-      const a4Aspect = 1 / 1.414
-      const newHeight = Math.max(8, Math.min(85, (croppingItem.width / cropAspect) * a4Aspect))
+      // Calculate width and height on A4 canvas (physical ratio 1 / 1.4142):
+      // physical aspect = (w / h) * (1 / 1.4142) = cropAspect
+      // Therefore: h = w / (cropAspect * 1.4142)
+      let newW = croppingItem.width
+      let newH = newW / (cropAspect * 1.4142)
+
+      // Cap bounds if needed
+      if (newH > 85) {
+        newH = 85
+        newW = newH * (cropAspect * 1.4142)
+      }
+      if (newW > 92) {
+        newW = 92
+        newH = newW / (cropAspect * 1.4142)
+      }
+
+      newW = Math.round(newW * 10) / 10
+      newH = Math.round(newH * 10) / 10
+
+      // Re-center around previous center
+      const centerX = croppingItem.x + croppingItem.width / 2
+      const centerY = croppingItem.y + croppingItem.height / 2
+      const newX = Math.round(Math.max(1, Math.min(100 - newW - 1, centerX - newW / 2)) * 10) / 10
+      const newY = Math.round(Math.max(2, Math.min(100 - newH - 2, centerY - newH / 2)) * 10) / 10
 
       setCanvasItems((prev) =>
         prev.map((it) =>
           it.id === croppingItem.id
             ? {
-              ...it,
-              url: croppedDataUrl,
-              height: newHeight,
-              corners: [
-                { x: 0, y: 0 },
-                { x: 100, y: 0 },
-                { x: 100, y: 100 },
-                { x: 0, y: 100 },
-              ],
-            }
+                ...it,
+                url: croppedDataUrl,
+                rawUrl: croppedDataUrl,
+                x: newX,
+                y: newY,
+                width: newW,
+                height: newH,
+                aspectRatio: cropAspect,
+                naturalWidth: actualW,
+                naturalHeight: actualH,
+                rotation: 0, // Rotation is baked into croppedCanvas by renderPerspectiveCropCanvas
+                corners: [
+                  { x: 0, y: 0 },
+                  { x: 100, y: 0 },
+                  { x: 100, y: 100 },
+                  { x: 0, y: 100 },
+                ],
+              }
             : it
         )
       )
@@ -321,32 +425,56 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
     const files = Array.from(e.target.files || [])
     if (!files.length) return
 
-    const newItems = files.map((file, idx) => {
+    files.forEach((file, idx) => {
       const url = URL.createObjectURL(file)
       const slotIndex = canvasItems.length + idx
-      return {
-        id: 'item_' + Date.now() + '_' + idx,
-        url,
-        rawUrl: url,
-        name: file.name || `Document ${slotIndex + 1}`,
-        x: 12,
-        y: Math.min(55, 8 + slotIndex * 24),
-        width: 76,
-        height: 40,
-        rotation: 0,
-        corners: [
-          { x: 5, y: 5 },
-          { x: 95, y: 5 },
-          { x: 95, y: 95 },
-          { x: 5, y: 95 },
-        ],
+
+      const img = new Image()
+      img.onload = () => {
+        const naturalW = img.naturalWidth || 1000
+        const naturalH = img.naturalHeight || 1000
+        const imgAspect = naturalW / naturalH
+
+        let initialW = 76
+        let initialH = initialW / (imgAspect * 1.4142)
+        if (initialH > 44) {
+          initialH = 44
+          initialW = initialH * (imgAspect * 1.4142)
+        }
+        if (initialW > 88) {
+          initialW = 88
+          initialH = initialW / (imgAspect * 1.4142)
+        }
+        initialW = Math.round(initialW * 10) / 10
+        initialH = Math.round(initialH * 10) / 10
+
+        const newItem = {
+          id: 'item_' + Date.now() + '_' + idx,
+          url,
+          rawUrl: url,
+          name: file.name || `Document ${slotIndex + 1}`,
+          x: Math.round(Math.max(2, (100 - initialW) / 2) * 10) / 10,
+          y: Math.min(55, 6 + slotIndex * 22),
+          width: initialW,
+          height: initialH,
+          aspectRatio: imgAspect,
+          naturalWidth: naturalW,
+          naturalHeight: naturalH,
+          rotation: 0,
+          corners: [
+            { x: 5, y: 5 },
+            { x: 95, y: 5 },
+            { x: 95, y: 95 },
+            { x: 5, y: 95 },
+          ],
+        }
+
+        setCanvasItems((prev) => [...prev, newItem])
+        setSelectedItemId(newItem.id)
       }
+      img.src = url
     })
 
-    setCanvasItems((prev) => [...prev, ...newItems])
-    if (newItems.length > 0) {
-      setSelectedItemId(newItems[newItems.length - 1].id)
-    }
     toast.success(`Added ${files.length} document image${files.length > 1 ? 's' : ''}!`)
   }
 
@@ -362,7 +490,38 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
   const handleRotateCanvasItem = (id, e) => {
     if (e) e.stopPropagation()
     setCanvasItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, rotation: (item.rotation + 90) % 360 } : item))
+      prev.map((item) => {
+        if (item.id !== id) return item
+        const newRotation = (item.rotation + 90) % 360
+        const aspect =
+          item.aspectRatio ||
+          (item.naturalWidth && item.naturalHeight ? item.naturalWidth / item.naturalHeight : null) ||
+          item.width / (item.height * 1.4142) ||
+          1
+        const effectiveAspect = newRotation % 180 === 0 ? aspect : 1 / aspect
+        const centerX = item.x + item.width / 2
+        const centerY = item.y + item.height / 2
+        let newW = item.height * (effectiveAspect * 1.4142)
+        let newH = item.height
+        if (newW > 92) {
+          newW = 88
+          newH = newW / (effectiveAspect * 1.4142)
+        }
+        if (newH > 86) {
+          newH = 80
+          newW = newH * (effectiveAspect * 1.4142)
+        }
+        const newX = Math.max(1, Math.min(100 - newW - 1, centerX - newW / 2))
+        const newY = Math.max(1, Math.min(100 - newH - 1, centerY - newH / 2))
+        return {
+          ...item,
+          rotation: newRotation,
+          width: Math.round(newW * 10) / 10,
+          height: Math.round(newH * 10) / 10,
+          x: Math.round(newX * 10) / 10,
+          y: Math.round(newY * 10) / 10,
+        }
+      })
     )
   }
 
@@ -618,45 +777,73 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
                           height: `${item.height}%`,
                         }}
                       >
-                        {/* Image Content */}
-                        <div className="w-full h-full relative overflow-hidden bg-stone-50 rounded-xs">
+                        {/* Image Content - Auto-fits edge-to-edge with 0 gap */}
+                        <div className="w-full h-full relative overflow-hidden rounded-xs">
                           <img
                             src={item.url}
                             alt={item.name}
-                            className="w-full h-full object-contain pointer-events-none"
+                            className="w-full h-full object-fill pointer-events-none select-none"
                             style={{
                               transform: `rotate(${item.rotation}deg)`,
                               filter: `brightness(${brightness}%) contrast(${contrast}%)`,
                             }}
+                            onLoad={(e) => {
+                              const nw = e.target.naturalWidth
+                              const nh = e.target.naturalHeight
+                              if (nw && nh) {
+                                const effectiveRot = item.rotation || 0
+                                const naturalAspect = nw / nh
+                                const targetAspect = effectiveRot % 180 === 0 ? naturalAspect : 1 / naturalAspect
+                                const currentBoxAspect = item.width / (item.height * 1.4142)
+
+                                // If bounding box aspect ratio differs from image by > 1.5%, auto-snap height
+                                if (Math.abs(currentBoxAspect - targetAspect) > 0.015) {
+                                  const snappedH = Math.round((item.width / (targetAspect * 1.4142)) * 10) / 10
+                                  setCanvasItems((prev) =>
+                                    prev.map((it) =>
+                                      it.id === item.id
+                                        ? {
+                                            ...it,
+                                            height: Math.max(6, Math.min(94, snappedH)),
+                                            aspectRatio: targetAspect,
+                                            naturalWidth: nw,
+                                            naturalHeight: nh,
+                                          }
+                                        : it
+                                    )
+                                  )
+                                }
+                              }
+                            }}
                           />
                         </div>
 
-                        {/* 1. TOP-RIGHT CORNER: SLEEK RED DELETE ICON */}
+                        {/* 1. TOP-RIGHT CORNER: COMPACT RED DELETE ICON */}
                         <button
                           type="button"
                           onClick={(e) => handleDeleteCanvasItem(item.id, e)}
                           onMouseDown={(e) => e.stopPropagation()}
                           onTouchStart={(e) => e.stopPropagation()}
-                          className="absolute -top-2.5 -right-2.5 w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-md border border-white cursor-pointer z-40 transition-transform hover:scale-115 active:scale-95"
+                          className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-md border border-white cursor-pointer z-40 transition-transform hover:scale-115 active:scale-95"
                           title="Delete image"
                         >
-                          <X className="w-3 h-3 stroke-3" />
+                          <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
                         </button>
 
-                        {/* 2. BOTTOM-RIGHT CORNER: SLEEK PURPLE RESIZE HANDLE */}
+                        {/* 2. BOTTOM-RIGHT CORNER: COMPACT PURPLE RESIZE HANDLE */}
                         <div
                           onMouseDown={(e) => handleStartCanvasDrag('resize_br', item, e)}
                           onTouchStart={(e) => handleStartCanvasDrag('resize_br', item, e)}
-                          className="absolute -bottom-2.5 -right-2.5 w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shadow-md border border-white cursor-se-resize z-40 transition-transform hover:scale-115 active:scale-95 touch-none"
+                          className="absolute -bottom-1.5 -right-1.5 sm:-bottom-2 sm:-right-2 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shadow-md border border-white cursor-se-resize z-40 transition-transform hover:scale-115 active:scale-95 touch-none"
                           title="Resize card"
                         >
-                          <Maximize2 className="w-2.5 h-2.5 rotate-90" />
+                          <Maximize2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 rotate-90" />
                         </div>
 
-                        {/* FLOATING ACTION PILL (ICON-ONLY WITHOUT BULKY TEXT) */}
+                        {/* FLOATING ACTION PILL (COMPACT ICON-ONLY FOR MOBILE) */}
                         {isSelected && (
                           <div
-                            className="absolute -top-7.5 left-0 z-40 flex items-center gap-1 bg-white/95 backdrop-blur-xs text-stone-800 px-1.5 py-0.5 rounded-lg shadow-md border border-stone-200 pointer-events-auto"
+                            className="absolute -top-6 sm:-top-7 left-0 z-40 flex items-center gap-0.5 bg-white/95 backdrop-blur-xs text-stone-800 px-1 py-0.5 rounded-md shadow-md border border-stone-200 pointer-events-auto"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
@@ -665,28 +852,28 @@ export default function KioskStudioModal({ imageFile, isOpen, onClose, onSave })
                                 e.stopPropagation()
                                 handleOpenCropForItem(item)
                               }}
-                              className="p-1 hover:bg-rose-50 text-brand rounded-md transition-colors cursor-pointer"
+                              className="p-0.5 sm:p-1 hover:bg-rose-50 text-brand rounded transition-colors cursor-pointer"
                               title="4-Point Perspective Crop & Unskew"
                             >
-                              <Crop className="w-3.5 h-3.5" />
+                              <Crop className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </button>
 
                             <button
                               type="button"
                               onClick={(e) => handleRotateCanvasItem(item.id, e)}
-                              className="p-1 hover:bg-stone-100 rounded-md text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
+                              className="p-0.5 sm:p-1 hover:bg-stone-100 rounded text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
                               title="Rotate 90°"
                             >
-                              <RotateCw className="w-3.5 h-3.5 text-brand" />
+                              <RotateCw className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand" />
                             </button>
 
                             <button
                               type="button"
                               onClick={(e) => handleDuplicateCanvasItem(item.id, e)}
-                              className="p-1 hover:bg-stone-100 rounded-md text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+                              className="p-0.5 sm:p-1 hover:bg-stone-100 rounded text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
                               title="Duplicate"
                             >
-                              <Copy className="w-3.5 h-3.5" />
+                              <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </button>
                           </div>
                         )}

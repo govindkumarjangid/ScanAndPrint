@@ -15,18 +15,18 @@ import { authenticateShop, authenticateAdmin } from '../middlewares/auth.middlew
 const router = express.Router()
 
 // Public / Agent Polling Route
-router.get('/check-status', checkAgentDeviceStatus)
+router.route('/check-status').get(checkAgentDeviceStatus)
 
 // Shop Owner Device Management Routes
-router.get('/my-devices', authenticateShop, getMyDevices)
-router.post('/:deviceId/approve', authenticateShop, approveDevice)
-router.post('/:deviceId/reject', authenticateShop, rejectDevice)
-router.post('/:deviceId/revoke', authenticateShop, revokeDevice)
+router.route('/my-devices').get(authenticateShop, getMyDevices)
+router.route('/:deviceId/approve').post(authenticateShop, approveDevice)
+router.route('/:deviceId/reject').post(authenticateShop, rejectDevice)
+router.route('/:deviceId/revoke').post(authenticateShop, revokeDevice)
 
 // Super Admin Device Management Routes
-router.get('/admin/all', authenticateAdmin, getAdminDevices)
-router.get('/admin/suspicious', authenticateAdmin, getSuspiciousShops)
-router.post('/admin/:deviceId/approve', authenticateAdmin, adminApproveDevice)
-router.post('/admin/:deviceId/revoke', authenticateAdmin, adminRevokeDevice)
+router.route('/admin/all').get(authenticateAdmin, getAdminDevices)
+router.route('/admin/suspicious').get(authenticateAdmin, getSuspiciousShops)
+router.route('/admin/:deviceId/approve').post(authenticateAdmin, adminApproveDevice)
+router.route('/admin/:deviceId/revoke').post(authenticateAdmin, adminRevokeDevice)
 
 export default router

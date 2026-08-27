@@ -1,5 +1,5 @@
-import { v2 as cloudinary } from 'cloudinary'
-import { envConfig } from './env.config.js'
+import { v2 as cloudinary } from 'cloudinary';
+import { envConfig } from './env.config.js';
 
 cloudinary.config({
   cloud_name: envConfig.cloudinaryCloudName,
@@ -7,5 +7,5 @@ cloudinary.config({
   api_secret: envConfig.cloudinaryApiSecret,
 })
 
-export { cloudinary }
-export default cloudinary
+export { cloudinary };
+export default cloudinary;

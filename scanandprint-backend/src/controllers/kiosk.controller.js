@@ -9,14 +9,10 @@ import { uploadToCloudinary } from '../utils/cloudinary.util.js'
 import { ensurePdfBuffer } from '../utils/pdfConverter.util.js'
 
 const uploadsJobsDir = path.join(process.cwd(), 'uploads', 'jobs')
-if (!fs.existsSync(uploadsJobsDir)) {
+if (!fs.existsSync(uploadsJobsDir))
   fs.mkdirSync(uploadsJobsDir, { recursive: true })
-}
 
-/**
- * Cleanly strips any existing extension (.png, .jpg, .jpeg, .webp, .docx, .png.pdf, etc.)
- * and returns a clean, canonical .pdf filename (e.g. document_page_123.pdf)
- */
+// convert to pdf
 export function cleanToPdfFilename(filename) {
   if (!filename) return 'document.pdf'
   const nameWithoutExt = filename.replace(/(\.(png|jpg|jpeg|webp|docx|doc|pdf))+$/gi, '')
@@ -30,14 +26,13 @@ export const getPublicShopInfo = asyncHandler(async (req, res, next) => {
     return sendError(res, 400, 'Shop Code is required')
 
   const shop = await kioskService.getShopInfo(shopCode)
-  if (!shop) {
+  if (!shop)
     return sendError(res, 404, 'Shop not found')
-  }
-  
+
   return sendSuccess(res, 200, 'Shop details loaded successfully', { shop })
 })
 
-// optimistic background pre-upload endpoint (Step 1 cache)
+// optimistic background pre-upload endpoint
 export const preUploadFile = asyncHandler(async (req, res, next) => {
   let fileBuffer = null
   let originalName = req.file?.originalname || req.body.originalFileName || 'document.pdf'
@@ -76,18 +71,17 @@ export const preUploadFile = asyncHandler(async (req, res, next) => {
   })
 })
 
-// single-flight atomic quick dispatch for Counter and Demo orders (<80ms total latency)
+// single-flight atomic quick dispatch for Counter and Demo orders
 export const quickDispatchPrintJob = asyncHandler(async (req, res, next) => {
   let fileBuffer = null
   let originalName = req.file?.originalname || req.body.originalFileName || 'document.pdf'
   const tempId = req.body.tempId
 
-  // 1. Check if file was pre-uploaded in Step 1
+  // Check if file was pre-uploaded in Step 1
   if (tempId) {
     const tempPath = path.join(uploadsJobsDir, `${tempId}.pdf`)
-    if (fs.existsSync(tempPath)) {
-      fileBuffer = fs.readFileSync(tempPath)
-    }
+    if (fs.existsSync(tempPath)) fileBuffer = fs.readFileSync(tempPath)
+
   }
 
   // 2. Fallback to direct Multer / Base64 upload
@@ -288,4 +282,3 @@ export const verifyPayment = asyncHandler(async (req, res, next) => {
   const job = await kioskService.verifyPayment(jobId, paymentTxnId, io)
   return sendSuccess(res, 200, 'Payment verified & print job dispatched!', { job })
 })
-

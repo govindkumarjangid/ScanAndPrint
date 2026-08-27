@@ -15,19 +15,21 @@ let tray = null
 let agentStatus = { status: 'DISCONNECTED', details: {} }
 const counterPopupWindows = new Map()
 
-// Prevent multiple instances of the Print Agent from running simultaneously
+// Prevent multiple instances of the Print Agent from running simultaneously (Fix duplicate windows)
 const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
-  console.log('Another instance of Scan&Print Agent is already running. Focusing existing instance...')
+  console.log('Another instance of Scan&Print Agent is already running. Quitting duplicate instance...')
+  app.quit()
+  process.exit(0)
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.show()
+      mainWindow.focus()
+    }
+  })
 }
-
-app.on('second-instance', () => {
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore()
-    mainWindow.show()
-    mainWindow.focus()
-  }
-})
 
 function createDesktopShortcut() {
   if (process.platform !== 'win32') {
@@ -37,8 +39,18 @@ function createDesktopShortcut() {
   try {
     const desktopPath = app.getPath('desktop')
     const targetExe = process.execPath
-    const icoPath = path.join(__dirname, 'assets/icon.ico')
-    const iconLocation = fs.existsSync(icoPath) ? icoPath : targetExe
+
+    // Extract icon.ico to userData so Windows Explorer always has a guaranteed physical file outside asar
+    let iconLocation = targetExe
+    try {
+      const safeIcoPath = path.join(app.getPath('userData'), 'icon.ico')
+      const bundledIco = path.join(__dirname, 'assets/icon.ico')
+      if (fs.existsSync(bundledIco)) {
+        fs.writeFileSync(safeIcoPath, fs.readFileSync(bundledIco))
+        iconLocation = safeIcoPath
+      }
+    } catch (e) {}
+
     const shortcutPath = path.join(desktopPath, 'Scan&Print Agent.lnk')
 
     const operation = fs.existsSync(shortcutPath) ? 'replace' : 'create'
@@ -422,9 +434,14 @@ function showCounterOrderPopup(jobData) {
   popupWin.webContents.on('did-finish-load', () => {
     popupWin.show()
     popupWin.focus()
-    popupWin.setAlwaysOnTop(true, 'screen-saver')
+    popupWin.setAlwaysOnTop(true)
+    if (typeof popupWin.moveTop === 'function') popupWin.moveTop()
     popupWin.flashFrame(true)
     popupWin.webContents.send('counter-order-data', jobData)
+  })
+
+  popupWin.webContents.on('did-fail-load', (e, errorCode, errorDescription) => {
+    console.error(`[Main] ❌ Failed to load counter-popup.html: ${errorCode} - ${errorDescription}`)
   })
 
   popupWin.on('closed', () => {

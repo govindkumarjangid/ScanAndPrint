@@ -4,11 +4,7 @@ import { sendSuccess, sendError } from '../utils/apiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { getIo, kickRevokedDeviceSocket, activeAgentsMap } from '../socket.js'
 
-// ==================== SHOP OWNER CONTROLLERS ====================
-
-/**
- * Get all registered devices for the authenticated shop owner
- */
+// Get all registered devices for the authenticated shop owner
 export const getMyDevices = asyncHandler(async (req, res) => {
   const shopId = req.shop._id
   const shopCode = String(req.shop.shopCode || '').trim().toUpperCase()
@@ -47,16 +43,12 @@ export const getMyDevices = asyncHandler(async (req, res) => {
   })
 })
 
-/**
- * Block self-approval by Shop Owner: Device approval requires Super Admin authorization
- */
+// Block self-approval by Shop Owner: Device approval requires Super Admin authorization
 export const approveDevice = asyncHandler(async (req, res) => {
   return sendError(res, 403, 'Unauthorized: Device binding requires Super Admin approval. Please wait for Admin verification or contact support.')
 })
 
-/**
- * Reject a pending device request
- */
+// Reject a pending device request
 export const rejectDevice = asyncHandler(async (req, res) => {
   const shopId = req.shop._id
   const shopCode = req.shop.shopCode
@@ -64,13 +56,11 @@ export const rejectDevice = asyncHandler(async (req, res) => {
   const { reason = 'Rejected by Shop Owner' } = req.body || {}
 
   const targetDevice = await deviceRepository.findById(deviceId)
-  if (!targetDevice) {
+  if (!targetDevice)
     return sendError(res, 404, 'Device record not found')
-  }
 
-  if (String(targetDevice.shopId) !== String(shopId)) {
+  if (String(targetDevice.shopId) !== String(shopId))
     return sendError(res, 403, 'Unauthorized: Device does not belong to your shop')
-  }
 
   const updatedDevice = await deviceRepository.rejectDevice(deviceId, 'OWNER', reason)
 
@@ -88,22 +78,18 @@ export const rejectDevice = asyncHandler(async (req, res) => {
   })
 })
 
-/**
- * Revoke an existing approved device
- */
+// Revoke an existing approved device
 export const revokeDevice = asyncHandler(async (req, res) => {
   const shopId = req.shop._id
   const shopCode = req.shop.shopCode
   const { deviceId } = req.params
 
   const targetDevice = await deviceRepository.findById(deviceId)
-  if (!targetDevice) {
+  if (!targetDevice)
     return sendError(res, 404, 'Device record not found')
-  }
 
-  if (String(targetDevice.shopId) !== String(shopId)) {
+  if (String(targetDevice.shopId) !== String(shopId))
     return sendError(res, 403, 'Unauthorized: Device does not belong to your shop')
-  }
 
   const updatedDevice = await deviceRepository.revokeDevice(deviceId, 'OWNER')
 
@@ -124,22 +110,16 @@ export const revokeDevice = asyncHandler(async (req, res) => {
   })
 })
 
-// ==================== AGENT PUBLIC POLLING ====================
-
-/**
- * Lightweight endpoint for Electron Agent to poll approval status while waiting
- */
+// Lightweight endpoint for Electron Agent to poll approval status while waiting
 export const checkAgentDeviceStatus = asyncHandler(async (req, res) => {
   const { shopCode, fingerprint } = req.query
-  if (!shopCode || !fingerprint) {
+  if (!shopCode || !fingerprint)
     return sendError(res, 400, 'Shop Code and Fingerprint are required')
-  }
 
   const cleanCode = String(shopCode).trim().toUpperCase()
   const shop = await shopRepository.findByCode(cleanCode)
-  if (!shop) {
+  if (!shop)
     return sendError(res, 404, 'Shop not found')
-  }
 
   const device = await deviceRepository.findByShopAndFingerprint(shop._id, String(fingerprint).trim())
   if (!device) {
@@ -158,18 +138,13 @@ export const checkAgentDeviceStatus = asyncHandler(async (req, res) => {
   })
 })
 
-// ==================== SUPER ADMIN CONTROLLERS ====================
-
-/**
- * Super Admin: Get all devices across all shops with filters & pagination
- */
+// Super Admin: Get all devices across all shops with filters & pagination
 export const getAdminDevices = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status = '', search = '' } = req.query
   const query = {}
 
-  if (status && status.trim()) {
+  if (status && status.trim())
     query.status = status.trim().toUpperCase()
-  }
 
   if (search && search.trim()) {
     const regex = new RegExp(search.trim(), 'i')
@@ -219,24 +194,20 @@ export const getAdminDevices = asyncHandler(async (req, res) => {
   })
 })
 
-/**
- * Super Admin: Override Approve a device
- */
+// Super Admin: Override Approve a device
 export const adminApproveDevice = asyncHandler(async (req, res) => {
   const { deviceId } = req.params
   const targetDevice = await deviceRepository.findById(deviceId)
-  if (!targetDevice) {
+  if (!targetDevice)
     return sendError(res, 404, 'Device record not found')
-  }
 
   const shop = await shopRepository.findById(targetDevice.shopId)
   const previousApproved = await deviceRepository.findApprovedByShopId(targetDevice.shopId)
 
   const updatedDevice = await deviceRepository.approveDevice(deviceId, 'ADMIN')
 
-  if (shop && previousApproved && String(previousApproved._id) !== String(deviceId)) {
+  if (shop && previousApproved && String(previousApproved._id) !== String(deviceId))
     kickRevokedDeviceSocket(shop.shopCode, previousApproved._id, 'Admin updated approved device.')
-  }
 
   const io = getIo()
   if (io && shop) {
@@ -256,17 +227,14 @@ export const adminApproveDevice = asyncHandler(async (req, res) => {
   return sendSuccess(res, 200, 'Device approved by Admin', { device: updatedDevice })
 })
 
-/**
- * Super Admin: Reject a pending device request
- */
+// Super Admin: Reject a pending device request
 export const adminRejectDevice = asyncHandler(async (req, res) => {
   const { deviceId } = req.params
   const { reason = 'Rejected by Super Admin' } = req.body || {}
 
   const targetDevice = await deviceRepository.findById(deviceId)
-  if (!targetDevice) {
+  if (!targetDevice)
     return sendError(res, 404, 'Device record not found')
-  }
 
   const shop = await shopRepository.findById(targetDevice.shopId)
   const updatedDevice = await deviceRepository.rejectDevice(deviceId, 'ADMIN', reason)
@@ -289,29 +257,23 @@ export const adminRejectDevice = asyncHandler(async (req, res) => {
   return sendSuccess(res, 200, 'Device request rejected by Admin', { device: updatedDevice })
 })
 
-/**
- * Super Admin: Override Revoke a device
- */
+// Super Admin: Override Revoke a device
 export const adminRevokeDevice = asyncHandler(async (req, res) => {
   const { deviceId } = req.params
   const targetDevice = await deviceRepository.findById(deviceId)
-  if (!targetDevice) {
+  if (!targetDevice)
     return sendError(res, 404, 'Device record not found')
-  }
 
   const shop = await shopRepository.findById(targetDevice.shopId)
   const updatedDevice = await deviceRepository.revokeDevice(deviceId, 'ADMIN')
 
-  if (shop) {
+  if (shop)
     kickRevokedDeviceSocket(shop.shopCode, deviceId, 'Admin revoked device authorization.')
-  }
 
   return sendSuccess(res, 200, 'Device revoked by Admin', { device: updatedDevice })
 })
 
-/**
- * Super Admin: Query suspicious shops with >= 4 device registration attempts
- */
+// Super Admin: Query suspicious shops with >= 4 device registration attempts
 export const getSuspiciousShops = asyncHandler(async (req, res) => {
   const threshold = Number(req.query.threshold) || 4
   const suspicious = await deviceRepository.findSuspiciousShops(threshold)

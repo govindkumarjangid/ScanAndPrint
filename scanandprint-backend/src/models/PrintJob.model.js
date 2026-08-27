@@ -86,6 +86,11 @@ const printJobSchema = new mongoose.Schema(
       enum: ['PHONEPE', 'RAZORPAY', 'PAYTM', 'MOCK'],
       default: 'PHONEPE',
     },
+    paymentMethod: {
+      type: String,
+      default: 'CASH_COUNTER',
+      index: true,
+    },
     paymentTxnId: {
       type: String,
       default: null,
@@ -95,10 +100,15 @@ const printJobSchema = new mongoose.Schema(
       type: String,
       enum: [
         'PENDING_PAYMENT',
+        'WAITING_COUNTER_APPROVAL',
         'PAYMENT_VERIFIED',
         'DISPATCHED_TO_AGENT',
+        'PRINTING',
         'PRINTED_SUCCESSFULLY',
+        'COMPLETED',
         'PRINT_FAILED',
+        'CANCELLED',
+        'REJECTED',
       ],
       default: 'PENDING_PAYMENT',
       index: true,

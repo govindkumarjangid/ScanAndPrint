@@ -87,6 +87,12 @@ export const kioskService = {
       ? `${jobData.originalFileName.replace(/(\.(png|jpg|jpeg|webp|docx|doc|pdf))+$/gi, '') || 'document'}.pdf`
       : 'document.pdf'
 
+    const isCounter =
+      paymentMethod === 'CASH_COUNTER' ||
+      paymentMethod === 'COUNTER' ||
+      paymentMethod === 'CASH' ||
+      paymentMethod === 'UPI_QR'
+
     const printJob = await jobRepository.create({
       ...jobData,
       jobId,
@@ -99,9 +105,9 @@ export const kioskService = {
       bwRateApplied: shop.bwRate,
       colorRateApplied: shop.colorRate,
       totalAmount,
-      status: 'DISPATCHED_TO_AGENT',
+      status: isCounter ? 'WAITING_COUNTER_APPROVAL' : 'DISPATCHED_TO_AGENT',
       paymentMethod,
-      paymentTxnId: `${paymentMethod}_${Date.now()}`,
+      paymentTxnId: isCounter ? `COUNTER_${Date.now()}` : `${paymentMethod}_${Date.now()}`,
       fileUrl: (jobData.fileUrl && jobData.fileUrl.startsWith('data:')) ? jobData.fileUrl : `/api/kiosk/download/${jobId}`,
     })
 
@@ -111,7 +117,7 @@ export const kioskService = {
 
     if (io) {
       const targetRoom = `shop:${shop.shopCode}`
-      console.log(`⚡ [High-Speed Quick-Dispatch]: Instant Spool for Job ${jobId} -> room ${targetRoom}`)
+      console.log(`⚡ [High-Speed Quick-Dispatch]: Instant Dispatch for Job ${jobId} (isCounter: ${isCounter}) -> room ${targetRoom}`)
 
       io.to(targetRoom).emit('PRINT_JOB_DISPATCH', {
         jobId: printJob.jobId,
@@ -125,6 +131,9 @@ export const kioskService = {
         isDuplex: printJob.isDuplex,
         totalAmount: printJob.totalAmount,
         paymentMethod: printJob.paymentMethod,
+        isCounterOrder: isCounter,
+        isAutoPrint: !isCounter,
+        status: printJob.status,
       })
     }
 

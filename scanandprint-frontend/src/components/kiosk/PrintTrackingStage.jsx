@@ -18,19 +18,28 @@ export default function PrintTrackingStage({
   const isAgentOnline = Boolean(shopInfo?.isOnline)
 
   // Explicit Payment Method Determination (from Prop or Store)
+  const propMode = String(propPaymentMethod || '').toLowerCase().trim()
   const pm = String(propPaymentMethod || createdJob?.paymentMethod || '').toUpperCase().trim()
-  const isOnlinePayment =
-    propPaymentMethod === 'online' ||
-    Boolean(isPaymentVerified) ||
-    Boolean(paymentTxnId) ||
-    pm === 'RAZORPAY' ||
-    pm === 'ONLINE_GATEWAY' ||
-    pm === 'ONLINE' ||
-    pm === 'UPI_ONLINE' ||
-    pm === 'DEMO_BYPASS'
 
-  const isCounterPayment = !isOnlinePayment
-  const [printStatus, setPrintStatus] = useState(() => (isOnlinePayment ? 'PAYMENT_VERIFIED' : 'WAITING_COUNTER_APPROVAL'))
+  const isCounterPayment =
+    propMode === 'counter' ||
+    pm === 'CASH_COUNTER' ||
+    pm === 'COUNTER' ||
+    pm === 'CASH' ||
+    pm === 'UPI_QR' ||
+    pm === 'PENDING_CASH'
+
+  const isOnlinePayment =
+    !isCounterPayment &&
+    (propMode === 'online' ||
+      Boolean(isPaymentVerified) ||
+      pm === 'RAZORPAY' ||
+      pm === 'ONLINE_GATEWAY' ||
+      pm === 'ONLINE' ||
+      pm === 'UPI_ONLINE' ||
+      pm === 'DEMO_BYPASS')
+
+  const [printStatus, setPrintStatus] = useState(() => (isCounterPayment ? 'WAITING_COUNTER_APPROVAL' : 'PAYMENT_VERIFIED'))
 
   const activeJobId = jobId || createdJob?.jobId || `JOB_${Date.now().toString().slice(-6)}`
   const hasPlayedSoundRef = useRef(false)
@@ -97,9 +106,9 @@ export default function PrintTrackingStage({
     }
   }, [activeJobId, isOnlinePayment])
 
-  // Fast forward simulation for Online payments (smooth UI progress)
+  // Fast forward simulation ONLY for Online payments (smooth UI progress)
   useEffect(() => {
-    if (!isOnlinePayment) return
+    if (!isOnlinePayment || isCounterPayment) return
 
     if (isAgentOnline) {
       const timer1 = setTimeout(() => setPrintStatus((prev) => (prev === 'COMPLETED' ? prev : 'DISPATCHED_TO_AGENT')), 1000)

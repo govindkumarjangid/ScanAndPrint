@@ -10,7 +10,7 @@ const cookieOptions = {
   sameSite: 'lax',
 }
 
-// 1. Initialize Shop Registration (Creates Razorpay Order or Free Trial)
+// 1. Initialize Shop Registration
 export const registerInit = asyncHandler(async (req, res, next) => {
   const result = await authService.registerInit(req.body)
 
@@ -64,15 +64,14 @@ export const createSubscriptionOrder = asyncHandler(async (req, res, next) => {
   const shopId = req.shop?._id || req.body?.shopId
   const { planType } = req.body
 
-  if (!shopId) {
+  if (!shopId)
     return res.status(400).json({ success: false, message: 'Shop ID is required' })
-  }
 
   const result = await authService.createRenewalOrder(shopId, planType)
   return sendSuccess(res, 200, 'Subscription Order generated successfully', result)
 })
 
-// register a new shop (Direct fallback)
+// register a new shop
 export const registerShop = asyncHandler(async (req, res, next) => {
   const result = await authService.registerInit(req.body)
 
@@ -238,9 +237,8 @@ export const refreshToken = asyncHandler(async (req, res, next) => {
     req.body?.refreshToken ||
     (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null)
 
-  if (!token) {
+  if (!token)
     return sendError(res, 401, 'Refresh token is required')
-  }
 
   try {
     const result = await authService.refreshToken(token)

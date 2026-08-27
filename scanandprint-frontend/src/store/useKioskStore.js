@@ -104,11 +104,12 @@ export const useKioskStore = create((set, get) => ({
 
       if (res.data.success) {
         const job = res.data.data.job
+        const isCounter = job?.paymentMethod === 'CASH_COUNTER' || job?.paymentMethod === 'COUNTER'
         set({
           jobId: job?.jobId,
           createdJob: job,
-          isPaymentVerified: true,
-          paymentTxnId: job?.paymentTxnId,
+          isPaymentVerified: !isCounter,
+          paymentTxnId: isCounter ? null : job?.paymentTxnId,
         })
         return job
       }
@@ -252,7 +253,9 @@ export const useKioskStore = create((set, get) => ({
       formData.set('paymentMethod', 'CASH_COUNTER')
     }
     set({ isPaymentVerified: false, paymentTxnId: null })
-    return await quickDispatchJob(formData)
+    const result = await quickDispatchJob(formData)
+    set({ isPaymentVerified: false, paymentTxnId: null })
+    return result
   },
 
   bypassPaymentDemo: async (formData) => {

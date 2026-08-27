@@ -1,23 +1,21 @@
-import Redis from 'ioredis'
-import { envConfig } from './env.config.js'
+import Redis from 'ioredis';
+import { envConfig } from './env.config.js';
 
-// In-memory session cache for 0ms ultra-fast lookup and glitch resilience
 const inMemorySessionMap = new Map()
 
 const redis = new Redis(envConfig.redisUrl, {
-  maxRetriesPerRequest: null, // Let ioredis queue and reconnect without aborting with max retries error
-  keepAlive: 10000, // Send TCP keepalive packets every 10s to prevent Upstash/Cloud idle ECONNRESET
+  maxRetriesPerRequest: null,
+  keepAlive: 10000,
   connectTimeout: 5000,
-  commandTimeout: 2000, // Never let a single command block the API request for more than 2s
+  commandTimeout: 2000,
   enableReadyCheck: false,
   retryStrategy(times) {
     return Math.min(times * 150, 1500)
   },
   reconnectOnError(err) {
     const targetError = 'READONLY'
-    if (err.message.includes(targetError) || err.message.includes('ECONNRESET')) {
+    if (err.message.includes(targetError) || err.message.includes('ECONNRESET'))
       return true
-    }
     return false
   },
 })
@@ -27,19 +25,14 @@ redis.on('connect', () => {
 })
 
 redis.on('error', (err) => {
-  // Graceful log without crashing or spamming unhandled errors
-  if (!err.message.includes('ECONNRESET')) {
+  if (!err.message.includes('ECONNRESET'))
     console.warn('⚠️  Redis connection notice:', err.message)
-  }
 })
 
-/**
- * Set active shop session in Redis and in-memory cache
- */
+
 export async function setShopSession(shopId, sessionId, ttlSeconds = 7 * 24 * 60 * 60) {
   const id = String(shopId)
   inMemorySessionMap.set(id, { sessionId, expiresAt: Date.now() + ttlSeconds * 1000 })
-
   try {
     await Promise.race([
       redis.set(`session:${id}`, sessionId, 'EX', ttlSeconds),
@@ -50,13 +43,10 @@ export async function setShopSession(shopId, sessionId, ttlSeconds = 7 * 24 * 60
   }
 }
 
-/**
- * Get active shop session with 0ms memory fallback
- */
+
 export async function getShopSession(shopId) {
   const id = String(shopId)
 
-  // 1. Try Redis with fast 1s timeout
   try {
     if (redis.status === 'ready' || redis.status === 'connect') {
       const redisSessionId = await Promise.race([
@@ -69,25 +59,21 @@ export async function getShopSession(shopId) {
       }
     }
   } catch (err) {
-    // Redis had a network glitch / timeout -> safely fall back to memory
+   // safely fall back to memory
   }
 
-  // 2. In-memory fallback
+  // In-memory fallback
   const cached = inMemorySessionMap.get(id)
-  if (cached && cached.expiresAt > Date.now()) {
+  if (cached && cached.expiresAt > Date.now())
     return cached.sessionId
-  }
 
   return null
 }
 
-/**
- * Delete shop session on logout
- */
+
 export async function deleteShopSession(shopId) {
   const id = String(shopId)
   inMemorySessionMap.delete(id)
-
   try {
     await Promise.race([
       redis.del(`session:${id}`),
@@ -98,4 +84,4 @@ export async function deleteShopSession(shopId) {
   }
 }
 
-export default redis
+export default redis;

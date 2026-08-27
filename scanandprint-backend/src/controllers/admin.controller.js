@@ -39,7 +39,7 @@ export const login = asyncHandler(async (req, res) => {
   })
 })
 
-// Helper to determine shop plan type, subscription status, and online status
+// shop plan type, subscription status, and online status
 const resolveShopStatusAndPlan = (shop) => {
   const cleanCode = String(shop.shopCode || '').trim().toUpperCase()
   const isSocketOnline = activeAgentsMap.has(cleanCode) || activeAgentsMap.has(String(shop._id))
@@ -80,12 +80,12 @@ const resolveShopStatusAndPlan = (shop) => {
   }
 }
 
-// Helper to compute complete analytics for charts and telemetry
+// complete analytics for charts and telemetry
 const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPayments = []) => {
   const now = new Date()
   const twoDaysFromNow = new Date(now.getTime() + 48 * 60 * 60 * 1000).getTime()
 
-  // 1. Plan Breakdown & Expiring List
+  // Plan Breakdown & Expiring List
   let freeTrialCount = 0
   let monthlyCount = 0
   let yearlyCount = 0
@@ -150,7 +150,7 @@ const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPaymen
     }
   })
 
-  // 2. 7-Day Trend Timeline
+  // 7-Day Trend Timeline
   const dailyMap = new Map()
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
@@ -182,7 +182,6 @@ const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPaymen
         if (isPaid) entry.revenue += Number(job.totalAmount) || 0
         if (isDone) entry.completedJobs += 1
       } else {
-        // If older job, bucket into the oldest day so total volume is never lost
         const oldestDateKey = Array.from(dailyMap.keys())[0]
         if (oldestDateKey) {
           const entry = dailyMap.get(oldestDateKey)
@@ -197,7 +196,7 @@ const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPaymen
 
   const dailyTrend = Array.from(dailyMap.values())
 
-  // 3. Job Status Breakdown
+  // Job Status Breakdown
   let completedCount = 0
   let printingCount = 0
   let failedCount = 0
@@ -216,13 +215,13 @@ const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPaymen
     }
   })
 
-  // 4. Platform Subscription Revenue
+  // Platform Subscription Revenue
   let subscriptionRevenue = 0
   subscriptionPayments.forEach((p) => {
     subscriptionRevenue += Number(p.amount) || 0
   })
 
-  // 5. Conversion Rate
+  // Conversion Rate
   const totalPaidShops = monthlyCount + yearlyCount
   const totalHistoricalShops = allShops.length || 1
   const conversionRate = Math.round((totalPaidShops / totalHistoricalShops) * 100)
@@ -375,7 +374,7 @@ export const getShops = asyncHandler(async (req, res) => {
   })
 })
 
-// get all agents (Strictly 1 row per shop with Live In-Memory Socket data & PrintAgent DB collection details)
+// get all agents
 export const getAgents = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, search = '', status = '' } = req.query
   const query = {}
@@ -525,9 +524,8 @@ export const updateSettings = asyncHandler(async (req, res) => {
   }
 
   const io = req.app.get('io')
-  if (io) {
+  if (io)
     io.emit('GLOBAL_SETTINGS_UPDATED', settings)
-  }
 
   return sendSuccess(res, 200, 'Settings updated successfully', settings)
 })
@@ -586,7 +584,7 @@ export const extendDemoTrial = asyncHandler(async (req, res) => {
   })
 })
 
-// Update Shop Plan manually (e.g. VIP / Paid Grant)
+// Update Shop Plan manually
 export const updateShopPlan = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { planType, days = 30, isSubscriptionActive = true } = req.body
@@ -665,15 +663,15 @@ export const toggleShopStatus = asyncHandler(async (req, res) => {
         : 'Your shop account has been reactivated by Administrator.',
     }
 
-    // 1. Send live status update to Shop room
+    // Send live status update to Shop room
     io.to(shopRoom).emit('SHOP_STATUS_UPDATED', payload)
 
-    // 2. If suspended, emit FORCE_SHOP_LOGOUT to kick owner out and AGENT_SUSPENDED to disconnect agent
+    // If suspended, emit FORCE_SHOP_LOGOUT to kick owner out and AGENT_SUSPENDED to disconnect agent
     if (shop.isSuspended) {
       console.log(`🚨 [Live Suspension]: Emitting FORCE_SHOP_LOGOUT & AGENT_SUSPENDED to room ${shopRoom}`)
       io.to(shopRoom).emit('FORCE_SHOP_LOGOUT', payload)
       io.to(shopRoom).emit('AGENT_SUSPENDED', payload)
-      
+
       const cleanShopCode = String(shop.shopCode).toUpperCase()
       if (activeAgentsMap.has(cleanShopCode)) {
         const agentRec = activeAgentsMap.get(cleanShopCode)
@@ -682,7 +680,7 @@ export const toggleShopStatus = asyncHandler(async (req, res) => {
       }
     }
 
-    // 3. Emit live update to Admin Dashboard room
+    // Emit live update to Admin Dashboard room
     io.to('admin:room').emit('ADMIN_SHOP_UPDATED', payload)
   }
 
@@ -703,7 +701,7 @@ export const getShopPrintJobs = asyncHandler(async (req, res) => {
   return sendSuccess(res, 200, 'Shop print jobs fetched successfully', { jobs })
 })
 
-// Export all shops (for CSV download)
+// Export all shops
 export const exportAllShops = asyncHandler(async (req, res) => {
   const shops = await Shop.find()
     .select('shopName ownerName email phone shopCode address cityState pincode planType isOnline createdAt isDemoAccount')
@@ -713,7 +711,7 @@ export const exportAllShops = asyncHandler(async (req, res) => {
   return sendSuccess(res, 200, 'Shops export data retrieved', { shops })
 })
 
-// Export all transactions (for CSV download)
+// Export all transactions
 export const exportAllTransactions = asyncHandler(async (req, res) => {
   const jobs = await PrintJob.find()
     .populate('shopId', 'shopName shopCode')

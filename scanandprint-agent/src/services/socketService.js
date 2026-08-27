@@ -389,29 +389,31 @@ class SocketService {
       })
 
       const paymentMethod = String(jobData?.paymentMethod || '').toUpperCase().trim()
-      const isAutoOnlineGateway =
-        jobData?.isAutoPrint === true ||
-        paymentMethod === 'RAZORPAY' ||
-        paymentMethod === 'ONLINE_GATEWAY' ||
-        paymentMethod === 'ONLINE' ||
-        paymentMethod === 'UPI_ONLINE' ||
-        paymentMethod === 'DEMO_BYPASS' ||
-        jobData?.status === 'PAYMENT_VERIFIED'
-
-      const isCounterOrder = !isAutoOnlineGateway && (
+      const isCounterOrder =
+        jobData?.isCounterOrder === true ||
         paymentMethod === 'CASH_COUNTER' ||
         paymentMethod === 'COUNTER' ||
         paymentMethod === 'CASH' ||
         paymentMethod === 'UPI_QR' ||
-        paymentMethod === 'PENDING_CASH' ||
-        jobData?.isCounterOrder === true
-      )
+        paymentMethod === 'PENDING_CASH'
+
+      const isAutoOnlineGateway =
+        !isCounterOrder &&
+        (jobData?.isAutoPrint === true ||
+          paymentMethod === 'RAZORPAY' ||
+          paymentMethod === 'ONLINE_GATEWAY' ||
+          paymentMethod === 'ONLINE' ||
+          paymentMethod === 'UPI_ONLINE' ||
+          paymentMethod === 'DEMO_BYPASS' ||
+          jobData?.status === 'PAYMENT_VERIFIED')
 
       // If Counter / Cash / UPI QR: Show bottom-right native confirmation popup and wait for shopkeeper approval
       if (isCounterOrder) {
         console.log(`[SocketService] 💵 Counter/Cash Order #${jobId} (Method: ${paymentMethod || 'COUNTER'}) -> Opening approval popup window...`)
         if (typeof this.counterPopupHandler === 'function') {
           this.counterPopupHandler(jobData)
+        } else {
+          console.error('[SocketService] ❌ counterPopupHandler is not registered!')
         }
         return
       }
