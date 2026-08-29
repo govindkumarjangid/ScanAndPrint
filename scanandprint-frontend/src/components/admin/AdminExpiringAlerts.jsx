@@ -22,7 +22,7 @@ export default function AdminExpiringAlerts({ expiringShops = [] }) {
 
   return (
     <div className="bg-amber-950/40 border border-amber-800/80 rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-sm relative overflow-hidden">
-      
+
       {/* Top Banner Alert */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -82,7 +82,7 @@ export default function AdminExpiringAlerts({ expiringShops = [] }) {
                   className="flex-1 py-1.5 px-2.5 rounded-xl bg-amber-950/80 hover:bg-amber-900 text-amber-300 text-xs font-extrabold border border-amber-800/80 flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-50"
                   title="Extend Free Demo by +2 Hours"
                 >
-                  {isBusy2h ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                  {isBusy2h ? <Loader2 className="w-3 h-3 animate-spin" /> : ""}
                   <span>+2 Hr</span>
                 </button>
 
@@ -92,7 +92,7 @@ export default function AdminExpiringAlerts({ expiringShops = [] }) {
                   className="flex-1 py-1.5 px-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 text-xs font-extrabold border border-stone-800 flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-50"
                   title="Extend Free Demo by +24 Hours"
                 >
-                  {isBusy24h ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                  {isBusy24h ? <Loader2 className="w-3 h-3 animate-spin" /> : ""}
                   <span>+24 Hr</span>
                 </button>
 

@@ -175,7 +175,7 @@ export default function AdminOverview() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse min-w-[800px]">
+          <table className="w-full text-left text-sm border-collapse min-w-200">
             <thead>
               <tr className="border-b border-stone-800 text-stone-400 font-bold text-xs uppercase tracking-wider whitespace-nowrap">
                 <th className="py-3 px-4">Code</th>
