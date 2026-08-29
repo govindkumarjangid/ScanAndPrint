@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react'
-import { CheckCircle2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, RefreshCw, Download } from 'lucide-react'
+import {
+  CheckCircle2,
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Download,
+  Trash2,
+  Loader2,
+} from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
+import AdminDeleteConfirmModal from '../../components/admin/AdminDeleteConfirmModal'
 import { downloadCsv } from '../../utils/exportCsv'
 import api from '../../lib/axios'
 import toast from 'react-hot-toast'
@@ -11,7 +23,8 @@ export default function AdminTransactions() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [isExporting, setIsExporting] = useState(false)
-  const { transactionsLoading, transactionsData, transactionsPagination, fetchTransactions } = useAdminStore()
+  const [txnToDelete, setTxnToDelete] = useState(null)
+  const { transactionsLoading, transactionsData, transactionsPagination, fetchTransactions, deleteTransaction } = useAdminStore()
 
   useEffect(() => {
     fetchTransactions(currentPage, 10, searchTerm, statusFilter)
@@ -146,7 +159,8 @@ export default function AdminTransactions() {
                 <th className="py-3.5 px-4">Gateway</th>
                 <th className="py-3.5 px-4">Amount</th>
                 <th className="py-3.5 px-4">Time</th>
-                <th className="py-3.5 px-4 text-right">Status</th>
+                <th className="py-3.5 px-4 text-center">Status</th>
+                <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
@@ -161,11 +175,12 @@ export default function AdminTransactions() {
                     { width: 'w-16', label: 'Amount' },
                     { width: 'w-24', label: 'Time' },
                     { width: 'w-20', label: 'Status' },
+                    { width: 'w-12', label: 'Action' },
                   ]}
                 />
               ) : transactionsData.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="py-12 text-center text-stone-500 text-sm font-medium">
+                  <td colSpan="7" className="py-12 text-center text-stone-500 text-sm font-medium">
                     No transactions match the criteria.
                   </td>
                 </tr>
@@ -191,7 +206,7 @@ export default function AdminTransactions() {
                       <td className="py-4 px-4 text-xs font-bold text-rose-400 uppercase tracking-wider">{gateway}</td>
                       <td className="py-4 px-4 font-extrabold text-white">₹{amt}</td>
                       <td className="py-4 px-4 text-xs font-medium text-stone-400">{timeFormatted}</td>
-                      <td className="py-4 px-4 whitespace-nowrap text-right">
+                      <td className="py-4 px-4 whitespace-nowrap text-center">
                         {(() => {
                           const s = String(t.status || '').toUpperCase()
                           if (s.includes('PRINTED') || s === 'COMPLETED' || s === 'SUCCESS' || s === 'PAID') {
@@ -225,6 +240,16 @@ export default function AdminTransactions() {
                             </span>
                           )
                         })()}
+                      </td>
+                      <td className="py-4 px-4 whitespace-nowrap text-right">
+                        <button
+                          type="button"
+                          onClick={() => setTxnToDelete(t)}
+                          title="Delete Transaction Record"
+                          className="p-1.5 rounded-xl bg-stone-900 hover:bg-rose-950/80 text-stone-400 hover:text-rose-400 border border-stone-800 hover:border-rose-800 text-xs transition-all cursor-pointer inline-flex items-center"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </td>
                     </tr>
                   )
@@ -264,6 +289,20 @@ export default function AdminTransactions() {
           </div>
         )}
       </div>
+
+      {/* Custom Approve Popup for Deleting Transaction */}
+      {txnToDelete && (
+        <AdminDeleteConfirmModal
+          isOpen={Boolean(txnToDelete)}
+          onClose={() => setTxnToDelete(null)}
+          onConfirm={async () => {
+            await deleteTransaction(txnToDelete._id || txnToDelete.id)
+          }}
+          title="Delete Transaction Record"
+          itemType="transaction"
+          itemData={txnToDelete}
+        />
+      )}
 
     </div>
   )

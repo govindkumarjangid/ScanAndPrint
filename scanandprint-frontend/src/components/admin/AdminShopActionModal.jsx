@@ -10,18 +10,21 @@ import {
   Plus,
   Loader2,
   FileText,
+  Trash2,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import AdminDemoTimer from '../ui/AdminDemoTimer'
+import AdminDeleteConfirmModal from './AdminDeleteConfirmModal'
 import api from '../../lib/axios'
 import toast from 'react-hot-toast'
 
 export default function AdminShopActionModal({ shop, isOpen, onClose }) {
-  const { extendShopDemo, updateShopPlan, toggleShopStatus, settingsData, fetchSettings } = useAdminStore()
+  const { extendShopDemo, updateShopPlan, toggleShopStatus, deleteShop, settingsData, fetchSettings } = useAdminStore()
   const [activeTab, setActiveTab] = useState('actions') // 'actions' | 'jobs'
   const [jobs, setJobs] = useState([])
   const [jobsLoading, setJobsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     if (isOpen && shop?._id) {
@@ -322,8 +325,20 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-stone-800 bg-stone-950/80 flex items-center justify-end">
+          <div className="p-4 border-t border-stone-800 bg-stone-950/80 flex items-center justify-between">
             <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isSubmitting}
+              className="py-2 px-3.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 hover:text-rose-300 border border-rose-900/50 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-40"
+              title="Delete Shop Account"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Shop</span>
+            </button>
+
+            <button
+              type="button"
               onClick={onClose}
               className="btn btn-outline py-2 px-5 rounded-xl text-xs font-bold text-stone-300 border-stone-800 hover:bg-stone-900 cursor-pointer"
             >
@@ -333,6 +348,21 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
 
         </motion.div>
       </div>
+
+      {/* Delete Shop Confirm Modal */}
+      {showDeleteConfirm && (
+        <AdminDeleteConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={async () => {
+            const success = await deleteShop(shop._id)
+            if (success) onClose()
+          }}
+          title="Delete Shop Account"
+          itemType="shop"
+          itemData={shop}
+        />
+      )}
     </AnimatePresence>
   )
 }

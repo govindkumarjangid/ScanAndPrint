@@ -4,6 +4,7 @@ import { Shop } from '../models/Shop.model.js'
 import { PrintAgent } from '../models/PrintAgent.model.js'
 import { PrintJob } from '../models/PrintJob.model.js'
 import { SubscriptionPayment } from '../models/SubscriptionPayment.model.js'
+import { Device } from '../models/Device.model.js'
 import { generateToken } from '../utils/jwt.util.js'
 import { sendSuccess, sendError } from '../utils/apiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
@@ -734,4 +735,75 @@ export const exportAllTransactions = asyncHandler(async (req, res) => {
     .lean()
 
   return sendSuccess(res, 200, 'Transactions export data retrieved', { transactions: jobs })
+})
+
+// Delete Shop and all associated records (PrintJobs, PrintAgents, Devices, SubscriptionPayments)
+export const deleteShop = asyncHandler(async (req, res) => {
+  const { id } = req.params
+
+  const shop = await Shop.findById(id)
+  if (!shop) return sendError(res, 404, 'Shop not found')
+
+  const shopCode = shop.shopCode
+  const shopId = shop._id
+
+  // Cascade delete associated records
+  await Promise.all([
+    PrintJob.deleteMany({ shopId }),
+    PrintAgent.deleteMany({ shopId }),
+    Device.deleteMany({ shopId }),
+    SubscriptionPayment.deleteMany({ shopId }),
+    Shop.findByIdAndDelete(id),
+  ])
+
+  // Real-time WebSocket emission to kick out owner & agent and notify admin dashboard
+  const io = req.app.get('io')
+  if (io) {
+    const cleanShopCode = String(shopCode).toUpperCase()
+    const shopRoom = `shop:${cleanShopCode}`
+    const payload = {
+      shopId,
+      shopCode: cleanShopCode,
+      isDeleted: true,
+      reason: 'Your shop account has been deleted by Administrator.',
+    }
+
+    io.to(shopRoom).emit('FORCE_SHOP_LOGOUT', payload)
+    io.to(`shop:${shopId}`).emit('FORCE_SHOP_LOGOUT', payload)
+    io.to(shopRoom).emit('AGENT_SUSPENDED', payload)
+    io.to(`shop:${shopId}`).emit('AGENT_SUSPENDED', payload)
+
+    if (activeAgentsMap.has(cleanShopCode)) {
+      const agentRec = activeAgentsMap.get(cleanShopCode)
+      activeAgentsMap.delete(cleanShopCode)
+      if (agentRec?.shopId) activeAgentsMap.delete(String(agentRec.shopId))
+    }
+
+    io.to('admin:room').emit('ADMIN_SHOP_DELETED', { shopId, shopCode: cleanShopCode })
+  }
+
+  return sendSuccess(res, 200, `Shop "${shop.shopName}" (${shopCode}) deleted successfully`, {
+    shopId,
+    shopCode,
+  })
+})
+
+// Delete single transaction / print job
+export const deleteTransaction = asyncHandler(async (req, res) => {
+  const { id } = req.params
+
+  const job = await PrintJob.findById(id)
+  if (!job) return sendError(res, 404, 'Transaction not found')
+
+  await PrintJob.findByIdAndDelete(id)
+
+  const io = req.app.get('io')
+  if (io) {
+    io.to('admin:room').emit('ADMIN_TRANSACTION_DELETED', { jobId: job._id })
+  }
+
+  return sendSuccess(res, 200, `Transaction ${job.jobId || id} deleted successfully`, {
+    id,
+    jobId: job.jobId,
+  })
 })

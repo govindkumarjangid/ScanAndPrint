@@ -217,6 +217,27 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
+  deleteShop: async (shopId) => {
+    try {
+      const res = await api.delete(`/admin/shops/${shopId}`)
+      if (res.data.success) {
+        toast.success(res.data.message || 'Shop deleted successfully!')
+        set((state) => ({
+          shopsData: state.shopsData.filter((s) => (s._id || s.id) !== shopId),
+        }))
+        const page = get().shopsPagination?.currentPage || 1
+        get().fetchShops(page)
+        get().fetchOverview()
+        get().fetchAnalytics()
+        return true
+      }
+      return false
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete shop')
+      return false
+    }
+  },
+
   fetchTransactions: async (page = 1, limit = 10, search = '', status = '') => {
     set({ transactionsLoading: true })
     try {
@@ -231,6 +252,26 @@ export const useAdminStore = create((set, get) => ({
       console.warn('Transactions fetch note:', error)
     } finally {
       set({ transactionsLoading: false })
+    }
+  },
+
+  deleteTransaction: async (transactionId) => {
+    try {
+      const res = await api.delete(`/admin/transactions/${transactionId}`)
+      if (res.data.success) {
+        toast.success(res.data.message || 'Transaction deleted successfully!')
+        set((state) => ({
+          transactionsData: state.transactionsData.filter((t) => (t._id || t.id) !== transactionId),
+        }))
+        const page = get().transactionsPagination?.currentPage || 1
+        get().fetchTransactions(page)
+        get().fetchOverview()
+        return true
+      }
+      return false
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete transaction')
+      return false
     }
   },
 

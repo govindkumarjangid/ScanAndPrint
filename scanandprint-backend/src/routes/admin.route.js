@@ -14,6 +14,8 @@ import {
   getShopPrintJobs,
   exportAllShops,
   exportAllTransactions,
+  deleteShop,
+  deleteTransaction,
 } from '../controllers/admin.controller.js'
 import {
   getAdminDevices,
@@ -35,6 +37,7 @@ router.use(authenticateAdmin)
 router.route('/stats').get(getDashboardStats)
 router.route('/analytics').get(getAnalytics)
 router.route('/shops').get(getShops)
+router.route('/shops/:id').delete(deleteShop)
 router.route('/shops/:id/extend-demo').post(extendDemoTrial)
 router.route('/shops/:id/plan').put(updateShopPlan)
 router.route('/shops/:id/status').put(toggleShopStatus)
@@ -47,6 +50,7 @@ router.route('/devices/:deviceId/approve').post(adminApproveDevice)
 router.route('/devices/:deviceId/reject').post(adminRejectDevice)
 router.route('/devices/:deviceId/revoke').post(adminRevokeDevice)
 router.route('/transactions').get(getTransactions)
+router.route('/transactions/:id').delete(deleteTransaction)
 
 router.route('/settings').get(getSettings)
 router.route('/settings').put(updateSettings)

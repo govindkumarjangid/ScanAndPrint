@@ -11,10 +11,12 @@ import {
   AlertCircle,
   Download,
   Sliders,
+  Trash2,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import AdminDemoTimer from '../../components/ui/AdminDemoTimer'
 import AdminShopActionModal from '../../components/admin/AdminShopActionModal'
+import AdminDeleteConfirmModal from '../../components/admin/AdminDeleteConfirmModal'
 import { downloadCsv } from '../../utils/exportCsv'
 import api from '../../lib/axios'
 import toast from 'react-hot-toast'
@@ -26,8 +28,9 @@ export default function AdminShops() {
   const [selectedShop, setSelectedShop] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [shopToDelete, setShopToDelete] = useState(null)
 
-  const { shopsLoading, shopsData, shopsPagination, fetchShops, toggleShopStatus } = useAdminStore()
+  const { shopsLoading, shopsData, shopsPagination, fetchShops, toggleShopStatus, deleteShop } = useAdminStore()
 
   useEffect(() => {
     fetchShops(currentPage, 10, searchTerm)
@@ -251,16 +254,29 @@ export default function AdminShops() {
                         )}
                       </td>
                       <td className="py-4 px-4 text-center">
-                        <button
-                          onClick={() => {
-                            setSelectedShop(s)
-                            setModalOpen(true)
-                          }}
-                          className="px-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white border border-stone-800 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1"
-                        >
-                          <Sliders className="w-3 h-3 text-brand" />
-                          <span>Action</span>
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedShop(s)
+                              setModalOpen(true)
+                            }}
+                            className="px-2.5 py-1 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white border border-stone-800 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1"
+                            title="Manage Plan & Status"
+                          >
+                            <Sliders className="w-3 h-3 text-brand" />
+                            <span>Action</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setShopToDelete(s)}
+                            className="p-1.5 rounded-xl bg-stone-900 hover:bg-rose-950/80 text-stone-400 hover:text-rose-400 border border-stone-800 hover:border-rose-800 text-xs transition-all cursor-pointer inline-flex items-center"
+                            title="Delete Shop Account"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                       <td className="py-4 px-4 text-right">
                         {isOnline ? (
@@ -321,6 +337,20 @@ export default function AdminShops() {
             setModalOpen(false)
             setSelectedShop(null)
           }}
+        />
+      )}
+
+      {/* Custom Approve Popup for Deleting Shop */}
+      {shopToDelete && (
+        <AdminDeleteConfirmModal
+          isOpen={Boolean(shopToDelete)}
+          onClose={() => setShopToDelete(null)}
+          onConfirm={async () => {
+            await deleteShop(shopToDelete._id)
+          }}
+          title="Delete Shop Account"
+          itemType="shop"
+          itemData={shopToDelete}
         />
       )}
 
