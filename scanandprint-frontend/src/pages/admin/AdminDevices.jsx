@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import api from '../../lib/axios'
 import { getSocket } from '../../lib/socket'
+import AdminDeviceTableSkeleton from '../../components/skeleton/AdminDeviceTableSkeleton'
 import toast from 'react-hot-toast'
 
 export default function AdminDevices() {
@@ -294,12 +295,7 @@ export default function AdminDevices() {
             </thead>
             <tbody className="divide-y divide-stone-800/60">
               {loading ? (
-                <tr>
-                  <td colSpan="7" className="py-12 text-center text-stone-500 font-medium">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-rose-500 mb-2" />
-                    Loading registered PC telemetry...
-                  </td>
-                </tr>
+                <AdminDeviceTableSkeleton rows={6} />
               ) : devices.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="py-12 text-center text-stone-500 text-sm">

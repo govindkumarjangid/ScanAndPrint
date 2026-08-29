@@ -124,7 +124,7 @@ export default function AdminShops() {
       {/* Shops Table */}
       <div className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800 shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse min-w-[900px]">
+          <table className="w-full text-left text-sm border-collapse min-w-225">
             <thead>
               <tr className="border-b border-stone-800 text-stone-400 font-bold text-xs uppercase tracking-wider whitespace-nowrap">
                 <th className="py-3.5 px-4">Shop ID</th>

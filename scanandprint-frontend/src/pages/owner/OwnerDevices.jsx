@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import api from '../../lib/axios'
 import { getSocket } from '../../lib/socket'
+import OwnerDeviceSkeleton from '../../components/skeleton/OwnerDeviceSkeleton'
 import toast from 'react-hot-toast'
 
 export default function OwnerDevices() {
@@ -198,10 +199,7 @@ export default function OwnerDevices() {
         </div>
 
         {loading ? (
-          <div className="py-12 flex flex-col items-center justify-center gap-2 text-stone-400">
-            <Loader2 className="w-7 h-7 animate-spin text-brand" />
-            <span className="text-xs font-semibold">Loading device details...</span>
-          </div>
+          <OwnerDeviceSkeleton />
         ) : approvedDevice ? (
           <div className="bg-emerald-50/40 rounded-2xl p-4 sm:p-6 border border-emerald-200/80 flex flex-col gap-4 sm:gap-5 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

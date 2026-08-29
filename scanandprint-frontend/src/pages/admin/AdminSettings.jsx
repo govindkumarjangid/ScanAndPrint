@@ -14,6 +14,7 @@ import {
   Sliders,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
+import AdminSettingsSkeleton from '../../components/skeleton/AdminSettingsSkeleton'
 import toast from 'react-hot-toast'
 
 export default function AdminSettings() {
@@ -58,10 +59,7 @@ export default function AdminSettings() {
 
       {/* Main Settings Form */}
       {settingsLoading ? (
-        <div className="bg-stone-950 rounded-3xl p-8 border border-stone-800 flex flex-col items-center justify-center gap-2 text-stone-500 font-medium">
-          <Loader2 className="w-6 h-6 animate-spin text-brand" />
-          <span>Loading settings...</span>
-        </div>
+        <AdminSettingsSkeleton />
       ) : (
       <form onSubmit={handleSaveSettings} className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800 flex flex-col gap-6 shadow-sm">
         
