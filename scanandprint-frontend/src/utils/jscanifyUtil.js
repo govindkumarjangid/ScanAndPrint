@@ -53,7 +53,7 @@ export function loadOpenCv() {
       resolve({ cv: window.cv, scanner: scannerInstance })
     }
 
-    script.onerror = (err) => {
+    script.onerror = () => {
       openCvPromise = null
       reject(new Error('Failed to load opencv.js from /opencv.js'))
     }

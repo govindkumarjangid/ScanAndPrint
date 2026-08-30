@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import { useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -10,12 +10,9 @@ import {
   Sparkles,
   Camera,
   Loader2,
-  FileCheck2,
   Image as ImageIcon,
   CheckCircle2,
   X,
-  Plus,
-  Trash2,
   Layers,
 } from 'lucide-react'
 import toast from 'react-hot-toast'

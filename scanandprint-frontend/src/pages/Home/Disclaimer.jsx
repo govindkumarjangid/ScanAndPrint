@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link } from 'react-router'
 import SEO from '../../components/common/SEO'
 import { ShieldCheck, Info, ArrowRight, Lock, RefreshCw, FileText } from '../../assets/assets'

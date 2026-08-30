@@ -1,7 +1,6 @@
-import React from 'react'
 import { Link } from 'react-router'
 import SEO from '../../components/common/SEO'
-import { ShieldCheck, FileText, CheckCircle2, ArrowRight } from '../../assets/assets'
+import { FileText, ArrowRight } from '../../assets/assets'
 import { useAuthStore } from '../../store/useAuthStore'
 
 export default function TermsConditions() {

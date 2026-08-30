@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Settings, CheckCircle2, Save, Loader2, Lock, KeyRound, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Save, Loader2, Lock, KeyRound } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
 
@@ -26,13 +25,16 @@ export default function OwnerSettings() {
 
   useEffect(() => {
     if (currentShop) {
-      if (currentShop.shopName) setShopName(currentShop.shopName)
-      if (currentShop.ownerName) setOwnerName(currentShop.ownerName)
-      if (currentShop.email) setEmail(currentShop.email)
-      if (currentShop.phone) setPhone(currentShop.phone)
-      if (currentShop.address) setAddress(currentShop.address)
-      if (currentShop.cityState) setCityState(currentShop.cityState)
-      if (currentShop.pincode) setPincode(currentShop.pincode)
+      const timer = setTimeout(() => {
+        if (currentShop.shopName) setShopName(currentShop.shopName)
+        if (currentShop.ownerName) setOwnerName(currentShop.ownerName)
+        if (currentShop.email) setEmail(currentShop.email)
+        if (currentShop.phone) setPhone(currentShop.phone)
+        if (currentShop.address) setAddress(currentShop.address)
+        if (currentShop.cityState) setCityState(currentShop.cityState)
+        if (currentShop.pincode) setPincode(currentShop.pincode)
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [currentShop])
 

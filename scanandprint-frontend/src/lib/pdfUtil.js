@@ -173,13 +173,40 @@ export function parsePageRange(rangeStr, totalDocPages) {
  * and optional 2-in-1 Book Side-by-Side layout mode!
  */
 export async function exportEditedPdf({ originalFile, pages = [], additionalFiles = [], layoutMode = 'standard' }) {
-  const originalBytes = await originalFile.arrayBuffer()
-  const srcPdfDoc = await PDFDocument.load(originalBytes, { ignoreEncryption: true })
   const outPdfDoc = await PDFDocument.create()
 
   const selectedPages = pages.filter((p) => p.selected !== false)
   if (!selectedPages.length && !additionalFiles.length) {
     throw new Error('Please select at least one page to print')
+  }
+
+  // Cache loaded PDF documents to avoid re-parsing the same file multiple times
+  const pdfDocMap = new Map()
+  async function getLoadedPdfDoc(file) {
+    if (!file) return null
+    if (pdfDocMap.has(file)) return pdfDocMap.get(file)
+    const bytes = await file.arrayBuffer()
+    const doc = await PDFDocument.load(bytes, { ignoreEncryption: true })
+    pdfDocMap.set(file, doc)
+    return doc
+  }
+
+  // Helper to embed an image into outPdfDoc
+  async function getEmbeddedImg(file) {
+    const imgBytes = await file.arrayBuffer()
+    const isPng = file.type === 'image/png' || file.name?.toLowerCase().endsWith('.png')
+    if (isPng) {
+      try {
+        return await outPdfDoc.embedPng(imgBytes)
+      } catch {
+        return await outPdfDoc.embedJpg(imgBytes)
+      }
+    }
+    try {
+      return await outPdfDoc.embedJpg(imgBytes)
+    } catch {
+      return await outPdfDoc.embedPng(imgBytes)
+    }
   }
 
   if (layoutMode === '2in1_book') {
@@ -188,88 +215,131 @@ export async function exportEditedPdf({ originalFile, pages = [], additionalFile
     const sheetH = 595.28
     const halfW = sheetW / 2
 
-    for (let i = 0; i < selectedPages.length; i += 2) {
-      const pageObj1 = selectedPages[i]
-      const pageObj2 = selectedPages[i + 1]
-
-      const newSheet = outPdfDoc.addPage([sheetW, sheetH])
-
-      // Embed Left Page (Page 1, 3, 5...)
-      const [embedded1] = await outPdfDoc.embedPdf(srcPdfDoc, [pageObj1.pageIndex])
-      const scale1 = Math.min((halfW - 24) / embedded1.width, (sheetH - 24) / embedded1.height)
-      const drawW1 = embedded1.width * scale1
-      const drawH1 = embedded1.height * scale1
-      const drawX1 = (halfW - drawW1) / 2
-      const drawY1 = (sheetH - drawH1) / 2
-
-      newSheet.drawPage(embedded1, {
-        x: drawX1,
-        y: drawY1,
-        width: drawW1,
-        height: drawH1,
-      })
-
-      // Embed Right Page (Page 2, 4, 6...) if exists
-      if (pageObj2) {
-        const [embedded2] = await outPdfDoc.embedPdf(srcPdfDoc, [pageObj2.pageIndex])
-        const scale2 = Math.min((halfW - 24) / embedded2.width, (sheetH - 24) / embedded2.height)
-        const drawW2 = embedded2.width * scale2
-        const drawH2 = embedded2.height * scale2
-        const drawX2 = halfW + (halfW - drawW2) / 2
-        const drawY2 = (sheetH - drawH2) / 2
-
-        newSheet.drawPage(embedded2, {
-          x: drawX2,
-          y: drawY2,
-          width: drawW2,
-          height: drawH2,
+    const renderHalf = async (pageObj, targetSheet, offsetX) => {
+      if (!pageObj) return
+      if (pageObj.sourceType === 'image' && pageObj.sourceFile) {
+        const embeddedImg = await getEmbeddedImg(pageObj.sourceFile)
+        const scale = Math.min((halfW - 24) / embeddedImg.width, (sheetH - 24) / embeddedImg.height)
+        const drawW = embeddedImg.width * scale
+        const drawH = embeddedImg.height * scale
+        const drawX = offsetX + (halfW - drawW) / 2
+        const drawY = (sheetH - drawH) / 2
+        targetSheet.drawImage(embeddedImg, {
+          x: drawX,
+          y: drawY,
+          width: drawW,
+          height: drawH,
         })
+      } else {
+        const srcFile = pageObj.sourceFile || originalFile
+        const srcPdf = await getLoadedPdfDoc(srcFile)
+        const pageIdx = typeof pageObj.sourcePageIndex === 'number' ? pageObj.sourcePageIndex : pageObj.pageIndex
+        const [embedded] = await outPdfDoc.embedPdf(srcPdf, [pageIdx])
+        const scale = Math.min((halfW - 24) / embedded.width, (sheetH - 24) / embedded.height)
+        const drawW = embedded.width * scale
+        const drawH = embedded.height * scale
+        const drawX = offsetX + (halfW - drawW) / 2
+        const drawY = (sheetH - drawH) / 2
+        targetSheet.drawPage(embedded, {
+          x: drawX,
+          y: drawY,
+          width: drawW,
+          height: drawH,
+        })
+      }
+    }
+
+    for (let i = 0; i < selectedPages.length; i += 2) {
+      const newSheet = outPdfDoc.addPage([sheetW, sheetH])
+      await renderHalf(selectedPages[i], newSheet, 0)
+      if (selectedPages[i + 1]) {
+        await renderHalf(selectedPages[i + 1], newSheet, halfW)
       }
     }
   } else {
     // Standard 1-to-1 Page export
+    const pageW = 595.28
+    const pageH = 841.89
+
     for (const p of selectedPages) {
-      const [copiedPage] = await outPdfDoc.copyPages(srcPdfDoc, [p.pageIndex])
-      if (p.rotation) {
-        const currentAngle = copiedPage.getRotation().angle
-        copiedPage.setRotation(degrees((currentAngle + p.rotation) % 360))
+      if (p.sourceType === 'image' && p.sourceFile) {
+        const embeddedImg = await getEmbeddedImg(p.sourceFile)
+        const a4Page = outPdfDoc.addPage([pageW, pageH])
+        const imgW = embeddedImg.width
+        const imgH = embeddedImg.height
+
+        const isRotatedLandscape = p.rotation === 90 || p.rotation === 270
+        const targetW = isRotatedLandscape ? pageH : pageW
+        const targetH = isRotatedLandscape ? pageW : pageH
+        const scale = Math.min((targetW - 36) / imgW, (targetH - 36) / imgH)
+        const drawW = imgW * scale
+        const drawH = imgH * scale
+
+        if (!p.rotation || p.rotation === 0) {
+          a4Page.drawImage(embeddedImg, {
+            x: (pageW - drawW) / 2,
+            y: (pageH - drawH) / 2,
+            width: drawW,
+            height: drawH,
+          })
+        } else if (p.rotation === 90) {
+          a4Page.drawImage(embeddedImg, {
+            x: (pageW + drawH) / 2,
+            y: (pageH - drawW) / 2,
+            width: drawW,
+            height: drawH,
+            rotate: degrees(90),
+          })
+        } else if (p.rotation === 180) {
+          a4Page.drawImage(embeddedImg, {
+            x: (pageW + drawW) / 2,
+            y: (pageH + drawH) / 2,
+            width: drawW,
+            height: drawH,
+            rotate: degrees(180),
+          })
+        } else if (p.rotation === 270) {
+          a4Page.drawImage(embeddedImg, {
+            x: (pageW - drawH) / 2,
+            y: (pageH + drawW) / 2,
+            width: drawW,
+            height: drawH,
+            rotate: degrees(270),
+          })
+        }
+      } else {
+        // Standard PDF Page
+        const srcFile = p.sourceFile || originalFile
+        const srcPdf = await getLoadedPdfDoc(srcFile)
+        const pageIdx = typeof p.sourcePageIndex === 'number' ? p.sourcePageIndex : p.pageIndex
+        const [copiedPage] = await outPdfDoc.copyPages(srcPdf, [pageIdx])
+        if (p.rotation) {
+          const currentAngle = copiedPage.getRotation().angle
+          copiedPage.setRotation(degrees((currentAngle + p.rotation) % 360))
+        }
+        outPdfDoc.addPage(copiedPage)
       }
-      outPdfDoc.addPage(copiedPage)
     }
   }
 
-  // 2. Append additional files if user merged any
+  // 2. Append additional files if user merged any directly
   for (const extraFile of additionalFiles) {
     if (extraFile.type === 'application/pdf' || extraFile.name?.toLowerCase().endsWith('.pdf')) {
-      const extraBytes = await extraFile.arrayBuffer()
-      const extraPdfDoc = await PDFDocument.load(extraBytes, { ignoreEncryption: true })
+      const extraPdfDoc = await getLoadedPdfDoc(extraFile)
       const copiedExtraPages = await outPdfDoc.copyPages(extraPdfDoc, extraPdfDoc.getPageIndices())
       copiedExtraPages.forEach((page) => outPdfDoc.addPage(page))
     } else if (extraFile.type?.startsWith('image/')) {
-      const imgBytes = await extraFile.arrayBuffer()
-      let embeddedImg = null
-      if (extraFile.type === 'image/png' || extraFile.name?.toLowerCase().endsWith('.png')) {
-        embeddedImg = await outPdfDoc.embedPng(imgBytes)
-      } else {
-        embeddedImg = await outPdfDoc.embedJpg(imgBytes)
-      }
-
-      // Add standard A4 page for the image
+      const embeddedImg = await getEmbeddedImg(extraFile)
       const a4Page = outPdfDoc.addPage([595.28, 841.89])
       const { width: imgW, height: imgH } = embeddedImg
       const pageW = 595.28
       const pageH = 841.89
-
-      // Scale to fit comfortably inside A4
-      const scale = Math.min(pageW / imgW, pageH / imgH)
+      const scale = Math.min((pageW - 36) / imgW, (pageH - 36) / imgH)
       const drawW = imgW * scale
       const drawH = imgH * scale
-      const drawX = (pageW - drawW) / 2
-      const drawY = (pageH - drawH) / 2
-
       a4Page.drawImage(embeddedImg, {
-        x: drawX,
-        y: drawY,
+        x: (pageW - drawW) / 2,
+        y: (pageH - drawH) / 2,
         width: drawW,
         height: drawH,
       })
@@ -359,13 +429,13 @@ export async function combineFilesToPdf(files) {
         if (isPng) {
           try {
             embeddedImg = await outPdfDoc.embedPng(imgBytes)
-          } catch (e) {
+          } catch {
             embeddedImg = await outPdfDoc.embedJpg(imgBytes)
           }
         } else {
           try {
             embeddedImg = await outPdfDoc.embedJpg(imgBytes)
-          } catch (e) {
+          } catch {
             embeddedImg = await outPdfDoc.embedPng(imgBytes)
           }
         }

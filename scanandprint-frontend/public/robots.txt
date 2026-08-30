@@ -10,4 +10,4 @@ Disallow: /p/
 Disallow: /kiosk/
 
 # Reference canonical sitemap
-Sitemap: https://www.scanandprint.in/sitemap.xml
+Sitemap: https://scanandprint.in/sitemap.xml

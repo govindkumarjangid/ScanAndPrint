@@ -56,7 +56,7 @@ export default function AdminTransactions() {
         downloadCsv(flat, `ScanAndPrint_Transactions_${new Date().toISOString().split('T')[0]}.csv`)
         toast.success('Transactions CSV exported successfully!')
       }
-    } catch (e) {
+    } catch {
       toast.error('Failed to export transactions')
     } finally {
       setIsExporting(false)

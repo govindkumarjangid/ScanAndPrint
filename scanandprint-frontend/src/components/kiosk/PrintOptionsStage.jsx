@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Minus, ArrowRight, ArrowLeft, Layers, Sparkles, Check, AlertCircle, Crop } from 'lucide-react'
+import { Plus, Minus, ArrowRight, ArrowLeft, Layers, Check, AlertCircle, Crop } from 'lucide-react'
 import { parsePageRange } from '../../lib/pdfUtil'
 
 export default function PrintOptionsStage({
@@ -25,7 +25,6 @@ export default function PrintOptionsStage({
   onOpenStudioModal,
   onOpenPdfStudioModal,
   onOpenImageEditor,
-  onOpenCropModal,
   onBack,
   onProceedToPayment,
 }) {

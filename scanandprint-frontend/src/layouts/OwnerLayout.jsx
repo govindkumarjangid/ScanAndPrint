@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { Printer, QrCode, LogOut, Menu, X, CheckCircle2, AlertCircle, ownerNavItems } from '../assets/assets'
-import { Loader2, Clock, Sparkles, Zap, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check, Rocket, ChevronLeft, ChevronRight, Megaphone, AlertTriangle } from 'lucide-react'
+import { LogOut, Menu, X, CheckCircle2, ownerNavItems } from '../assets/assets'
+import { Loader2, Clock, Sparkles, ArrowRight, Lock, ShieldCheck, ShieldAlert, RefreshCw, Check, Rocket, ChevronLeft, ChevronRight, Megaphone, AlertTriangle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OwnerLogo } from '../components/ui/OwnerLogo'
 import { useAuthStore } from '../store/useAuthStore'
@@ -9,7 +9,6 @@ import { useJobStore } from '../store/useJobStore'
 import { getSocket } from '../lib/socket'
 import { loadRazorpayScript } from '../lib/razorpay'
 import toast from 'react-hot-toast'
-import api from '../lib/axios'
 
 export default function OwnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -32,7 +31,6 @@ export default function OwnerLayout() {
   const navigate = useNavigate()
   const {
     currentShop,
-    isAuthenticated,
     publicSettings,
     fetchPublicSettings,
     fetchProfile,
@@ -47,7 +45,6 @@ export default function OwnerLayout() {
   }, [fetchProfile, fetchPublicSettings])
 
   const monthlyPrice = publicSettings?.monthlyPrice || 299
-  const monthlyOriginalPrice = publicSettings?.monthlyOriginalPrice || 499
   const yearlyPrice = publicSettings?.yearlyPrice || 799
   const yearlyOriginalPrice = publicSettings?.yearlyOriginalPrice || 3588
 
@@ -70,7 +67,9 @@ export default function OwnerLayout() {
       gain.connect(audioCtx.destination)
       osc.start()
       osc.stop(audioCtx.currentTime + 0.5)
-    } catch (e) { }
+    } catch {
+      // Audio notification playback was blocked
+    }
   }
 
   // Real-time Socket Connection (Pure Socket.IO - 0 Refresh Required)
@@ -135,7 +134,9 @@ export default function OwnerLayout() {
             }
             try {
               localStorage.setItem('shopData', JSON.stringify(updated))
-            } catch (e) {}
+            } catch {
+              // LocalStorage quota or access error
+            }
             return { currentShop: updated }
           })
           setIsDemoExpired(false)
@@ -187,7 +188,7 @@ export default function OwnerLayout() {
       }
     }
 
-    const handleGlobalSettings = (settings) => {
+    const handleGlobalSettings = () => {
       fetchPublicSettings()
     }
 
@@ -248,7 +249,6 @@ export default function OwnerLayout() {
 
   const isDemo = Boolean(currentShop?.isDemoAccount)
   const isYearly = currentShop?.planType === 'YEARLY_799'
-  const isDemoEnded = isDemo && (!currentShop?.demoExpiresAt || new Date(currentShop.demoExpiresAt).getTime() <= Date.now())
 
   const expiryFormatted = currentShop?.subscriptionExpiresAt
     ? new Date(currentShop.subscriptionExpiresAt).toLocaleDateString('en-IN', {
@@ -265,18 +265,21 @@ export default function OwnerLayout() {
     })
     : null
 
-  let daysLeft = null
+  const [liveCountdown, setLiveCountdown] = useState(null)
+
+  const daysLeft = liveCountdown ? liveCountdown.days : null
   let isPlanExpired = false
 
   if (isDemo) {
-    if (isDemoEnded || isDemoExpired) {
+    if (isDemoExpired) {
       isPlanExpired = true
     }
   } else {
     if (currentShop?.subscriptionExpiresAt) {
-      const diffMs = new Date(currentShop.subscriptionExpiresAt).getTime() - Date.now()
-      daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-      if (diffMs <= 0 || currentShop.subscriptionStatus === 'EXPIRED') {
+      if (liveCountdown && liveCountdown.days === 0 && liveCountdown.hours === 0 && liveCountdown.minutes === 0 && liveCountdown.seconds === 0) {
+        isPlanExpired = true
+      }
+      if (currentShop.subscriptionStatus === 'EXPIRED') {
         isPlanExpired = true
       }
     } else if (
@@ -288,14 +291,14 @@ export default function OwnerLayout() {
     }
   }
 
-  const [liveCountdown, setLiveCountdown] = useState(null)
-
   // Live Real-Time Countdown Timer (Hours, Minutes, Seconds) for Demo & Active Monthly/Yearly Subscriptions
   useEffect(() => {
     if (!currentShop) {
-      setLiveCountdown(null)
-      setIsDemoExpired(false)
-      return
+      const resetTimer = setTimeout(() => {
+        setLiveCountdown(null)
+        setIsDemoExpired(false)
+      }, 0)
+      return () => clearTimeout(resetTimer)
     }
 
     const updateTimer = () => {
@@ -333,8 +336,8 @@ export default function OwnerLayout() {
 
         const pad = (n) => String(n).padStart(2, '0')
 
-        let formattedDesktop = ''
-        let formattedMobile = ''
+        let formattedDesktop
+        let formattedMobile
 
         if (days > 0) {
           formattedDesktop = `${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
@@ -358,9 +361,12 @@ export default function OwnerLayout() {
       }
     }
 
-    updateTimer()
+    const timer = setTimeout(updateTimer, 0)
     const interval = setInterval(updateTimer, 1000)
-    return () => clearInterval(interval)
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+    }
   }, [currentShop])
 
   const isDashboardLocked = isDemoExpired || isPlanExpired

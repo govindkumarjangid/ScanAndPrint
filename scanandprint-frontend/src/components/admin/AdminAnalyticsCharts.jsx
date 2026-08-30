@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
   ResponsiveContainer,
   AreaChart,
@@ -14,12 +14,6 @@ import {
 import {
   TrendingUp,
   PieChart as PieIcon,
-  Activity,
-  Layers,
-  Sparkles,
-  Zap,
-  CheckCircle2,
-  AlertCircle,
 } from 'lucide-react'
 
 // Custom Glassy Dark Tooltip for Line/Area Charts
@@ -48,12 +42,11 @@ const CustomDarkTooltip = ({ active, payload, label }) => {
   return null
 }
 
-export default function AdminAnalyticsCharts({ analyticsData = {}, loading = false }) {
+export default function AdminAnalyticsCharts({ analyticsData = {} }) {
   const [metricTab, setMetricTab] = useState('prints') // 'prints' | 'revenue' | 'jobs'
 
   const rawDailyTrend = analyticsData.dailyTrend || []
   const rawPlanBreakdown = analyticsData.planBreakdown || []
-  const statusBreakdown = analyticsData.statusBreakdown || []
   const metrics = analyticsData.metrics || {}
 
   // 1. Prepare Daily Trend with guaranteed points

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Download, Key, CheckCircle2, Copy, Monitor, ShieldCheck, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Download, Copy, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
 
 export default function OwnerAgentDownload() {
-  const { currentShop, fetchProfile, isLoading } = useAuthStore()
+  const { currentShop, fetchProfile } = useAuthStore()
 
   useEffect(() => {
     if (!currentShop?.secretApiKey) {

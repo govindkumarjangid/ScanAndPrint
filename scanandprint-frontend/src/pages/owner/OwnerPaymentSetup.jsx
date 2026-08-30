@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CreditCard,
@@ -39,8 +39,11 @@ export default function OwnerPaymentSetup() {
 
   useEffect(() => {
     if (currentShop) {
-      if (currentShop.paymentSettings?.paymentMode) setPaymentMode(currentShop.paymentSettings.paymentMode)
-      if (currentShop.paymentSettings?.razorpayKeyId) setRazorpayKeyId(currentShop.paymentSettings.razorpayKeyId)
+      const timer = setTimeout(() => {
+        if (currentShop.paymentSettings?.paymentMode) setPaymentMode(currentShop.paymentSettings.paymentMode)
+        if (currentShop.paymentSettings?.razorpayKeyId) setRazorpayKeyId(currentShop.paymentSettings.razorpayKeyId)
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [currentShop])
 

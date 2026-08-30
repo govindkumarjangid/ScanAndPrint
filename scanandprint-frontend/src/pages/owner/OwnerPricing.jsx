@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { IndianRupee, CheckCircle2, Save, Loader2, Sparkles } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Save, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
-import toast from 'react-hot-toast'
 
 export default function OwnerPricing() {
   const { currentShop, fetchProfile, updateRates, isSavingRates } = useAuthStore()
@@ -16,8 +14,11 @@ export default function OwnerPricing() {
 
   useEffect(() => {
     if (currentShop) {
-      if (currentShop.bwRate !== undefined) setBwRate(currentShop.bwRate)
-      if (currentShop.colorRate !== undefined) setColorRate(currentShop.colorRate)
+      const timer = setTimeout(() => {
+        if (currentShop.bwRate !== undefined) setBwRate(currentShop.bwRate)
+        if (currentShop.colorRate !== undefined) setColorRate(currentShop.colorRate)
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [currentShop])
 

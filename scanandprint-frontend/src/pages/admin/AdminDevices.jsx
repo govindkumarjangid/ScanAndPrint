@@ -9,20 +9,14 @@ import {
   RefreshCw,
   Lock,
   Cpu,
-  HardDrive,
   Network,
   ChevronLeft,
   ChevronRight,
-  Check,
   X,
-  Loader2,
   AlertOctagon,
   Eye,
   Copy,
   Terminal,
-  Activity,
-  Server,
-  Layers,
 } from 'lucide-react'
 import api from '../../lib/axios'
 import { getSocket } from '../../lib/socket'
@@ -66,7 +60,10 @@ export default function AdminDevices() {
   }
 
   useEffect(() => {
-    fetchDevices()
+    let isMounted = true
+    const timer = setTimeout(() => {
+      if (isMounted) fetchDevices()
+    }, 0)
 
     const socket = getSocket()
     socket.emit('JOIN_ADMIN_ROOM')
@@ -110,6 +107,8 @@ export default function AdminDevices() {
     socket.on('ADMIN_NEW_DEVICE_PENDING', handleSync)
 
     return () => {
+      isMounted = false
+      clearTimeout(timer)
       socket.off('ADMIN_DEVICE_UPDATED', handleDeviceLiveUpdate)
       socket.off('ADMIN_LIVE_AGENT_UPDATE', handleDeviceLiveUpdate)
       socket.off('AGENT_STATUS_CHANGE', handleDeviceLiveUpdate)

@@ -61,7 +61,7 @@ export const useAdminStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || error.message || 'Admin login failed'
       toast.error(msg)
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     }
   },
 

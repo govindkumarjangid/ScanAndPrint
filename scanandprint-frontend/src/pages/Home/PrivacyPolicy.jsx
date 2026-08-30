@@ -1,14 +1,12 @@
-import React from 'react'
 import { Link } from 'react-router'
 import SEO from '../../components/common/SEO'
-import { ShieldCheck, Lock, EyeOff, Server, FileText, CheckCircle2, ArrowRight } from '../../assets/assets'
+import { Lock, EyeOff, ArrowRight } from '../../assets/assets'
 import { useAuthStore } from '../../store/useAuthStore'
 
 export default function PrivacyPolicy() {
   const { publicSettings } = useAuthStore()
   const supportEmail = publicSettings?.supportEmail || 'scanqrandprint@gmail.com'
   const supportPhone = publicSettings?.supportPhone || '+91 7073904473'
-  const filePurgeMinutes = publicSettings?.filePurgeMinutes || 60
   return (
     <div className="py-12 px-4 sm:px-6 max-w-240 mx-auto w-full font-sans">
       <SEO path="/privacy-policy" />

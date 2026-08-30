@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle2, Printer, Plus, Cloud, Sparkles, Receipt, FileText, ArrowRight, Clock, XCircle, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, Printer, Plus, Cloud, Receipt, Clock, XCircle, ShieldCheck } from 'lucide-react'
 import { useKioskStore } from '../../store/useKioskStore'
 import { getSocket } from '../../lib/socket'
 
 export default function PrintTrackingStage({
   shopInfo,
-  selectedFile,
   selectedPagesCount,
   colorType,
   copies,
@@ -14,7 +13,7 @@ export default function PrintTrackingStage({
   paymentMethod: propPaymentMethod,
   onNewOrder,
 }) {
-  const { jobId, createdJob, paymentTxnId, isPaymentVerified } = useKioskStore()
+  const { jobId, createdJob, isPaymentVerified } = useKioskStore()
   const isAgentOnline = Boolean(shopInfo?.isOnline)
 
   // Explicit Payment Method Determination (from Prop or Store)
@@ -39,9 +38,13 @@ export default function PrintTrackingStage({
       pm === 'UPI_ONLINE' ||
       pm === 'DEMO_BYPASS')
 
-  const [printStatus, setPrintStatus] = useState(() => (isCounterPayment ? 'WAITING_COUNTER_APPROVAL' : 'PAYMENT_VERIFIED'))
+  const [printStatus, setPrintStatus] = useState(() => {
+    if (isCounterPayment) return 'WAITING_COUNTER_APPROVAL'
+    if (!isAgentOnline) return 'QUEUED_IN_CLOUD'
+    return 'PAYMENT_VERIFIED'
+  })
 
-  const activeJobId = jobId || createdJob?.jobId || `JOB_${Date.now().toString().slice(-6)}`
+  const activeJobId = jobId || createdJob?.jobId || 'PENDING_DISPATCH'
   const hasPlayedSoundRef = useRef(false)
 
   // Reset audio trigger flag when new job arrives
@@ -120,10 +123,8 @@ export default function PrintTrackingStage({
         clearTimeout(timer2)
         clearTimeout(timer3)
       }
-    } else {
-      setPrintStatus('QUEUED_IN_CLOUD')
     }
-  }, [isAgentOnline, isOnlinePayment])
+  }, [isAgentOnline, isOnlinePayment, isCounterPayment])
 
   return (
     <motion.div

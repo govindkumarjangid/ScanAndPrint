@@ -84,4 +84,49 @@ export async function deleteShopSession(shopId) {
   }
 }
 
+/**
+ * Agent presence tracking via Redis Hashes
+ */
+export async function setAgentPresence(shopCode, agentData) {
+  const code = String(shopCode || '').trim().toUpperCase()
+  if (!code) return
+  try {
+    if (redis.status === 'ready' || redis.status === 'connect') {
+      await redis.hset('active_agents', code, JSON.stringify(agentData))
+    }
+  } catch (err) {
+    console.warn('[Redis setAgentPresence]:', err.message)
+  }
+}
+
+export async function removeAgentPresence(shopCode) {
+  const code = String(shopCode || '').trim().toUpperCase()
+  if (!code) return
+  try {
+    if (redis.status === 'ready' || redis.status === 'connect') {
+      await redis.hdel('active_agents', code)
+    }
+  } catch (err) {
+    console.warn('[Redis removeAgentPresence]:', err.message)
+  }
+}
+
+export async function getActiveAgentsFromRedis() {
+  try {
+    if (redis.status === 'ready' || redis.status === 'connect') {
+      const raw = await redis.hgetall('active_agents')
+      const result = {}
+      for (const [k, v] of Object.entries(raw || {})) {
+        try {
+          result[k] = JSON.parse(v)
+        } catch (e) {}
+      }
+      return result
+    }
+  } catch (err) {
+    console.warn('[Redis getActiveAgents]:', err.message)
+  }
+  return null
+}
+
 export default redis;

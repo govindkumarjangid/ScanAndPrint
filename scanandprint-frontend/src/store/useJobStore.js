@@ -73,7 +73,7 @@ export const useJobStore = create((set, get) => ({
       await get().fetchAnalytics()
       toast.success('Orders queue refreshed!', { id: 'refresh-success' })
       return 15
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh orders')
       return false
     } finally {

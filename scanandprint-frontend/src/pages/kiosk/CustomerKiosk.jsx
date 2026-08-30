@@ -31,7 +31,9 @@ export default function CustomerKiosk() {
     resetJobFlow,
   } = useKioskStore()
 
-  const [shopInfo, setShopInfo] = useState(storeShopInfo)
+  const [liveShopOverrides, setLiveShopOverrides] = useState({})
+  const shopInfo = storeShopInfo ? { ...storeShopInfo, ...liveShopOverrides } : null
+
   const [step, setStep] = useState(1)
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFiles, setSelectedFiles] = useState([])
@@ -49,16 +51,8 @@ export default function CustomerKiosk() {
   const [pdfStudioModalOpen, setPdfStudioModalOpen] = useState(false)
 
   useEffect(() => {
-    fetchShopInfo(shopCode).then((info) => {
-      if (info) setShopInfo(info)
-    })
+    fetchShopInfo(shopCode)
   }, [shopCode, fetchShopInfo])
-
-  useEffect(() => {
-    if (storeShopInfo) {
-      setShopInfo(storeShopInfo)
-    }
-  }, [storeShopInfo])
 
   // Live Socket.IO Synchronization for Printer Online Status & Real-time Kiosk Events
   useEffect(() => {
@@ -77,35 +71,29 @@ export default function CustomerKiosk() {
 
     const handleStatusChange = (data) => {
       if (data && data.shopCode === shopCode) {
-        setShopInfo((prev) => (prev ? { ...prev, isOnline: data.isOnline } : prev))
+        setLiveShopOverrides((prev) => ({ ...prev, isOnline: data.isOnline }))
       }
     }
 
     const handleShopStatus = (data) => {
       if (data && String(data.shopCode).toUpperCase() === String(shopCode).toUpperCase()) {
-        setShopInfo((prev) => (prev ? { ...prev, isSuspended: Boolean(data.isSuspended) } : prev))
+        setLiveShopOverrides((prev) => ({ ...prev, isSuspended: Boolean(data.isSuspended) }))
       }
     }
 
     const handleRatesUpdated = (data) => {
       if (data && String(data.shopCode).toUpperCase() === String(shopCode).toUpperCase()) {
-        setShopInfo((prev) =>
-          prev ? { ...prev, bwRate: data.bwRate, colorRate: data.colorRate } : prev
-        )
+        setLiveShopOverrides((prev) => ({ ...prev, bwRate: data.bwRate, colorRate: data.colorRate }))
       }
     }
 
     const handlePaymentSettings = (data) => {
       if (data && String(data.shopCode).toUpperCase() === String(shopCode).toUpperCase()) {
-        setShopInfo((prev) =>
-          prev
-            ? {
-                ...prev,
-                paymentSettings: data.paymentSettings,
-                upiId: data.upiId || data.paymentSettings?.upiId || '',
-              }
-            : prev
-        )
+        setLiveShopOverrides((prev) => ({
+          ...prev,
+          paymentSettings: data.paymentSettings,
+          upiId: data.upiId || data.paymentSettings?.upiId || '',
+        }))
       }
     }
 
@@ -192,16 +180,23 @@ export default function CustomerKiosk() {
     await handleFileSelect(updated)
   }
 
-  const handleSaveEditedDocument = (editedDocFile) => {
+  const handleSaveEditedDocument = async (editedDocFile) => {
     setSelectedFile(editedDocFile)
     setStudioModalOpen(false)
-    setTotalDocPages(1)
-    setSelectedPagesCount(1)
+    setIsAnalyzingPdf(true)
+    try {
+      const realCount = await getExactPageCount(editedDocFile)
+      setTotalDocPages(realCount)
+      setSelectedPagesCount(realCount)
+    } catch {
+      setTotalDocPages(1)
+      setSelectedPagesCount(1)
+    } finally {
+      setIsAnalyzingPdf(false)
+    }
     setPageRangeMode('all')
     setCustomRangeStr('')
-    // Pre-upload edited document
     preUploadFile(editedDocFile)
-    // Advance directly to print options stage with processed file
     setStep(2)
   }
 

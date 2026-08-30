@@ -48,7 +48,10 @@ export default function OwnerDevices() {
   }
 
   useEffect(() => {
-    fetchDevices()
+    let isMounted = true
+    const timer = setTimeout(() => {
+      if (isMounted) fetchDevices()
+    }, 0)
 
     // Real-time socket sync when Super Admin approves/rejects or new device connects
     const socket = getSocket()
@@ -65,6 +68,8 @@ export default function OwnerDevices() {
     socket.on('DEVICE_STATUS_CHANGED', handleStatusSync)
 
     return () => {
+      isMounted = false
+      clearTimeout(timer)
       socket.off('NEW_DEVICE_PENDING_APPROVAL', handleStatusSync)
       socket.off('DEVICE_STATUS_CHANGED', handleStatusSync)
     }

@@ -95,7 +95,7 @@ export default function OwnerJobs() {
           id: 'search-result-toast',
         })
       }
-    } catch (err) {
+    } catch {
       toast.error('Search failed, please try again')
     } finally {
       setIsSearching(false)

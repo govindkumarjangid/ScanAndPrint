@@ -1,6 +1,4 @@
-import React from 'react'
 import { Link } from 'react-router'
-import { motion } from 'framer-motion'
 import SEO from '../../components/common/SEO'
 import {
   Target,

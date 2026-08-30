@@ -53,7 +53,48 @@ export function warpPerspectiveCanvas(sourceCanvas, corners, targetWidth, target
   const outW = Math.max(50, Math.round(targetWidth || Math.max(topW, bottomW)))
   const outH = Math.max(50, Math.round(targetHeight || Math.max(leftH, rightH)))
 
-  // Get source image pixel data
+  // 1. FAST-PATH: WebAssembly OpenCV (C++ accelerated ~5ms execution)
+  if (typeof window !== 'undefined' && window.cv && window.cv.Mat) {
+    try {
+      const cv = window.cv
+      const srcMat = cv.imread(sourceCanvas)
+      const dstMat = new cv.Mat()
+      const dsize = new cv.Size(outW, outH)
+
+      const srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+        tl.x, tl.y,
+        tr.x, tr.y,
+        bl.x, bl.y,
+        br.x, br.y,
+      ])
+      const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+        0, 0,
+        outW, 0,
+        0, outH,
+        outW, outH,
+      ])
+
+      const M = cv.getPerspectiveTransform(srcTri, dstTri)
+      cv.warpPerspective(srcMat, dstMat, M, dsize, cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar())
+
+      const dstCanvas = document.createElement('canvas')
+      dstCanvas.width = outW
+      dstCanvas.height = outH
+      cv.imshow(dstCanvas, dstMat)
+
+      srcMat.delete()
+      dstMat.delete()
+      srcTri.delete()
+      dstTri.delete()
+      M.delete()
+
+      return dstCanvas
+    } catch (e) {
+      console.warn('[WarpPerspective] OpenCV WebAssembly fallback:', e.message)
+    }
+  }
+
+  // 2. FALLBACK: Pure JS bilinear interpolation
   const srcCtx = sourceCanvas.getContext('2d', { willReadFrequently: true })
   const srcW = sourceCanvas.width
   const srcH = sourceCanvas.height

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertTriangle,
@@ -25,7 +25,6 @@ export default function AdminDeleteConfirmModal({
   itemData = null,
 }) {
   const [isDeleting, setIsDeleting] = useState(false)
-  const [confirmInput, setConfirmInput] = useState('')
 
   if (!isOpen || !itemData) return null
 

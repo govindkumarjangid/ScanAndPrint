@@ -1,10 +1,7 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { MessageSquare, X } from '../../assets/assets'
+import { motion } from 'framer-motion'
 import { useAuthStore } from '../../store/useAuthStore'
 
 export default function FloatingWhatsApp() {
-  const [isHovered, setIsHovered] = useState(false)
   const { publicSettings } = useAuthStore()
 
   const rawPhone = String(publicSettings?.supportPhone || '917073904473').replace(/[^\d]/g, '')
@@ -17,8 +14,6 @@ export default function FloatingWhatsApp() {
         href={`https://wa.me/${waNumber}?text=Hello%20Scan%26Print%20Support%2C%20I%20need%20assistance%20with%20shop%20setup`}
         target="_blank"
         rel="noreferrer"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.94 }}
         className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-linear-to-tr from-emerald-600 to-emerald-500 text-white flex items-center justify-center shadow-[0_8px_25px_rgba(16,185,129,0.45)] hover:shadow-[0_12px_32px_rgba(16,185,129,0.6)] transition-shadow cursor-pointer group"

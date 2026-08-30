@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { AlertTriangle, Clock, Plus, Zap, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { AlertTriangle, Clock, Zap, Loader2 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 
 export default function AdminExpiringAlerts({ expiringShops = [] }) {

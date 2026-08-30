@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link } from 'react-router'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'

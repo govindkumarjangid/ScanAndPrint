@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CheckCircle2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { Search, Filter, ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import { getSocket } from '../../lib/socket'
 import TableSkeleton from '../../components/skeleton/TableSkeleton'

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect, useCallback } from 'react'
+import { useRef, useState, useLayoutEffect, useCallback } from 'react'
 import { Link } from 'react-router'
 import { motion, useScroll, useSpring } from 'framer-motion'
 import SEO from '../../components/common/SEO'

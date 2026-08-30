@@ -1,35 +1,29 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Crop,
   X,
   Check,
   RotateCw,
-  RotateCcw,
-  RefreshCw,
-  FileText,
-  Image as ImageIcon,
   Plus,
   Trash2,
-  Grid,
   Loader2,
-  Copy,
   Layers,
-  ScanLine,
   Maximize2,
-  ArrowLeft,
-  CreditCard,
   Sparkles,
-  Wand2,
+  ScanLine,
+  Grid,
+  RefreshCw,
+  Copy,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import {
-  renderCroppedImageCanvas,
   renderPerspectiveCropCanvas,
   renderA4MultiImageCanvas,
-  renderPassportGridCanvas,
-  getPassportGridDimensions,
+  renderPassportGridPages,
+  canvasesToPdfFile,
   canvasToPdfFile,
-  canvasToImageFile,
 } from '../../lib/kioskCanvasUtil'
 import toast from 'react-hot-toast'
 import {
@@ -38,60 +32,13 @@ import {
   extractCardPerspective,
 } from '../../utils/jscanifyUtil'
 
-/**
- * Calculates non-overlapping position & dimensions (% of A4 canvas)
- * for N images so they fit on the A4 page without overlapping!
- */
-export function getNonOverlappingSlot(index, totalCount) {
-  if (totalCount <= 1) {
-    return { x: 7, y: 6, width: 86, height: 86 }
-  }
-  if (totalCount === 2) {
-    // 2 Items: Top Half & Bottom Half (Zero overlap!)
-    return index === 0
-      ? { x: 7, y: 4, width: 86, height: 44 }
-      : { x: 7, y: 52, width: 86, height: 44 }
-  }
-  if (totalCount === 3) {
-    // 3 Items: 1 Top, 2 Bottom side-by-side (Zero overlap!)
-    if (index === 0) return { x: 7, y: 4, width: 86, height: 44 }
-    if (index === 1) return { x: 5, y: 52, width: 43, height: 44 }
-    return { x: 52, y: 52, width: 43, height: 44 }
-  }
-  if (totalCount === 4) {
-    // 4 Items: 2x2 Grid (Zero overlap!)
-    const col = index % 2
-    const row = Math.floor(index / 2)
-    return {
-      x: col === 0 ? 5 : 52,
-      y: row === 0 ? 4 : 52,
-      width: 43,
-      height: 44,
-    }
-  }
-  // 5 Items: 2 Top, 3 Bottom (Zero overlap!)
-  if (index < 2) {
-    return {
-      x: index === 0 ? 5 : 52,
-      y: 4,
-      width: 43,
-      height: 44,
-    }
-  } else {
-    const col3 = index - 2
-    return {
-      x: 4 + col3 * 32,
-      y: 52,
-      width: 28,
-      height: 44,
-    }
-  }
-}
+import { getNonOverlappingSlot } from '../../utils/kioskSlots'
+import KioskPerspectiveModal from './studio/KioskPerspectiveModal'
+import KioskPassportTab from './studio/KioskPassportTab'
 
 export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, onClose, onSave }) {
   // Master Tabs: 'doc_studio' (Doc Scanner & Layout) | 'passport' (Passport Photo Grid) | 'id_card' (ID Card 2-in-1)
   const [activeMode, setActiveMode] = useState('doc_studio')
-  const [exportFormat, setExportFormat] = useState('pdf') // 'pdf' | 'png'
   const [isProcessing, setIsProcessing] = useState(false)
 
   // =========================================================================
@@ -126,10 +73,18 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
   const cropStageRef = useRef(null)
 
   // =========================================================================
-  // 2. PASSPORT PHOTO GRID STATES (16+ COPIES & ZERO-GAP)
+  // 2. PASSPORT PHOTO GRID STATES (16+ COPIES)
   // =========================================================================
   const [passportCount, setPassportCount] = useState(16) // 16, 20, 24, 30, 32, 36, 40, 48
-  const [passportNoGap, setPassportNoGap] = useState(true) // Always zero space between photos
+  const [passportPreviewPage, setPassportPreviewPage] = useState(1)
+  const passportTotalPages = Math.ceil(passportCount / 30)
+
+  useEffect(() => {
+    if (passportPreviewPage > passportTotalPages) {
+      const timer = setTimeout(() => setPassportPreviewPage(1), 0)
+      return () => clearTimeout(timer)
+    }
+  }, [passportPreviewPage, passportTotalPages])
 
   // Load Images (single or multiple) with Non-Overlapping A4 Grid Layout
   useEffect(() => {
@@ -145,50 +100,56 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
             img.onload = () => {
               const naturalW = img.naturalWidth || 1000
               const naturalH = img.naturalHeight || 1000
-              const imgAspect = naturalW / naturalH
+
+              // Calculate clean, non-overlapping default slot on A4
               const slot = getNonOverlappingSlot(idx, filesToLoad.length)
 
               resolve({
-                id: 'item_' + Date.now() + '_' + idx,
+                id: `img_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 5)}`,
+                file,
                 url,
-                rawUrl: url,
-                name: file.name || `Image ${idx + 1}`,
+                imgElement: img,
+                naturalW,
+                naturalH,
+                // A4 relative percent coordinates (non-overlapping)
                 x: slot.x,
                 y: slot.y,
                 width: slot.width,
                 height: slot.height,
-                aspectRatio: imgAspect,
-                naturalWidth: naturalW,
-                naturalHeight: naturalH,
                 rotation: 0,
+                flipH: false,
+                flipV: false,
+                isXerox: false,
                 corners: [
-                  { x: 5, y: 5 },
-                  { x: 95, y: 5 },
-                  { x: 95, y: 95 },
-                  { x: 5, y: 95 },
+                  { x: 0, y: 0 },
+                  { x: 100, y: 0 },
+                  { x: 100, y: 100 },
+                  { x: 0, y: 100 },
                 ],
               })
             }
             img.onerror = () => {
               const slot = getNonOverlappingSlot(idx, filesToLoad.length)
               resolve({
-                id: 'item_' + Date.now() + '_' + idx,
+                id: `img_${Date.now()}_${idx}`,
+                file,
                 url,
-                rawUrl: url,
-                name: file.name || `Image ${idx + 1}`,
+                imgElement: img,
+                naturalW: 1000,
+                naturalH: 1000,
                 x: slot.x,
                 y: slot.y,
                 width: slot.width,
                 height: slot.height,
-                aspectRatio: 1.33,
-                naturalWidth: 800,
-                naturalHeight: 600,
                 rotation: 0,
+                flipH: false,
+                flipV: false,
+                isXerox: false,
                 corners: [
-                  { x: 5, y: 5 },
-                  { x: 95, y: 5 },
-                  { x: 95, y: 95 },
-                  { x: 5, y: 95 },
+                  { x: 0, y: 0 },
+                  { x: 100, y: 0 },
+                  { x: 100, y: 100 },
+                  { x: 0, y: 100 },
                 ],
               })
             }
@@ -202,13 +163,12 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
         setSelectedItemId(items[0].id)
         setImageSrc(items[0].url)
       }
+      setBrightness(100)
+      setContrast(100)
+      setPassportCount(16)
     }
 
     loadAll()
-    setBrightness(100)
-    setContrast(100)
-    setPassportCount(16)
-    setPassportNoGap(true)
   }, [imageFile, imageFiles])
 
   // Get active item
@@ -390,7 +350,12 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
             ...item,
             rawUrl: src,
             url: dataUrl,
-            corners: cornersPct,
+            corners: [
+              { x: 0, y: 0 },
+              { x: 100, y: 0 },
+              { x: 100, y: 100 },
+              { x: 0, y: 100 },
+            ],
             rotation: 0,
           })
         } catch (err) {
@@ -725,7 +690,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
     setBrightness(100)
     setContrast(100)
     setPassportCount(16)
-    setPassportNoGap(true)
     setCroppingItem(null)
     toast.success('Reset to original')
   }
@@ -738,37 +702,41 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
     setIsProcessing(true)
 
     try {
-      let finalCanvas = null
+      let generatedFile = null
       const fileNameBase = imageFile?.name ? imageFile.name.replace(/\.[^/.]+$/, '') : 'document'
 
       if (activeMode === 'doc_studio') {
         // Mode 1: All-in-One Multi-Image A4 Canvas (with 4-Point Cropping, Position, Scale, Rotation)
-        finalCanvas = await renderA4MultiImageCanvas({
+        const finalCanvas = await renderA4MultiImageCanvas({
           items: canvasItems,
           showCutLine: false,
           showBorder: false,
           globalFilters: { brightness, contrast },
         })
+        if (!finalCanvas) throw new Error('Failed to generate document canvas')
+        generatedFile = await canvasToPdfFile(finalCanvas, `${fileNameBase}_print.pdf`)
+        toast.success('A4 PDF Document ready for printing!')
       } else if (activeMode === 'passport') {
-        // Mode 2: Passport Photo Grid (Full-page edge-to-edge layout, zero dead margins & aspect ratio preservation)
+        // Mode 2: Passport Photo Grid (35mm x 45mm Fixed Size, Top-Down Fill, Multi-Page Overflow)
         const primaryImageSrc = activeItem?.rawUrl || activeItem?.url || imageSrc
-        finalCanvas = await renderPassportGridCanvas({
+        const canvases = await renderPassportGridPages({
           imageSrc: primaryImageSrc,
           copiesCount: passportCount,
           showCutLines: true,
-          noGap: true,
           rotation: activeItem?.rotation || 0,
           filters: { brightness, contrast },
         })
+        if (!canvases || !canvases.length) throw new Error('Failed to generate passport photo canvases')
+        generatedFile = await canvasesToPdfFile(canvases, `${fileNameBase}_passport_${passportCount}.pdf`)
+        toast.success(
+          `Passport Photo Document (${passportCount} copies, ${canvases.length} page${canvases.length > 1 ? 's' : ''}) ready!`
+        )
       }
 
-      if (!finalCanvas) {
-        throw new Error('Failed to generate document canvas')
+      if (!generatedFile) {
+        throw new Error('Failed to generate printable PDF')
       }
 
-      const generatedFile = await canvasToPdfFile(finalCanvas, `${fileNameBase}_print.pdf`)
-
-      toast.success('A4 PDF Document ready for printing!')
       onSave(generatedFile)
     } catch (err) {
       console.error('Error generating document:', err)
@@ -776,12 +744,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
     } finally {
       setIsProcessing(false)
     }
-  }
-
-  const getPassportGridCols = (count) => {
-    if (count <= 24) return 4
-    if (count <= 35) return 5
-    return 6
   }
 
   if (!isOpen) return null
@@ -885,7 +847,7 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
                 <div
                   ref={a4CanvasRef}
                   onClick={() => setSelectedItemId(null)}
-                  className="relative h-full max-h-full max-w-full bg-white rounded-xl shadow-2xl border-2 border-stone-400 overflow-hidden text-stone-900 select-none"
+                  className="relative h-full max-h-full max-w-full bg-white rounded-none shadow-[0_10px_35px_-5px_rgba(0,0,0,0.3)] border-0 overflow-hidden text-stone-900 select-none"
                   style={{
                     aspectRatio: '1 / 1.414',
                     height: '100%',
@@ -913,7 +875,7 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
                   )}
 
                   {/* Placed Images with Drag, Sleek Top-Right Delete, and Sleek Bottom-Right Resize Handle */}
-                  {canvasItems.map((item, idx) => {
+                  {canvasItems.map((item) => {
                     const isSelected = selectedItemId === item.id
 
                     return (
@@ -1042,200 +1004,105 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
                 </div>
               )}
 
-              {/* TAB 2: PASSPORT PHOTO GRID PREVIEW (16+ COPIES, LIVE FULL PAGE TILING) */}
+              {/* TAB 2: PASSPORT PHOTO GRID PREVIEW (35x45mm True Fixed Size, Top-Down Fill, Multi-Page) */}
               {activeMode === 'passport' && (
-                <div
-                  className="relative h-full max-h-full max-w-full bg-white rounded-xl shadow-2xl border-2 border-stone-400 p-0 overflow-hidden text-stone-900 flex flex-col"
-                  style={{
-                    aspectRatio: '1 / 1.414',
-                    height: '100%',
-                    maxHeight: '100%',
-                    maxWidth: '100%',
-                    width: 'auto',
-                  }}
-                >
+                <div className="relative h-full max-h-full max-w-full flex items-center justify-center">
+                  {/* Floating Page Switcher for >30 copies */}
+                  {passportTotalPages > 1 && (
+                    <div className="absolute top-2 z-30 bg-stone-900/90 text-white backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2.5 shadow-lg border border-stone-700/80">
+                      <button
+                        type="button"
+                        disabled={passportPreviewPage === 1}
+                        onClick={() => setPassportPreviewPage((p) => Math.max(1, p - 1))}
+                        className="p-0.5 hover:text-amber-400 disabled:opacity-30 disabled:hover:text-white cursor-pointer"
+                        title="Previous Page"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="font-mono">
+                        Page {passportPreviewPage} of {passportTotalPages} ({passportPreviewPage === 1 ? 30 : passportCount - 30} Photos)
+                      </span>
+                      <button
+                        type="button"
+                        disabled={passportPreviewPage === passportTotalPages}
+                        onClick={() => setPassportPreviewPage((p) => Math.min(passportTotalPages, p + 1))}
+                        className="p-0.5 hover:text-amber-400 disabled:opacity-30 disabled:hover:text-white cursor-pointer"
+                        title="Next Page"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
                   <div
-                    className="grid w-full h-full gap-0 overflow-hidden"
+                    className="relative h-full max-h-full max-w-full bg-white rounded-none shadow-[0_10px_35px_-5px_rgba(0,0,0,0.3)] border-0 p-0 overflow-hidden text-stone-900 select-none"
                     style={{
-                      gridTemplateColumns: `repeat(${getPassportGridDimensions(passportCount).cols}, minmax(0, 1fr))`,
-                      gridTemplateRows: `repeat(${getPassportGridDimensions(passportCount).rows}, minmax(0, 1fr))`,
+                      aspectRatio: '1 / 1.414',
+                      height: '100%',
+                      maxHeight: '100%',
+                      maxWidth: '100%',
+                      width: 'auto',
                     }}
                   >
-                    {Array.from({ length: passportCount }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-full h-full bg-stone-50 overflow-hidden relative border-r border-b border-stone-200"
-                      >
-                        {(activeItem?.rawUrl || activeItem?.url || imageSrc) && (
-                          <img
-                            src={activeItem?.rawUrl || activeItem?.url || imageSrc}
-                            alt={`Passport Copy ${i + 1}`}
-                            className="w-full h-full object-cover"
-                            style={{
-                              transform: `rotate(${activeItem?.rotation || 0}deg)`,
-                              filter: `brightness(${brightness}%) contrast(${contrast}%)`,
-                            }}
-                          />
-                        )}
-                      </div>
-                    ))}
+                    {/* Render each photo on current page with fixed 35x45mm percentage dimensions and cutting border */}
+                    {Array.from({
+                      length: passportPreviewPage === 1 ? Math.min(30, passportCount) : Math.max(0, passportCount - 30),
+                    }).map((_, i) => {
+                      const col = i % 5
+                      const row = Math.floor(i / 5)
+                      const colWidthPct = 16.667 // 35mm / 210mm
+                      const rowHeightPct = 15.152 // 45mm / 297mm
+                      const marginLeftPct = 4.76 // 10mm
+                      const gapXPct = 1.785 // 3.75mm
+                      const marginTopPct = 3.2 // 9.5mm
+                      const gapYPct = 0.54 // 1.6mm
+                      const left = marginLeftPct + col * (colWidthPct + gapXPct)
+                      const top = marginTopPct + row * (rowHeightPct + gapYPct)
+
+                      return (
+                        <div
+                          key={i}
+                          className="absolute bg-white overflow-hidden border border-stone-300 shadow-2xs"
+                          style={{
+                            left: `${left}%`,
+                            top: `${top}%`,
+                            width: `${colWidthPct}%`,
+                            height: `${rowHeightPct}%`,
+                          }}
+                        >
+                          {(activeItem?.rawUrl || activeItem?.url || imageSrc) && (
+                            <img
+                              src={activeItem?.rawUrl || activeItem?.url || imageSrc}
+                              alt={`Passport Copy ${i + 1}`}
+                              className="w-full h-full object-cover pointer-events-none select-none"
+                              style={{
+                                transform: `rotate(${activeItem?.rotation || 0}deg)`,
+                                filter: `brightness(${brightness}%) contrast(${contrast}%)`,
+                              }}
+                            />
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* DEDICATED 4-POINT PERSPECTIVE CROPPER OVERLAY (MAX VERTICAL SPACE & PIXEL PERFECT MAPPING) */}
+              {/* DEDICATED 4-POINT PERSPECTIVE CROPPER OVERLAY */}
               {croppingItem && (
-                <div className="absolute inset-0 bg-stone-950/95 z-50 p-2 sm:p-4 flex flex-col justify-between">
-                  {/* Cropper Viewport with EXACT aspect-ratio tight wrapper */}
-                  <div className="flex-1 my-1 sm:my-2 flex items-center justify-center overflow-hidden relative">
-                    <div
-                      ref={cropStageRef}
-                      className="relative max-w-full max-h-full overflow-visible select-none shadow-2xl flex items-center justify-center bg-stone-900 rounded-sm"
-                      style={{
-                        aspectRatio: `${cropImgSize.w} / ${cropImgSize.h}`,
-                        height: '100%',
-                        maxHeight: '100%',
-                        maxWidth: '100%',
-                        width: 'auto',
-                      }}
-                    >
-                      <img
-                        src={croppingItem.rawUrl || croppingItem.url}
-                        alt="Crop Viewport"
-                        className="w-full h-full object-contain pointer-events-none rounded-xs"
-                        onLoad={(e) => {
-                          if (e.target.naturalWidth && e.target.naturalHeight) {
-                            setCropImgSize({ w: e.target.naturalWidth, h: e.target.naturalHeight })
-                          }
-                        }}
-                        style={{
-                          transform: `rotate(${croppingItem.rotation || 0}deg)`,
-                        }}
-                      />
-
-                      {/* SVG Mask and Dual High-Contrast Quad Outline */}
-                      <svg
-                        viewBox="0 0 100 100"
-                        preserveAspectRatio="none"
-                        className="absolute inset-0 w-full h-full pointer-events-none z-30 overflow-visible"
-                      >
-                        <defs>
-                          <mask id="doc-full-crop-mask">
-                            <rect x="0" y="0" width="100" height="100" fill="white" />
-                            <polygon
-                              points={`${docCorners[0].x},${docCorners[0].y} ${docCorners[1].x},${docCorners[1].y} ${docCorners[2].x},${docCorners[2].y} ${docCorners[3].x},${docCorners[3].y}`}
-                              fill="black"
-                            />
-                          </mask>
-                        </defs>
-
-                        {/* Dim region outside crop box */}
-                        <rect
-                          x="0"
-                          y="0"
-                          width="100"
-                          height="100"
-                          fill="rgba(15, 23, 42, 0.45)"
-                          mask="url(#doc-full-crop-mask)"
-                        />
-
-                        {/* Tint inside selected document */}
-                        <polygon
-                          points={`${docCorners[0].x},${docCorners[0].y} ${docCorners[1].x},${docCorners[1].y} ${docCorners[2].x},${docCorners[2].y} ${docCorners[3].x},${docCorners[3].y}`}
-                          fill="rgba(240, 36, 92, 0.08)"
-                        />
-
-                        {/* High-Contrast White Underlay Stroke */}
-                        <polygon
-                          points={`${docCorners[0].x},${docCorners[0].y} ${docCorners[1].x},${docCorners[1].y} ${docCorners[2].x},${docCorners[2].y} ${docCorners[3].x},${docCorners[3].y}`}
-                          fill="none"
-                          stroke="#FFFFFF"
-                          strokeWidth="4"
-                          vectorEffect="non-scaling-stroke"
-                          strokeLinejoin="round"
-                          strokeLinecap="round"
-                        />
-
-                        {/* High-Visibility Brand Rose/Pink Stroke */}
-                        <polygon
-                          points={`${docCorners[0].x},${docCorners[0].y} ${docCorners[1].x},${docCorners[1].y} ${docCorners[2].x},${docCorners[2].y} ${docCorners[3].x},${docCorners[3].y}`}
-                          fill="none"
-                          stroke="#F0245C"
-                          strokeWidth="2.5"
-                          vectorEffect="non-scaling-stroke"
-                          strokeLinejoin="round"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-
-                      {/* 4 Draggable Corner Magnifier Pins */}
-                      {docCorners.map((pt, cIdx) => (
-                        <div
-                          key={cIdx}
-                          onMouseDown={(e) => handleStartCornerDrag(cIdx, e)}
-                          onTouchStart={(e) => handleStartCornerDrag(cIdx, e)}
-                          className="absolute z-40 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing group pointer-events-auto touch-none"
-                          style={{ left: `${pt.x}%`, top: `${pt.y}%` }}
-                        >
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand/35 border-2 border-white flex items-center justify-center shadow-2xl transition-transform group-hover:scale-125">
-                            <div className="w-3.5 h-3.5 rounded-full bg-white border-2 border-brand shadow-md" />
-                          </div>
-                          <span className="absolute -top-4.5 left-1/2 -translate-x-1/2 bg-stone-900 text-white text-[7px] sm:text-[8px] font-black px-1 py-0.2 rounded shadow-xs pointer-events-none">
-                            {cIdx === 0 ? 'TL' : cIdx === 1 ? 'TR' : cIdx === 2 ? 'BR' : 'BL'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Cropper Bottom Action Controls */}
-                  <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl shadow-lg shrink-0 gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => setCroppingItem(null)}
-                      className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors shadow-2xs"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Back</span>
-                    </button>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleAutoDetectInCropper}
-                        disabled={isDetectingCropItem}
-                        className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg cursor-pointer shadow-xs flex items-center gap-1.5 transition-all disabled:opacity-50"
-                        title="Auto-detect document boundaries"
-                      >
-                        {isDetectingCropItem ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Sparkles className="w-3.5 h-3.5" />
-                        )}
-                        <span>Auto-Detect</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleApplyCropAndSave}
-                        disabled={isProcessing}
-                        className="px-4 py-1.5 sm:px-5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-lg cursor-pointer shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50"
-                      >
-                        {isProcessing ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Saving...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Check className="w-3.5 h-3.5 stroke-3" />
-                            <span>Save</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <KioskPerspectiveModal
+                  croppingItem={croppingItem}
+                  cropImgSize={cropImgSize}
+                  setCropImgSize={setCropImgSize}
+                  docCorners={docCorners}
+                  onCornerDragStart={handleStartCornerDrag}
+                  onClose={() => setCroppingItem(null)}
+                  onAutoDetect={handleAutoDetectInCropper}
+                  isDetecting={isDetectingCropItem}
+                  onApply={handleApplyCropAndSave}
+                  isProcessing={isProcessing}
+                  cropStageRef={cropStageRef}
+                />
               )}
             </div>
 
@@ -1382,31 +1249,12 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
                 </div>
               )}
 
-              {/* SIDEBAR CONTENT: TAB 2 (PASSPORT PHOTO GRID - 16+ COPIES & ZERO-GAP) */}
+              {/* SIDEBAR CONTENT: TAB 2 (PASSPORT PHOTO GRID) */}
               {activeMode === 'passport' && (
-                <div className="flex flex-col gap-3.5 sm:gap-4">
-                  {/* Preset Buttons for Passport Copies (16 and above) */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
-                      Number of Passport Copies (16+)
-                    </label>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {[16, 20, 24, 30, 32, 36, 40, 48].map((count) => (
-                        <button
-                          key={count}
-                          type="button"
-                          onClick={() => setPassportCount(count)}
-                          className={`py-2 rounded-xl border text-center font-extrabold text-xs cursor-pointer transition-all shadow-2xs ${passportCount === count
-                              ? 'bg-purple-600 border-purple-600 text-white shadow-xs'
-                              : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
-                            }`}
-                        >
-                          {count}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <KioskPassportTab
+                  passportCount={passportCount}
+                  setPassportCount={setPassportCount}
+                />
               )}
 
               {/* STICKY BOTTOM EXPORT & SAVE CONTROLS */}

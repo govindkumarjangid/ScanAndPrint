@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { QRCode } from 'react-qrcode-logo'
 import { Printer, ArrowRight, Download, Smartphone, CloudUpload, MapPin, Wallet, Loader2 } from 'lucide-react'
 import { toPng } from 'html-to-image'

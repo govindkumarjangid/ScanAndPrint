@@ -1,7 +1,6 @@
-import React from 'react'
 import { Link } from 'react-router'
 import SEO from '../../components/common/SEO'
-import { IndianRupee, RefreshCw, CheckCircle2, AlertCircle, ArrowRight, Phone, Mail } from '../../assets/assets'
+import { RefreshCw, CheckCircle2, ArrowRight, Phone, Mail } from '../../assets/assets'
 import { useAuthStore } from '../../store/useAuthStore'
 
 export default function RefundPolicy() {

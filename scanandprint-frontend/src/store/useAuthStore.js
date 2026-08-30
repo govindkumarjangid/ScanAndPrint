@@ -6,7 +6,7 @@ const getInitialShop = () => {
   try {
     const saved = localStorage.getItem('shopData')
     return saved ? JSON.parse(saved) : null
-  } catch (e) {
+  } catch {
     return null
   }
 }
@@ -127,9 +127,9 @@ export const useAuthStore = create((set, get) => ({
   setTab: (tab) => set({ activeTab: tab, error: null }),
 
   setRegisterStep: (step) =>
-    set((state) => ({
+    set({
       registerStep: Math.max(1, Math.min(4, step)),
-    })),
+    }),
 
   nextRegisterStep: () =>
     set((state) => ({
@@ -186,7 +186,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Login failed'
       set({ error: errorMsg })
-      throw new Error(errorMsg)
+      throw new Error(errorMsg, { cause: error })
     } finally {
       set({ isLoading: false })
     }
@@ -210,7 +210,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Registration failed'
       set({ error: errorMsg })
-      throw new Error(errorMsg)
+      throw new Error(errorMsg, { cause: error })
     } finally {
       set({ isLoading: false })
     }
@@ -231,7 +231,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Payment verification failed'
       set({ error: errorMsg })
-      throw new Error(errorMsg)
+      throw new Error(errorMsg, { cause: error })
     } finally {
       set({ isLoading: false })
     }
@@ -252,7 +252,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Failed to create subscription order'
       set({ error: errorMsg })
-      throw new Error(errorMsg)
+      throw new Error(errorMsg, { cause: error })
     } finally {
       set({ isLoading: false })
     }
@@ -272,7 +272,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Registration failed'
       set({ error: errorMsg })
-      throw new Error(errorMsg)
+      throw new Error(errorMsg, { cause: error })
     } finally {
       set({ isLoading: false })
     }
@@ -337,7 +337,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to update profile'
       toast.error(msg)
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isSavingProfile: false })
     }
@@ -358,7 +358,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to update rates'
       toast.error(msg)
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isSavingRates: false })
     }
@@ -379,7 +379,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to update printers'
       toast.error(msg)
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isSavingPrinters: false })
     }
@@ -396,7 +396,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to change password'
       toast.error(msg)
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isUpdatingPassword: false })
     }
@@ -416,7 +416,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to save payment settings'
       toast.error(msg)
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isSavingPayment: false })
     }
@@ -433,7 +433,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to submit review'
       toast.error(msg)
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isSubmittingReview: false })
     }

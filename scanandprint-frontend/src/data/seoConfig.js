@@ -5,47 +5,53 @@
 
 export const SITE_CONFIG = {
   siteName: 'Scan&Print',
-  domain: 'https://www.scanandprint.in',
-  defaultOgImage: 'https://www.scanandprint.in/images/og/og-home.png',
-  logoUrl: 'https://www.scanandprint.in/svgs/logo.svg',
-  faviconUrl: 'https://www.scanandprint.in/svgs/logo.svg',
+  domain: 'https://scanandprint.in',
+  defaultOgImage: 'https://scanandprint.in/images/og/og-home.png',
+  logoUrl: 'https://scanandprint.in/svgs/logo.svg',
+  faviconUrl: 'https://scanandprint.in/svgs/logo.svg',
   themeColor: '#0c0a09',
   brandColor: '#e11d48',
   locale: 'en_IN',
   twitterHandle: '@scanandprint_in',
-  contactEmail: 'support@scanandprint.in',
-  contactPhone: '+91 98765 43210',
+  contactEmail: 'scanqrandprint@gmail.com',
+  contactPhone: '+91 7073904473',
   country: 'India',
+  socialLinks: {
+    youtube: 'https://www.youtube.com/@scanandprint',
+    facebook: 'https://www.facebook.com/scanandprint.in',
+    instagram: 'https://www.instagram.com/scanandprint.in/',
+  },
 }
 
 export const SEO_ROUTES = {
   '/': {
-    title: 'Scan&Print – Automatic QR Code Printing System for Cyber Cafés & Shops',
+    title: 'Scan & Print – Scan QR and Print Documents Automatically | Smart Kiosk',
     description:
-      'Eliminate WhatsApp file sharing and long counter queues. Customers scan your counter QR code, upload documents, pay via UPI, and print directly to any USB printer in seconds.',
-    canonical: 'https://www.scanandprint.in/',
+      'Scan and Print automatically! Customers scan your shop QR code, upload documents, pay via UPI, and automatically print directly to your desktop printers in seconds. Zero WhatsApp queues.',
+    canonical: 'https://scanandprint.in/',
     keywords:
-      'scan and print, qr code printing, cyber cafe print software, automatic document printing, upi print kiosk, photocopy shop software, instant print india',
-    ogImage: 'https://www.scanandprint.in/images/og/og-home.png',
+      'scan and print, automatically print, scan qr and print, scan & print, automatic printing, scan qr print, print automatically, qr code printing, cyber cafe print software, photocopy shop software, automatic document printing, upi print kiosk, instant print india, direct mobile print',
+    ogImage: 'https://scanandprint.in/images/og/og-home.png',
     ogType: 'website',
     priority: 1.0,
     changefreq: 'daily',
-    h1: 'Customers Scan QR Code & Print Documents Automatically!',
+    h1: 'Scan & Print – Customers Scan QR Code & Automatically Print Documents!',
     schemas: [
       {
         '@context': 'https://schema.org',
         '@type': 'Organization',
         name: 'Scan&Print',
-        url: 'https://www.scanandprint.in',
-        logo: 'https://www.scanandprint.in/svgs/logo.svg',
-        description: 'Smart automated QR code document printing software for cyber cafés and print shops in India.',
+        url: 'https://scanandprint.in',
+        logo: 'https://scanandprint.in/svgs/logo.svg',
+        description: 'Scan and print automatically! Smart automated QR code document printing software for cyber cafés and print shops in India.',
         sameAs: [
-          'https://instagram.com/scanandprint',
-          'https://youtube.com/@scanandprint'
+          'https://www.youtube.com/@scanandprint',
+          'https://www.facebook.com/scanandprint.in',
+          'https://www.instagram.com/scanandprint.in/',
         ],
         contactPoint: {
           '@type': 'ContactPoint',
-          telephone: '+91 98765 43210',
+          telephone: '+91 7073904473',
           contactType: 'customer support',
           areaServed: 'IN',
           availableLanguage: ['English', 'Hindi']
@@ -55,10 +61,10 @@ export const SEO_ROUTES = {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: 'Scan&Print',
-        url: 'https://www.scanandprint.in',
+        url: 'https://scanandprint.in',
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'https://www.scanandprint.in/?q={search_term_string}',
+          target: 'https://scanandprint.in/?q={search_term_string}',
           'query-input': 'required name=search_term_string'
         }
       },
@@ -125,10 +131,10 @@ export const SEO_ROUTES = {
     title: 'Smart Features – Automated Queue-Free Printing for Print Shops | Scan&Print',
     description:
       'Discover powerful features of Scan&Print: Instant QR scanning, automatic UPI payments, live desktop printer agent, multi-printer routing, and zero data storage privacy.',
-    canonical: 'https://www.scanandprint.in/features',
+    canonical: 'https://scanandprint.in/features',
     keywords:
       'print automation features, qr code print kiosk, cyber cafe software, multi-printer routing, instant upi billing, zero queue printing',
-    ogImage: 'https://www.scanandprint.in/images/og/og-features.png',
+    ogImage: 'https://scanandprint.in/images/og/og-features.png',
     ogType: 'website',
     priority: 0.9,
     changefreq: 'weekly',
@@ -150,13 +156,13 @@ export const SEO_ROUTES = {
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: 'https://www.scanandprint.in/'
+            item: 'https://scanandprint.in/'
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'Features',
-            item: 'https://www.scanandprint.in/features'
+            item: 'https://scanandprint.in/features'
           }
         ]
       }
@@ -164,13 +170,13 @@ export const SEO_ROUTES = {
   },
 
   '/pricing': {
-    title: 'Scan&Print Pricing – 2-Hour Free Demo & Affordable Monthly/Yearly Plans',
+    title: 'Scan&Print Pricing – 48-Hour Free Demo & Affordable Monthly/Yearly Plans',
     description:
       'Transparent, affordable pricing for Indian print shops. Get a 100% free 2-hour demo trial with zero commitments, or choose our monthly ₹1,299 or yearly ₹1,799 plans.',
-    canonical: 'https://www.scanandprint.in/pricing',
+    canonical: 'https://scanandprint.in/pricing',
     keywords:
       'scan and print pricing, cyber cafe software price, printing kiosk subscription, free demo print software, affordable print kiosk',
-    ogImage: 'https://www.scanandprint.in/images/og/og-pricing.png',
+    ogImage: 'https://scanandprint.in/images/og/og-pricing.png',
     ogType: 'website',
     priority: 0.9,
     changefreq: 'weekly',
@@ -188,27 +194,27 @@ export const SEO_ROUTES = {
         offers: [
           {
             '@type': 'Offer',
-            name: '2-Hour Free Demo',
+            name: '48-Hour Free Demo',
             price: '0.00',
             priceCurrency: 'INR',
             availability: 'https://schema.org/InStock',
-            url: 'https://www.scanandprint.in/pricing'
+            url: 'https://scanandprint.in/pricing'
           },
           {
             '@type': 'Offer',
             name: 'Monthly Plan',
-            price: '1299.00',
+            price: '199.00',
             priceCurrency: 'INR',
             availability: 'https://schema.org/InStock',
-            url: 'https://www.scanandprint.in/pricing'
+            url: 'https://scanandprint.in/pricing'
           },
           {
             '@type': 'Offer',
             name: 'Yearly Plan',
-            price: '1799.00',
+            price: '999.00',
             priceCurrency: 'INR',
             availability: 'https://schema.org/InStock',
-            url: 'https://www.scanandprint.in/pricing'
+            url: 'https://scanandprint.in/pricing'
           }
         ]
       },
@@ -218,10 +224,10 @@ export const SEO_ROUTES = {
         mainEntity: [
           {
             '@type': 'Question',
-            name: 'What is included in the 2-Hour Free Demo?',
+            name: 'What is included in the 48-Hour Free Demo?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'The 2-Hour Demo gives you instant, 100% free access to connect your printer, test real customer QR print jobs, and experience the full automated workflow with zero credit card or upfront payment needed.'
+              text: 'The 48-Hour Demo gives you instant, 100% free access to connect your printer, test real customer QR print jobs, and experience the full automated workflow with zero credit card or upfront payment needed.'
             }
           },
           {
@@ -242,13 +248,13 @@ export const SEO_ROUTES = {
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: 'https://www.scanandprint.in/'
+            item: 'https://scanandprint.in/'
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'Pricing',
-            item: 'https://www.scanandprint.in/pricing'
+            item: 'https://scanandprint.in/pricing'
           }
         ]
       }
@@ -259,10 +265,10 @@ export const SEO_ROUTES = {
     title: 'How to Setup Scan&Print in 2 Minutes – Step-by-Step Hardware Guide',
     description:
       'Learn how to connect your existing USB printer to Scan&Print in just 2 minutes. Simple 4-step setup: register shop, download desktop agent, pair printer, display QR code.',
-    canonical: 'https://www.scanandprint.in/how-to-setup',
+    canonical: 'https://scanandprint.in/how-to-setup',
     keywords:
       'how to setup scan and print, usb printer connection, print kiosk setup guide, epson canon hp printer setup, cyber cafe automation guide',
-    ogImage: 'https://www.scanandprint.in/images/og/og-how-to-setup.png',
+    ogImage: 'https://scanandprint.in/images/og/og-how-to-setup.png',
     ogType: 'article',
     priority: 0.8,
     changefreq: 'monthly',
@@ -309,13 +315,13 @@ export const SEO_ROUTES = {
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: 'https://www.scanandprint.in/'
+            item: 'https://scanandprint.in/'
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'How to Setup',
-            item: 'https://www.scanandprint.in/how-to-setup'
+            item: 'https://scanandprint.in/how-to-setup'
           }
         ]
       }
@@ -326,10 +332,10 @@ export const SEO_ROUTES = {
     title: 'About Scan&Print – Built by Print Shop Owners for Cyber Cafés in India',
     description:
       'Read how Scan&Print was born on an active cyber café counter to solve WhatsApp print chaos, long queues, and manual payment tracking across Indian printing shops.',
-    canonical: 'https://www.scanandprint.in/about',
+    canonical: 'https://scanandprint.in/about',
     keywords:
       'about scan and print, cyber cafe printing solution india, print shop founders, print automation story, smart printing mission',
-    ogImage: 'https://www.scanandprint.in/images/og/og-about.png',
+    ogImage: 'https://scanandprint.in/images/og/og-about.png',
     ogType: 'website',
     priority: 0.8,
     changefreq: 'monthly',
@@ -344,7 +350,7 @@ export const SEO_ROUTES = {
           '@type': 'Organization',
           name: 'Scan&Print',
           foundingDate: '2026',
-          url: 'https://www.scanandprint.in'
+          url: 'https://scanandprint.in'
         }
       },
       {
@@ -355,13 +361,13 @@ export const SEO_ROUTES = {
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: 'https://www.scanandprint.in/'
+            item: 'https://scanandprint.in/'
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'About Us',
-            item: 'https://www.scanandprint.in/about'
+            item: 'https://scanandprint.in/about'
           }
         ]
       }
@@ -372,10 +378,10 @@ export const SEO_ROUTES = {
     title: 'Contact Scan&Print – 24/7 Dedicated Support & Merchant Assistance',
     description:
       'Get in touch with Scan&Print support for hardware compatibility, onboarding assistance, or merchant inquiries. Reach us via WhatsApp, phone, or direct contact form.',
-    canonical: 'https://www.scanandprint.in/contact',
+    canonical: 'https://scanandprint.in/contact',
     keywords:
       'contact scan and print, print shop support, customer care print software, whatsapp support scan and print, cyber cafe helpdesk',
-    ogImage: 'https://www.scanandprint.in/images/og/og-contact.png',
+    ogImage: 'https://scanandprint.in/images/og/og-contact.png',
     ogType: 'website',
     priority: 0.8,
     changefreq: 'monthly',
@@ -389,7 +395,7 @@ export const SEO_ROUTES = {
         mainEntity: {
           '@type': 'Organization',
           name: 'Scan&Print',
-          url: 'https://www.scanandprint.in',
+          url: 'https://scanandprint.in',
           contactPoint: {
             '@type': 'ContactPoint',
             telephone: '+91 98765 43210',
@@ -407,13 +413,13 @@ export const SEO_ROUTES = {
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: 'https://www.scanandprint.in/'
+            item: 'https://scanandprint.in/'
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'Contact',
-            item: 'https://www.scanandprint.in/contact'
+            item: 'https://scanandprint.in/contact'
           }
         ]
       }
@@ -424,9 +430,9 @@ export const SEO_ROUTES = {
     title: 'Legal Disclaimer & Terms of Service Notice | Scan&Print',
     description:
       'Review the official legal disclaimer, service limitations, and operational terms for Scan&Print automated printing SaaS platform.',
-    canonical: 'https://www.scanandprint.in/disclaimer',
+    canonical: 'https://scanandprint.in/disclaimer',
     keywords: 'scan and print disclaimer, legal notice, service limitations, printing terms',
-    ogImage: 'https://www.scanandprint.in/images/og/og-legal.png',
+    ogImage: 'https://scanandprint.in/images/og/og-legal.png',
     ogType: 'website',
     priority: 0.5,
     changefreq: 'yearly',
@@ -436,7 +442,7 @@ export const SEO_ROUTES = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
         name: 'Legal Disclaimer - Scan&Print',
-        url: 'https://www.scanandprint.in/disclaimer'
+        url: 'https://scanandprint.in/disclaimer'
       }
     ]
   },
@@ -445,9 +451,9 @@ export const SEO_ROUTES = {
     title: 'Privacy Policy – 100% Auto-Delete Document Security | Scan&Print',
     description:
       'Customer document privacy guarantee: Customer files are strictly used for live printing and permanently deleted immediately after printing. Zero storage or data sharing.',
-    canonical: 'https://www.scanandprint.in/privacy-policy',
+    canonical: 'https://scanandprint.in/privacy-policy',
     keywords: 'privacy policy scan and print, document security, auto delete print files, cyber cafe privacy',
-    ogImage: 'https://www.scanandprint.in/images/og/og-legal.png',
+    ogImage: 'https://scanandprint.in/images/og/og-legal.png',
     ogType: 'website',
     priority: 0.6,
     changefreq: 'monthly',
@@ -457,7 +463,7 @@ export const SEO_ROUTES = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
         name: 'Privacy Policy - Scan&Print',
-        url: 'https://www.scanandprint.in/privacy-policy'
+        url: 'https://scanandprint.in/privacy-policy'
       }
     ]
   },
@@ -466,9 +472,9 @@ export const SEO_ROUTES = {
     title: 'Refund & Cancellation Policy – 7-Day Money Back Guarantee | Scan&Print',
     description:
       'Scan&Print offers a transparent 7-day money-back guarantee for all subscription plans. Read our complete cancellation and refund process.',
-    canonical: 'https://www.scanandprint.in/refund-policy',
+    canonical: 'https://scanandprint.in/refund-policy',
     keywords: 'refund policy scan and print, money back guarantee, subscription refund, cancellation terms',
-    ogImage: 'https://www.scanandprint.in/images/og/og-legal.png',
+    ogImage: 'https://scanandprint.in/images/og/og-legal.png',
     ogType: 'website',
     priority: 0.6,
     changefreq: 'monthly',
@@ -478,7 +484,7 @@ export const SEO_ROUTES = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
         name: 'Refund & Cancellation Policy - Scan&Print',
-        url: 'https://www.scanandprint.in/refund-policy'
+        url: 'https://scanandprint.in/refund-policy'
       }
     ]
   },
@@ -487,9 +493,9 @@ export const SEO_ROUTES = {
     title: 'Terms and Conditions – Merchant & User Agreement | Scan&Print',
     description:
       'Official Terms and Conditions governing the use of Scan&Print platform, agent software, payment processing, and merchant subscription services.',
-    canonical: 'https://www.scanandprint.in/terms-and-conditions',
+    canonical: 'https://scanandprint.in/terms-and-conditions',
     keywords: 'terms and conditions scan and print, merchant agreement, user terms, service agreement',
-    ogImage: 'https://www.scanandprint.in/images/og/og-legal.png',
+    ogImage: 'https://scanandprint.in/images/og/og-legal.png',
     ogType: 'website',
     priority: 0.6,
     changefreq: 'monthly',
@@ -499,7 +505,7 @@ export const SEO_ROUTES = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
         name: 'Terms & Conditions - Scan&Print',
-        url: 'https://www.scanandprint.in/terms-and-conditions'
+        url: 'https://scanandprint.in/terms-and-conditions'
       }
     ]
   },
@@ -508,9 +514,9 @@ export const SEO_ROUTES = {
     title: 'Register Your Print Shop – Start 2-Hour Free Demo | Scan&Print',
     description:
       'Create your Scan&Print shop account in under 2 minutes. Start automating customer print jobs, receive direct UPI payments, and eliminate counter congestion today.',
-    canonical: 'https://www.scanandprint.in/register',
+    canonical: 'https://scanandprint.in/register',
     keywords: 'register print shop, cyber cafe sign up, free demo trial, start automated printing',
-    ogImage: 'https://www.scanandprint.in/images/og/og-register.png',
+    ogImage: 'https://scanandprint.in/images/og/og-register.png',
     ogType: 'website',
     priority: 0.8,
     changefreq: 'monthly',
@@ -520,7 +526,7 @@ export const SEO_ROUTES = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
         name: 'Register Shop - Scan&Print',
-        url: 'https://www.scanandprint.in/register'
+        url: 'https://scanandprint.in/register'
       }
     ]
   },
@@ -529,9 +535,9 @@ export const SEO_ROUTES = {
     title: 'Shop Owner Login – Access Your Printing Dashboard | Scan&Print',
     description:
       'Login to your Scan&Print merchant dashboard to manage active print jobs, monitor printer status, view UPI earnings, and customize counter QR codes.',
-    canonical: 'https://www.scanandprint.in/shop-login',
+    canonical: 'https://scanandprint.in/shop-login',
     keywords: 'shop owner login, cyber cafe dashboard login, print merchant sign in',
-    ogImage: 'https://www.scanandprint.in/images/og/og-home.png',
+    ogImage: 'https://scanandprint.in/images/og/og-home.png',
     ogType: 'website',
     priority: 0.7,
     changefreq: 'monthly',
@@ -541,7 +547,7 @@ export const SEO_ROUTES = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
         name: 'Shop Login - Scan&Print',
-        url: 'https://www.scanandprint.in/shop-login'
+        url: 'https://scanandprint.in/shop-login'
       }
     ]
   }

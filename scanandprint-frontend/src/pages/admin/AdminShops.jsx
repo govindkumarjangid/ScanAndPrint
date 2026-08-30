@@ -12,6 +12,7 @@ import {
   Download,
   Sliders,
   Trash2,
+  Loader2,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import AdminDemoTimer from '../../components/ui/AdminDemoTimer'
@@ -50,7 +51,7 @@ export default function AdminShops() {
         downloadCsv(res.data.data.shops, `ScanAndPrint_Shops_${new Date().toISOString().split('T')[0]}.csv`)
         toast.success('Shops CSV downloaded successfully!')
       }
-    } catch (e) {
+    } catch {
       toast.error('Failed to export shops CSV')
     } finally {
       setIsExporting(false)

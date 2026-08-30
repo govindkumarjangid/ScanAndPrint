@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   ShieldCheck,
-  Zap,
   Loader2,
   ArrowLeft,
   Lock,
@@ -67,7 +66,7 @@ export default function PaymentStage({
       await payAtCounter(formData)
       toast.success('Order placed! Please pay at counter.')
       onPaymentSuccess('counter')
-    } catch (err) {
+    } catch {
       toast.error('Failed to submit counter print job')
     }
   }
@@ -79,7 +78,7 @@ export default function PaymentStage({
       await bypassPaymentDemo(formData)
       toast.success('⚡ Free Demo Print: Spooled directly to printer!')
       onPaymentSuccess('online')
-    } catch (err) {
+    } catch {
       toast.error('Failed to dispatch demo print')
     }
   }

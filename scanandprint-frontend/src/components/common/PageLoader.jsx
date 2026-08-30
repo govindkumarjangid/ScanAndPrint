@@ -1,4 +1,3 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 
 export default function PageLoader({ message = 'Loading resources...', subtitle }) {

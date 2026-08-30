@@ -1,16 +1,11 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import SEO from '../../components/common/SEO'
 import {
-  Mail,
-  Phone,
-  MessageSquare,
   Send,
   CheckCircle2,
   Briefcase,
   MapPin,
-  Clock,
-  ShieldCheck,
 } from '../../assets/assets'
 import { Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'

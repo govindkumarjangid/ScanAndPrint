@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Clock, AlertCircle } from 'lucide-react'
 
 export default function AdminDemoTimer({
@@ -30,14 +30,16 @@ export default function AdminDemoTimer({
     }
 
     if (!targetTime || isNaN(targetTime)) {
-      if (status === 'Demo Active' || status === 'Active') {
-        setIsExpired(false)
-        setTimeLeft('Active')
-      } else {
-        setIsExpired(true)
-        setTimeLeft('Expired')
-      }
-      return
+      const fallbackTimer = setTimeout(() => {
+        if (status === 'Demo Active' || status === 'Active') {
+          setIsExpired(false)
+          setTimeLeft('Active')
+        } else {
+          setIsExpired(true)
+          setTimeLeft('Expired')
+        }
+      }, 0)
+      return () => clearTimeout(fallbackTimer)
     }
 
     const updateTimer = () => {
@@ -62,10 +64,13 @@ export default function AdminDemoTimer({
       }
     }
 
-    updateTimer()
+    const timer = setTimeout(updateTimer, 0)
     const interval = setInterval(updateTimer, 1000)
-    return () => clearInterval(interval)
-  }, [effectiveExpiresAt, createdAt, status, planType])
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+    }
+  }, [effectiveExpiresAt, createdAt, planType, status])
 
   if (isExpired) {
     return (

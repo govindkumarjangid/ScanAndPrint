@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -7,7 +7,6 @@ import {
   Zap,
   ShieldAlert,
   ShieldCheck,
-  Plus,
   Loader2,
   FileText,
   Trash2,
@@ -26,15 +25,6 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  useEffect(() => {
-    if (isOpen && shop?._id) {
-      fetchJobs()
-      if (!settingsData?.demoDurationHours && typeof fetchSettings === 'function') {
-        fetchSettings()
-      }
-    }
-  }, [isOpen, shop])
-
   const fetchJobs = async () => {
     if (!shop?._id) return
     setJobsLoading(true)
@@ -43,12 +33,24 @@ export default function AdminShopActionModal({ shop, isOpen, onClose }) {
       if (res.data.success && res.data.data) {
         setJobs(res.data.data.jobs || [])
       }
-    } catch (e) {
-      console.warn('Shop jobs fetch note:', e)
+    } catch {
+      // Ignore shop jobs fetch error
     } finally {
       setJobsLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (isOpen && shop?._id) {
+      const timer = setTimeout(() => {
+        fetchJobs()
+        if (!settingsData?.demoDurationHours && typeof fetchSettings === 'function') {
+          fetchSettings()
+        }
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen, shop])
 
   if (!isOpen || !shop) return null
 

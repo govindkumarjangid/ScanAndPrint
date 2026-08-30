@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -8,13 +8,10 @@ import {
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  IndianRupee,
   printerBrandOptions,
   Loader2,
-  Sparkles,
   ShieldCheck,
   Zap,
-  Clock,
   X,
   AlertTriangle,
   RefreshCw,
@@ -27,9 +24,7 @@ import {
   MapPin,
   Store,
   Printer,
-  FileText,
   HelpCircle,
-  Smartphone,
 } from '../assets/assets'
 import { useAuthStore } from '../store/useAuthStore'
 import { loadRazorpayScript } from '../lib/razorpay'
@@ -56,7 +51,6 @@ export default function ShopAuth() {
     setLoginPassword,
     setRememberMe,
     updateRegisterData,
-    resetRegisterForm,
     registerInit,
     verifySubscriptionPayment,
   } = useAuthStore()
@@ -72,7 +66,6 @@ export default function ShopAuth() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [showForgotModal, setShowForgotModal] = useState(false)
   const [paymentError, setPaymentError] = useState('')
-  const [lastOrderDetails, setLastOrderDetails] = useState(null)
 
   useEffect(() => {
     fetchPublicSettings()
@@ -95,24 +88,27 @@ export default function ShopAuth() {
 
   // Sync route path and plan query param with Zustand activeTab on load / URL change
   useEffect(() => {
-    if (location.pathname === '/register' || location.pathname === '/register-shop') {
-      setActiveTab('register')
-    } else if (location.pathname === '/shop-login' || location.pathname === '/login') {
-      setActiveTab('login')
-    }
+    const timer = setTimeout(() => {
+      if (location.pathname === '/register' || location.pathname === '/register-shop') {
+        setActiveTab('register')
+      } else if (location.pathname === '/shop-login' || location.pathname === '/login') {
+        setActiveTab('login')
+      }
 
-    const params = new URLSearchParams(location.search)
-    const planParam = params.get('plan')
-    if (planParam === 'yearly') {
-      setSelectedPlan('YEARLY_799')
-      updateRegisterData({ planType: 'YEARLY_799' })
-    } else if (planParam === 'monthly') {
-      setSelectedPlan('MONTHLY_299')
-      updateRegisterData({ planType: 'MONTHLY_299' })
-    } else if (planParam === 'demo') {
-      setSelectedPlan('FREE_TRIAL')
-      updateRegisterData({ planType: 'FREE_TRIAL' })
-    }
+      const params = new URLSearchParams(location.search)
+      const planParam = params.get('plan')
+      if (planParam === 'yearly') {
+        setSelectedPlan('YEARLY_799')
+        updateRegisterData({ planType: 'YEARLY_799' })
+      } else if (planParam === 'monthly') {
+        setSelectedPlan('MONTHLY_299')
+        updateRegisterData({ planType: 'MONTHLY_299' })
+      } else if (planParam === 'demo') {
+        setSelectedPlan('FREE_TRIAL')
+        updateRegisterData({ planType: 'FREE_TRIAL' })
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [location.pathname, location.search, setActiveTab, updateRegisterData])
 
   // Handle Tab Switch & Sync Browser URL smoothly
@@ -253,7 +249,7 @@ export default function ShopAuth() {
 
       // 1. If 2-Hour Demo Free Trial is selected (Instant Zero-Payment Access)
       if (targetPlan === 'FREE_TRIAL') {
-        const orderData = await registerInit({
+        await registerInit({
           fullName: registerData.fullName,
           mobile: registerData.mobile,
           email: registerData.email,
@@ -297,8 +293,6 @@ export default function ShopAuth() {
         colorRate: registerData.colorRate,
         planType: targetPlan,
       })
-
-      setLastOrderDetails(orderData)
 
       // 4. Open Razorpay Checkout Modal
       const options = {

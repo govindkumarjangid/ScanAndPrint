@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FileText,
   X,
   Check,
   RotateCw,
-  Trash2,
   Plus,
   CheckSquare,
   Square,
@@ -25,7 +24,7 @@ export default function KioskPdfStudioModal({ pdfFile, isOpen, onClose, onSave }
   const [customRangeText, setCustomRangeText] = useState('')
   const [layoutMode, setLayoutMode] = useState('standard') // 'standard' | '2in1_book'
   const [previewingPage, setPreviewingPage] = useState(null)
-  const [additionalFiles, setAdditionalFiles] = useState([])
+  const [isAddingFiles, setIsAddingFiles] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const addFilesInputRef = useRef(null)
 
@@ -33,10 +32,13 @@ export default function KioskPdfStudioModal({ pdfFile, isOpen, onClose, onSave }
   useEffect(() => {
     let isMounted = true
     if (pdfFile && isOpen) {
-      setIsLoadingPages(true)
-      setCustomRangeText('')
-      setAdditionalFiles([])
-      setPreviewingPage(null)
+      const timer = setTimeout(() => {
+        if (isMounted) {
+          setIsLoadingPages(true)
+          setCustomRangeText('')
+          setPreviewingPage(null)
+        }
+      }, 0)
 
       renderPdfPagesToThumbnails(pdfFile, (current, total) => {
         if (isMounted) {
@@ -45,21 +47,29 @@ export default function KioskPdfStudioModal({ pdfFile, isOpen, onClose, onSave }
       })
         .then((renderedPages) => {
           if (isMounted) {
-            setPages(renderedPages)
+            setPages(
+              renderedPages.map((p) => ({
+                ...p,
+                sourceType: 'pdf',
+                sourceFile: pdfFile,
+                sourcePageIndex: p.pageIndex,
+              }))
+            )
             setIsLoadingPages(false)
           }
         })
         .catch((err) => {
-          console.error('Failed to render PDF pages:', err)
+          console.error('Failed to load PDF pages:', err)
           if (isMounted) {
-            toast.error('Failed to load PDF pages preview')
+            toast.error('Failed to parse PDF pages: ' + (err.message || 'Corrupt PDF'))
             setIsLoadingPages(false)
           }
         })
-    }
 
-    return () => {
-      isMounted = false
+      return () => {
+        isMounted = false
+        clearTimeout(timer)
+      }
     }
   }, [pdfFile, isOpen])
 
@@ -158,24 +168,85 @@ export default function KioskPdfStudioModal({ pdfFile, isOpen, onClose, onSave }
     toast.success('Page removed from PDF')
   }
 
-  // Add More PDF / Image Pages
-  const handleAddFiles = (e) => {
+  // Add More PDF / Image Pages directly into the visual page grid
+  const handleAddFiles = async (e) => {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
-    setAdditionalFiles((prev) => [...prev, ...files])
-    toast.success(`Attached ${files.length} extra file${files.length > 1 ? 's' : ''} to PDF!`)
-  }
 
-  // Remove Attached Extra File
-  const handleRemoveAdditionalFile = (idx, e) => {
-    if (e) e.stopPropagation()
-    setAdditionalFiles((prev) => prev.filter((_, i) => i !== idx))
+    setIsAddingFiles(true)
+    const toastId = toast.loading(`Adding ${files.length} document${files.length > 1 ? 's' : ''}...`)
+
+    try {
+      const newPages = []
+      for (const file of files) {
+        if (file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf')) {
+          // Render PDF pages into thumbnails
+          const pdfThumbnails = await renderPdfPagesToThumbnails(file)
+          for (const tp of pdfThumbnails) {
+            newPages.push({
+              ...tp,
+              id: `page_pdf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              sourceType: 'pdf',
+              sourceFile: file,
+              sourcePageIndex: tp.pageIndex,
+              selected: true,
+            })
+          }
+        } else if (file.type?.startsWith('image/') || /\.(jpe?g|png|webp|bmp|gif)$/i.test(file.name)) {
+          // Read image as Data URL
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result)
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+          })
+
+          const img = new Image()
+          img.src = dataUrl
+          await new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+
+          const imgW = img.naturalWidth || 595
+          const imgH = img.naturalHeight || 842
+
+          newPages.push({
+            id: `page_img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            sourceType: 'image',
+            sourceFile: file,
+            dataUrl,
+            width: imgW,
+            height: imgH,
+            rotation: 0,
+            isLandscape: imgW > imgH,
+            selected: true,
+          })
+        }
+      }
+
+      if (newPages.length > 0) {
+        setPages((prev) => {
+          const combined = [...prev, ...newPages]
+          return combined.map((p, idx) => ({ ...p, pageNumber: idx + 1 }))
+        })
+        toast.success(`Added ${newPages.length} new page${newPages.length > 1 ? 's' : ''}!`, { id: toastId })
+      } else {
+        toast.error('Unsupported file format. Please select PDF or Image files.', { id: toastId })
+      }
+    } catch (err) {
+      console.error('Error adding pages:', err)
+      toast.error('Failed to add pages: ' + (err.message || 'Error'), { id: toastId })
+    } finally {
+      setIsAddingFiles(false)
+      if (e.target) e.target.value = ''
+    }
   }
 
   // Save & Export Edited PDF
   const handleSaveEditedPdf = async () => {
     const selectedPages = pages.filter((p) => p.selected !== false)
-    if (!selectedPages.length && !additionalFiles.length) {
+    if (!selectedPages.length) {
       toast.error('Please select at least 1 page to print')
       return
     }
@@ -185,7 +256,6 @@ export default function KioskPdfStudioModal({ pdfFile, isOpen, onClose, onSave }
       const editedPdfFile = await exportEditedPdf({
         originalFile: pdfFile,
         pages,
-        additionalFiles,
         layoutMode,
       })
 
@@ -340,11 +410,16 @@ export default function KioskPdfStudioModal({ pdfFile, isOpen, onClose, onSave }
 
               <button
                 type="button"
+                disabled={isAddingFiles}
                 onClick={() => addFilesInputRef.current?.click()}
-                className="px-3 py-1.5 bg-brand hover:bg-rose-700 text-white rounded-xl text-[11px] font-extrabold cursor-pointer shadow-xs transition-colors flex items-center gap-1"
+                className="px-3 py-1.5 bg-brand hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl text-[11px] font-extrabold cursor-pointer shadow-xs transition-colors flex items-center gap-1"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Pages</span>
+                {isAddingFiles ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Plus className="w-3.5 h-3.5" />
+                )}
+                <span>{isAddingFiles ? 'Adding...' : 'Add Pages'}</span>
               </button>
             </div>
           </div>
@@ -455,39 +530,6 @@ export default function KioskPdfStudioModal({ pdfFile, isOpen, onClose, onSave }
                     </div>
                   )
                 })}
-              </div>
-            )}
-
-            {/* Additional Attached Files List */}
-            {additionalFiles.length > 0 && (
-              <div className="mt-4 p-3 bg-white rounded-2xl border border-stone-200 shadow-2xs flex flex-col gap-2">
-                <span className="text-xs font-extrabold text-stone-800">
-                  Attached Merged Documents ({additionalFiles.length})
-                </span>
-                <div className="flex flex-col gap-1.5">
-                  {additionalFiles.map((file, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between text-xs"
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <FileText className="w-4 h-4 text-brand shrink-0" />
-                        <span className="font-bold text-stone-800 truncate">{file.name}</span>
-                        <span className="text-[10px] text-stone-500 shrink-0">
-                          ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => handleRemoveAdditionalFile(idx, e)}
-                        className="text-rose-500 hover:text-rose-700 p-1 cursor-pointer"
-                        title="Remove attached file"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
           </div>

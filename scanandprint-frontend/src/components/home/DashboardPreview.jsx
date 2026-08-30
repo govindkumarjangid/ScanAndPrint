@@ -33,15 +33,6 @@ const LiveClock = memo(function LiveClock() {
 })
 
 export default function DashboardPreview() {
-  const [activeJobsCount, setActiveJobsCount] = useState(14)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveJobsCount((prev) => (prev > 25 ? 12 : prev + 1))
-    }, 8000)
-    return () => clearInterval(interval)
-  }, [])
-
   // 3D Tilt Motion Values
   const cardRef = useRef(null)
   const x = useMotionValue(0)

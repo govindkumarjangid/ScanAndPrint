@@ -1,20 +1,13 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import {
-  Upload,
-  CreditCard,
   Loader2,
   Sparkles,
-  Scissors,
   CheckCircle2,
   Maximize2,
   ArrowRight,
-  RotateCcw,
   Sliders,
   Check,
   Camera,
-  Layers,
-  Sparkle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
@@ -25,7 +18,6 @@ import {
 } from '../../utils/jscanifyUtil'
 import {
   generateIdCardA4Pdf,
-  CR80_ASPECT_RATIO,
   XEROX_CARD_WIDTH_MM,
   XEROX_CARD_HEIGHT_MM,
   POCKET_CARD_WIDTH_MM,
@@ -34,7 +26,6 @@ import {
 
 export default function IdCardPrintStudio({ initialImage = null, onSave = null }) {
   // OpenCV Loading State
-  const [isOpenCvReady, setIsOpenCvReady] = useState(false)
   const [isOpenCvLoading, setIsOpenCvLoading] = useState(true)
 
   // Layout Size Mode: 'xerox_fit' (145 × 91 mm) | 'pocket_cr80' (85.6 × 54 mm)
@@ -82,7 +73,6 @@ export default function IdCardPrintStudio({ initialImage = null, onSave = null }
   useEffect(() => {
     loadOpenCv()
       .then(() => {
-        setIsOpenCvReady(true)
         setIsOpenCvLoading(false)
       })
       .catch((err) => {
@@ -170,14 +160,12 @@ export default function IdCardPrintStudio({ initialImage = null, onSave = null }
   // Load initial image if provided from parent modal
   useEffect(() => {
     if (initialImage && !frontRawSrc) {
-      if (typeof initialImage === 'string') {
-        setFrontRawSrc(initialImage)
-        runFrontAutoCrop(initialImage)
-      } else if (initialImage instanceof Blob || initialImage instanceof File) {
-        const url = URL.createObjectURL(initialImage)
+      const url = typeof initialImage === 'string' ? initialImage : URL.createObjectURL(initialImage)
+      const timer = setTimeout(() => {
         setFrontRawSrc(url)
         runFrontAutoCrop(url)
-      }
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [initialImage, frontRawSrc, runFrontAutoCrop])
 

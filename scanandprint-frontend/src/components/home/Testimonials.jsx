@@ -54,7 +54,7 @@ export default function Testimonials() {
           const liveCards = res.data.data.reviews.map(mapLiveReview)
           setAllReviews([...liveCards, ...testimonialData])
         }
-      } catch (e) {
+      } catch {
         // silently fallback to static data
       }
     }

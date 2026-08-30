@@ -1,5 +1,5 @@
 
-import { HelpCircle, MessageSquare, ArrowRight, Printer, faqItems } from '../../assets/assets'
+import { HelpCircle, MessageSquare, ArrowRight, faqItems } from '../../assets/assets'
 import { Link } from 'react-router'
 import Accordion from '../ui/Accordion'
 

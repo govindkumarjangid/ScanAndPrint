@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
 import { motion } from 'framer-motion'
 import {
@@ -9,7 +9,6 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  ShieldAlert,
   Zap,
   KeyRound,
   ArrowLeft,
@@ -50,7 +49,7 @@ export default function AdminLogin() {
       await adminLogin(cleanEmail, cleanPassword)
       toast.success('Access Authorized. Welcome Super Admin!')
       setTimeout(() => navigate('/admin/dashboard'), 600)
-    } catch (err) {
+    } catch {
       // Toast notification is already handled in adminLogin store
     } finally {
       setIsLoading(false)

@@ -116,7 +116,7 @@ export const useKioskStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || error.message || 'Failed to dispatch print job'
       set({ error: msg })
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isVerifyingPayment: false })
     }
@@ -146,7 +146,7 @@ export const useKioskStore = create((set, get) => ({
     } catch (error) {
       const msg = error.response?.data?.message || error.message || 'Failed to create print job'
       set({ error: msg })
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isCreatingJob: false })
     }
@@ -165,7 +165,7 @@ export const useKioskStore = create((set, get) => ({
       console.warn('Payment verify error:', error)
       const msg = error.response?.data?.message || 'Payment verification failed'
       set({ error: msg })
-      throw new Error(msg)
+      throw new Error(msg, { cause: error })
     } finally {
       set({ isVerifyingPayment: false })
     }

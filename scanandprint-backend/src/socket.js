@@ -1,8 +1,13 @@
 import { agentService } from './services/agent.service.js'
 import { shopRepository } from './repositories/shop.repository.js'
 import { createSocketDeviceBindingMiddleware } from './middlewares/socketDeviceBinding.middleware.js'
+import {
+  setAgentPresence,
+  removeAgentPresence,
+  getActiveAgentsFromRedis,
+} from './configs/redis.config.js'
 
-// In-Memory Live Active Agents for real-time online/offline status
+// In-Memory Live Active Agents (L1 Fast Cache synced with Redis L2)
 export const activeAgentsMap = new Map()
 
 let ioInstance = null
@@ -36,6 +41,19 @@ export const kickRevokedDeviceSocket = (shopCode, targetDeviceId, reason = 'Anot
  */
 export const setupSocket = (io) => {
   ioInstance = io
+
+  // Hydrate in-memory active agents from Redis store on startup
+  getActiveAgentsFromRedis()
+    .then((redisAgents) => {
+      if (redisAgents && Object.keys(redisAgents).length > 0) {
+        for (const [code, record] of Object.entries(redisAgents)) {
+          activeAgentsMap.set(code, record)
+          if (record.shopId) activeAgentsMap.set(String(record.shopId), record)
+        }
+        console.log(`⚡ [Redis Presence]: Hydrated ${Object.keys(redisAgents).length} active agent(s) from Redis`)
+      }
+    })
+    .catch((err) => console.warn('Redis hydrate notice:', err.message))
 
   // Register Device-Binding Guard Middleware
   io.use(createSocketDeviceBindingMiddleware(io))
@@ -255,6 +273,7 @@ export const setupSocket = (io) => {
         if (shop._id) {
           activeAgentsMap.set(String(shop._id), agentRecord)
         }
+        setAgentPresence(cleanShopCode, agentRecord)
 
         console.log(`🟢 [Print Agent Online]: Shop ${cleanShopCode} is LIVE with IP ${detectedIp} (Gateway: ${liveMeta.defaultGateway || 'N/A'})`)
 
@@ -384,6 +403,7 @@ export const setupSocket = (io) => {
           if (current.shopId) {
             activeAgentsMap.delete(String(current.shopId))
           }
+          removeAgentPresence(socket.shopCode)
           const shopRoom = `shop:${socket.shopCode}`
 
           console.log(`🔴 [Print Agent Offline]: Shop ${socket.shopCode} disconnected`)

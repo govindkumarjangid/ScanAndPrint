@@ -380,6 +380,10 @@ class SocketService {
       const jobId = jobData?.jobId
       if (jobId) {
         this.heldJobs.set(jobId, jobData)
+        // ⚡ ULTRA-FAST: Pre-fetch & prepare file on disk immediately in parallel with popup!
+        printService.preFetchJobFile(jobData).catch((err) => {
+          console.warn(`[SocketService] Background pre-fetch notice for #${jobId}:`, err.message)
+        })
       }
 
       console.log(`[SocketService] 📩 Received PRINT_JOB_DISPATCH for Job #${jobId}:`, {

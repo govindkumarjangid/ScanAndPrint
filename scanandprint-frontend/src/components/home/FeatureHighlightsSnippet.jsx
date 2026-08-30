@@ -1,6 +1,4 @@
-import React from 'react'
 import { Link } from 'react-router'
-import { motion } from 'framer-motion'
 import { ArrowRight, highlights } from '../../assets/assets'
 
 export default function FeatureHighlightsSnippet() {

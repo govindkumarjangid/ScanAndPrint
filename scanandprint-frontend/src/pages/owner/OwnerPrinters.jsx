@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Printer, RefreshCw, Sparkles, Loader2, CheckCircle2, Usb } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Printer, RefreshCw, Loader2, CheckCircle2, Usb, Sparkles } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import toast from 'react-hot-toast'
 import PrinterListSkeleton from '../../components/skeleton/PrinterListSkeleton'
@@ -7,7 +7,7 @@ import PrinterListSkeleton from '../../components/skeleton/PrinterListSkeleton'
 export default function OwnerPrinters() {
   const { currentShop, fetchProfile, updatePrinters, isSavingPrinters } = useAuthStore()
 
-  const connectedPrinters = currentShop?.connectedPrinters || []
+  const connectedPrinters = useMemo(() => currentShop?.connectedPrinters || [], [currentShop?.connectedPrinters])
   const isAgentOnline = currentShop?.isOnline ?? false
 
   const [bwPrinter, setBwPrinter] = useState(currentShop?.defaultBwPrinter || '')
@@ -20,32 +20,36 @@ export default function OwnerPrinters() {
 
   useEffect(() => {
     if (currentShop) {
-      if (currentShop.defaultBwPrinter) {
-        setBwPrinter(currentShop.defaultBwPrinter)
-      } else if (connectedPrinters.length > 0) {
-        const defaultP = connectedPrinters.find((p) => p.isDefault) || connectedPrinters[0]
-        setBwPrinter(defaultP.name)
-      }
+      const timer = setTimeout(() => {
+        if (currentShop.defaultBwPrinter) {
+          setBwPrinter(currentShop.defaultBwPrinter)
+        } else if (connectedPrinters.length > 0) {
+          const defaultP = connectedPrinters.find((p) => p.isDefault) || connectedPrinters[0]
+          setBwPrinter(defaultP.name)
+        }
 
-      if (currentShop.defaultColorPrinter) {
-        setColorPrinter(currentShop.defaultColorPrinter)
-      } else if (connectedPrinters.length > 0) {
-        const defaultP = connectedPrinters.find((p) => p.isDefault) || connectedPrinters[0]
-        setColorPrinter(defaultP.name)
-      }
+        if (currentShop.defaultColorPrinter) {
+          setColorPrinter(currentShop.defaultColorPrinter)
+        } else if (connectedPrinters.length > 0) {
+          const defaultP = connectedPrinters.find((p) => p.isDefault) || connectedPrinters[0]
+          setColorPrinter(defaultP.name)
+        }
+      }, 0)
+      return () => clearTimeout(timer)
     }
-  }, [currentShop])
+  }, [currentShop, connectedPrinters])
 
   const handleSavePrinters = async (e) => {
     e.preventDefault()
-    if (!bwPrinter && !colorPrinter) {
-      toast.error('Please select at least one printer device')
-      return
+    try {
+      await updatePrinters({
+        defaultBwPrinter: bwPrinter,
+        defaultColorPrinter: colorPrinter,
+      })
+      toast.success('Default printers updated successfully!')
+    } catch {
+      toast.error('Failed to update printers')
     }
-    await updatePrinters({
-      defaultBwPrinter: bwPrinter,
-      defaultColorPrinter: colorPrinter,
-    })
   }
 
   const handleScanPrinters = async () => {
@@ -58,7 +62,7 @@ export default function OwnerPrinters() {
       } else {
         toast.success('Printer scan completed. Keep Desktop Print Agent running to sync live hardware.')
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to sync printers from agent')
     } finally {
       setIsScanning(false)
