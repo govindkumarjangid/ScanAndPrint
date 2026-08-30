@@ -41,7 +41,8 @@
     "publish": {
       "provider": "github",
       "owner": "govindkumarjangid",
-      "repo": "ScanAndPrint"
+      "repo": "ScanAndPrint",
+      "releaseType": "release"
     },
     "win": {
       "target": "nsis",
