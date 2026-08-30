@@ -1,4 +1,4 @@
-// Client-side UI Controller for Scan&Print Desktop Agent
+// Client-side UI Controller for Scan&Print Desktop Agent Dashboard
 document.addEventListener('DOMContentLoaded', async () => {
   const shopIdInput = document.getElementById('shopId')
   const secretKeyInput = document.getElementById('secretKey')
@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const refreshPrintersBtn = document.getElementById('refreshPrintersBtn')
   const testBwPrintBtn = document.getElementById('testBwPrintBtn')
   const testColorPrintBtn = document.getElementById('testColorPrintBtn')
+  const saveAssignmentBtn = document.getElementById('saveAssignmentBtn')
   const createShortcutBtn = document.getElementById('createShortcutBtn')
   const autoStartToggle = document.getElementById('autoStartToggle')
 
@@ -24,11 +25,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const displayShopCode = document.getElementById('displayShopCode')
   const copyShopCodeBtn = document.getElementById('copyShopCodeBtn')
 
+  const sidebarStatusDot = document.getElementById('sidebarStatusDot')
+  const sidebarStatusLabel = document.getElementById('sidebarStatusLabel')
+
   const printersCountVal = document.getElementById('printersCountVal')
   const jobsCountVal = document.getElementById('jobsCountVal')
   const appVersionSpan = document.getElementById('appVersion')
+  const navPrintersBadge = document.getElementById('navPrintersBadge')
+
+  const printerCardsGrid = document.getElementById('printerCardsGrid')
+  const dashboardPrinterSummary = document.getElementById('dashboardPrinterSummary')
 
   const activityLog = document.getElementById('activityLog')
+  const dashboardMiniLog = document.getElementById('dashboardMiniLog')
   const clearLogBtn = document.getElementById('clearLogBtn')
   const openLogFileBtn = document.getElementById('openLogFileBtn')
 
@@ -41,7 +50,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const bannerJobTitle = document.getElementById('bannerJobTitle')
   const bannerJobSubtitle = document.getElementById('bannerJobSubtitle')
 
+  const sidebar = document.getElementById('sidebar')
+  const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn')
+  const navItems = document.querySelectorAll('.nav-item')
+  const panels = document.querySelectorAll('.panel')
+
   let detectedPrinters = []
+  let detailedPrinters = []
   let totalJobsProcessed = 0
   let isPasswordVisible = false
 
@@ -69,6 +84,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   })
 
+  // ===========================================================================
+  // Sidebar navigation (panel switching + collapse)
+  // ===========================================================================
+  function switchPanel(panelName) {
+    panels.forEach((p) => p.classList.toggle('active', p.id === `panel-${panelName}`))
+    navItems.forEach((n) => n.classList.toggle('active', n.dataset.panel === panelName))
+  }
+
+  navItems.forEach((item) => {
+    item.addEventListener('click', () => switchPanel(item.dataset.panel))
+  })
+
+  document.querySelectorAll('[data-goto-panel]').forEach((btn) => {
+    btn.addEventListener('click', () => switchPanel(btn.dataset.gotoPanel))
+  })
+
+  if (sidebarCollapseBtn) {
+    // Restore persisted collapse preference (UI-only, not shop data)
+    try {
+      if (localStorage.getItem('sp_sidebar_collapsed') === '1') {
+        sidebar.classList.add('collapsed')
+      }
+    } catch (e) {}
+
+    sidebarCollapseBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed')
+      try {
+        localStorage.setItem('sp_sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0')
+      } catch (e) {}
+    })
+  }
+
   // Toast / Alert Notification Helper
   function showToast(msg, type = 'success') {
     if (!toastMessage) return
@@ -79,15 +126,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 4000)
   }
 
-  // Activity Logger Helper
+  // Activity Logger Helper (writes to both the full log tab and the dashboard mini-feed)
   function logActivity(tag, text, type = 'info') {
-    if (!activityLog) return
     const time = new Date().toLocaleTimeString('en-IN', { hour12: false })
-    const entry = document.createElement('div')
-    entry.className = 'log-entry'
-    entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-tag-${type}">[${tag}]</span> <span style="color: var(--text-primary);">${text}</span>`
-    activityLog.appendChild(entry)
-    activityLog.scrollTop = activityLog.scrollHeight
+    const html = `<span class="log-time">[${time}]</span><span class="log-tag-${type}">[${tag}]</span> <span style="color: var(--text-primary);">${text}</span>`
+
+    if (activityLog) {
+      const entry = document.createElement('div')
+      entry.className = 'log-entry'
+      entry.innerHTML = html
+      activityLog.appendChild(entry)
+      activityLog.scrollTop = activityLog.scrollHeight
+    }
+
+    if (dashboardMiniLog) {
+      const miniEntry = document.createElement('div')
+      miniEntry.className = 'log-entry'
+      miniEntry.innerHTML = html
+      dashboardMiniLog.appendChild(miniEntry)
+      dashboardMiniLog.scrollTop = dashboardMiniLog.scrollHeight
+      // Keep the mini feed short
+      while (dashboardMiniLog.children.length > 25) {
+        dashboardMiniLog.removeChild(dashboardMiniLog.firstChild)
+      }
+    }
   }
 
   // Play an audible sound chime when a print order arrives
@@ -112,8 +174,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   function flashIncomingJobBanner(job) {
     if (!jobBanner) return
     playNotificationChime()
-    bannerJobTitle.textContent = `Order #${job.jobId || 'NEW'} (${job.colorMode === 'COLOR' ? 'Color' : 'B&W'})`
-    bannerJobSubtitle.textContent = `${job.fileName || 'document.pdf'} · ${job.pages || 1} page(s) → Spooling`
+    bannerJobTitle.textContent = `Order #${job.jobId || 'NEW'} (${job.colorType === 'COLOR' ? 'Color' : 'B&W'})`
+    bannerJobSubtitle.textContent = `${job.originalFileName || 'document.pdf'} · ${job.totalPages || 1} page(s) → Spooling`
     jobBanner.style.display = 'flex'
     setTimeout(() => {
       jobBanner.style.display = 'none'
@@ -226,7 +288,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
   }
 
-  // Create Desktop Shortcut Action (Solves user's issue!)
+  // Create Desktop Shortcut Action
   if (createShortcutBtn) {
     createShortcutBtn.addEventListener('click', async () => {
       if (isElectron && typeof window.electronAPI.createDesktopShortcut === 'function') {
@@ -235,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           createShortcutBtn.innerHTML = '<span>Creating Shortcut...</span> <i class="bx bx-loader-alt bx-spin"></i>'
           const result = await window.electronAPI.createDesktopShortcut()
           if (result && result.success) {
-            showToast(' Shortcut created on your Windows Desktop!', 'success')
+            showToast('Shortcut created on your Windows Desktop!', 'success')
             logActivity('SYSTEM', 'Desktop icon created at: ' + (result.path || 'Desktop'), 'ready')
           } else {
             showToast(result?.message || 'Could not create shortcut', 'error')
@@ -266,7 +328,89 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
   }
 
-  // Query and Populate REAL Installed Windows OS Spooler Printers
+  // ===========================================================================
+  // Printer capability badges / icons — real, driver-reported data ONLY.
+  // Nothing here is hardcoded by printer name/brand; every flag comes from
+  // printerManager.getPrintersWithCapabilities() (Windows WMI + PrintConfiguration).
+  // ===========================================================================
+  function statusToClass(statusText) {
+    return String(statusText || 'unknown').toLowerCase().replace(/\s+/g, '-')
+  }
+
+  function buildCapBadge(isYes, iconYes, iconNo, labelYes, labelNo, capClass) {
+    const known = isYes !== null && isYes !== undefined
+    const cls = `cap-badge ${known ? (isYes ? `cap-yes ${capClass}` : 'cap-no') : 'cap-no'}`
+    const icon = known ? (isYes ? iconYes : iconNo) : 'bx-question-mark'
+    const label = known ? (isYes ? labelYes : labelNo) : 'Unknown'
+    return `<span class="${cls}"><i class='bx ${icon}'></i>${label}</span>`
+  }
+
+  function renderPrinterCard(p) {
+    const statusCls = statusToClass(p.statusText)
+    const colorBadge = buildCapBadge(p.supportsColor, 'bx-palette', 'bx-brightness', 'Color', 'B&W only', 'cap-color')
+    const duplexBadge = buildCapBadge(p.supportsDuplex, 'bx-duplicate', 'bx-file-blank', 'Double-sided', 'Single-sided only', 'cap-duplex')
+
+    return `
+      <div class="printer-card ${p.isOnline ? 'is-online' : ''}">
+        <div class="printer-card-top">
+          <div class="printer-card-icon"><i class='bx bx-printer'></i></div>
+          <div class="printer-card-name-wrap">
+            <div class="printer-card-name" title="${p.name}">${p.name}</div>
+            <div class="printer-card-port">${p.portName || p.driverName || 'Local Spooler'}</div>
+            ${p.isDefault ? '<div class="printer-card-default-tag">Windows Default</div>' : ''}
+          </div>
+          <span class="printer-status-badge status-${statusCls}">
+            <span class="status-dot"></span>${p.statusText || 'Unknown'}
+          </span>
+        </div>
+        <div class="printer-cap-row">
+          ${colorBadge}
+          ${duplexBadge}
+        </div>
+      </div>
+    `
+  }
+
+  async function loadDetailedPrinterStatus() {
+    if (!printerCardsGrid) return
+    if (!isElectron || typeof window.electronAPI.getPrintersStatus !== 'function') {
+      printerCardsGrid.innerHTML = '<div class="empty-state-mini">Live printer status is only available in the desktop app.</div>'
+      return
+    }
+
+    try {
+      const list = await window.electronAPI.getPrintersStatus()
+      detailedPrinters = Array.isArray(list) ? list : []
+
+      if (detailedPrinters.length === 0) {
+        printerCardsGrid.innerHTML = '<div class="empty-state-mini">No printers detected on this PC. Connect a printer and hit Refresh.</div>'
+        if (dashboardPrinterSummary) dashboardPrinterSummary.innerHTML = '<div class="empty-state-mini">No printers detected.</div>'
+        return
+      }
+
+      printerCardsGrid.innerHTML = detailedPrinters.map(renderPrinterCard).join('')
+
+      // Dashboard quick-glance summary chips
+      if (dashboardPrinterSummary) {
+        const onlineCount = detailedPrinters.filter((p) => p.isOnline).length
+        const colorCount = detailedPrinters.filter((p) => p.supportsColor).length
+        const duplexCount = detailedPrinters.filter((p) => p.supportsDuplex).length
+        dashboardPrinterSummary.innerHTML = `
+          <span class="printer-summary-chip"><i class='bx bx-printer'></i> ${detailedPrinters.length} Printer(s)</span>
+          <span class="printer-summary-chip" style="color: var(--emerald);"><i class='bx bxs-circle' style="font-size:8px;"></i> ${onlineCount} Online</span>
+          <span class="printer-summary-chip" style="color: #38bdf8;"><i class='bx bx-palette'></i> ${colorCount} Color-capable</span>
+          <span class="printer-summary-chip" style="color: var(--emerald);"><i class='bx bx-duplicate'></i> ${duplexCount} Duplex-capable</span>
+        `
+      }
+
+      if (navPrintersBadge) navPrintersBadge.textContent = String(detailedPrinters.length)
+    } catch (err) {
+      printerCardsGrid.innerHTML = `<div class="empty-state-mini">Could not read printer status: ${err.message}</div>`
+    }
+  }
+
+  // Query and Populate REAL Installed Windows OS Spooler Printers (for the
+  // B&W / Color assignment dropdowns)
   async function loadPrinters() {
     detectedPrinters = []
     if (printersCountVal) printersCountVal.textContent = 'Scanning...'
@@ -333,14 +477,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  async function refreshAllPrinterData() {
+    await Promise.all([loadPrinters(), loadDetailedPrinterStatus()])
+  }
+
   if (refreshPrintersBtn) {
     refreshPrintersBtn.addEventListener('click', async () => {
       refreshPrintersBtn.disabled = true
       refreshPrintersBtn.innerHTML = '<span>Refreshing...</span> <i class="bx bx-loader-alt bx-spin"></i>'
-      await loadPrinters()
+      await refreshAllPrinterData()
       refreshPrintersBtn.disabled = false
       refreshPrintersBtn.innerHTML = '<span>Refresh</span> <i class="bx bx-refresh"></i>'
-      showToast('Printers list updated', 'success')
+      showToast('Printer status updated', 'success')
+    })
+  }
+
+  // Save just the B&W / Color printer assignment (without touching credentials)
+  if (saveAssignmentBtn) {
+    saveAssignmentBtn.addEventListener('click', async () => {
+      const newAssignment = {
+        defaultBwPrinter: bwPrinterSelect.value,
+        defaultColorPrinter: colorPrinterSelect.value,
+      }
+      config = { ...config, ...newAssignment }
+      if (isElectron) {
+        const saved = await window.electronAPI.saveConfig(newAssignment)
+        if (saved) {
+          showToast('Printer assignment saved!', 'success')
+          logActivity('CONFIG', `B&W → ${newAssignment.defaultBwPrinter || 'none'} | Color → ${newAssignment.defaultColorPrinter || 'none'}`, 'ready')
+        } else {
+          showToast('Failed to save printer assignment', 'error')
+        }
+      }
     })
   }
 
@@ -358,14 +526,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const result = await window.electronAPI.testPrint(printerName, modeLabel)
         if (result && result.success) {
-          showToast(`✓ Test print sent successfully to ${printerName}!`, 'success')
-          logActivity('PRINT', `✓ Test page spool completed on ${printerName}`, 'online')
+          showToast(`Test print sent successfully to ${printerName}!`, 'success')
+          logActivity('PRINT', `Test page spool completed on ${printerName}`, 'online')
         } else {
-          showToast(` Test print failed: ${result?.error || 'Unknown error'}`, 'error')
+          showToast(`Test print failed: ${result?.error || 'Unknown error'}`, 'error')
           logActivity('ERROR', `Test print failed: ${result?.error || 'Unknown error'}`, 'error')
         }
       } catch (err) {
-        showToast(` Spooler error: ${err.message}`, 'error')
+        showToast(`Spooler error: ${err.message}`, 'error')
         logActivity('ERROR', `Spooler error: ${err.message}`, 'error')
       }
     }
@@ -414,14 +582,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const saved = await window.electronAPI.saveConfig(newConfig)
       if (saved) {
         config = { ...config, ...newConfig }
-        showToast('✓ Credentials saved! Connecting to cloud...', 'success')
+        showToast('Credentials saved! Connecting to cloud...', 'success')
         logActivity('CONFIG', `Credentials saved for ${cleanShopCode}. Reconnecting...`, 'ready')
       } else {
-        showToast(' Failed to save configuration', 'error')
+        showToast('Failed to save configuration', 'error')
       }
     } else {
       localStorage.setItem('scanandprint_agent_config', JSON.stringify(newConfig))
-      showToast('✓ Saved locally', 'success')
+      showToast('Saved locally', 'success')
     }
 
     saveBtn.disabled = false
@@ -433,29 +601,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     statusCard.className = 'status-card ' + status.toLowerCase()
     statusPill.className = 'status-pill ' + status.toLowerCase()
 
+    function setSidebarStatus(label, colorVar) {
+      if (sidebarStatusLabel) sidebarStatusLabel.textContent = label
+      if (sidebarStatusDot) sidebarStatusDot.style.color = colorVar
+    }
+
     if (status === 'CONNECTED') {
       statusText.innerHTML = 'Connected & Authorized <i class="bx bxs-zap"></i>'
       statusDot.className = 'status-dot pulse-animation'
+      setSidebarStatus('Connected', 'var(--emerald)')
       if (displayShopCode && details.shopId) displayShopCode.textContent = details.shopId
-      logActivity('ONLINE', ` Connected & Bound to PC (${details.hostname || 'This PC'})`, 'online')
+      logActivity('ONLINE', `Connected & Bound to PC (${details.hostname || 'This PC'})`, 'online')
     } else if (status === 'DEVICE_NOT_APPROVED') {
       statusText.innerHTML = 'Pending Approval <i class="bx bx-time-five"></i>'
       statusDot.className = 'status-dot'
-      logActivity('DEVICE', '🔒 Device Pending: Open your Shop Dashboard > Devices to approve this PC.', 'job')
-      showToast('⚠️ Device Approval Required! Approve this PC from your Shop Dashboard.', 'error')
+      setSidebarStatus('Pending Approval', 'var(--amber)')
+      logActivity('DEVICE', 'Device Pending: Open your Shop Dashboard > Devices to approve this PC.', 'job')
+      showToast('Device Approval Required! Approve this PC from your Shop Dashboard.', 'error')
     } else if (status === 'DEVICE_REVOKED') {
       statusText.innerHTML = 'Device Unlinked <i class="bx bx-shield-x"></i>'
       statusDot.className = 'status-dot'
-      logActivity('DEVICE', `❌ ${details.message || 'Device authorization was revoked.'}`, 'error')
+      setSidebarStatus('Unlinked', 'var(--rose)')
+      logActivity('DEVICE', `${details.message || 'Device authorization was revoked.'}`, 'error')
       showToast(details.message || 'Device unlinked from shop.', 'error')
     } else if (status === 'DISCONNECTED') {
       statusText.textContent = 'Disconnected (Retrying...)'
       statusDot.className = 'status-dot'
-      logActivity('OFFLINE', ' Connection to Cloud Server lost. Retrying...', 'error')
+      setSidebarStatus('Disconnected', 'var(--rose)')
+      logActivity('OFFLINE', 'Connection to Cloud Server lost. Retrying...', 'error')
     } else if (status === 'UNCONFIGURED') {
       statusText.textContent = 'Awaiting Shop Setup'
       statusDot.className = 'status-dot'
-      logActivity('SETUP', ' Shop ID or Secret Key missing. Please pair your shop.', 'job')
+      setSidebarStatus('Setup Needed', 'var(--amber)')
+      logActivity('SETUP', 'Shop ID or Secret Key missing. Please pair your shop.', 'job')
     }
   }
 
@@ -468,16 +646,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Incoming Job Notification
+  // NOTE: jobData uses the same field names as the rest of the app's job
+  // payloads (colorType, originalFileName, totalPages) - NOT colorMode/
+  // fileName/pages, which never matched any real payload sent by the backend.
   if (isElectron && typeof window.electronAPI.onIncomingJob === 'function') {
     window.electronAPI.onIncomingJob((job) => {
-      totalJobsProcessed++
-      if (jobsCountVal) jobsCountVal.textContent = totalJobsProcessed.toString()
-      flashIncomingJobBanner(job)
-      logActivity('JOB', `<i class='bx bxs-zap'></i> Received Job #${job.jobId || 'NEW'} (${job.pages || 1}p, ${job.colorMode || 'B&W'}) → Spooling to printer`, 'job')
+      const eventType = job?.eventType || 'DISPATCHED'
+
+      if (eventType === 'DISPATCHED') {
+        totalJobsProcessed++
+        if (jobsCountVal) jobsCountVal.textContent = totalJobsProcessed.toString()
+        flashIncomingJobBanner(job)
+        logActivity(
+          'JOB',
+          `<i class='bx bxs-zap'></i> Received Job #${job.jobId || 'NEW'} (${job.totalPages || 1}p, ${job.colorType === 'COLOR' ? 'Color' : 'B&W'}) → Spooling to printer`,
+          'job'
+        )
+        // A job just ran - refresh live printer status shortly after so the
+        // dashboard reflects the printer's real post-job state.
+        setTimeout(loadDetailedPrinterStatus, 3000)
+      } else if (eventType === 'SUCCESS') {
+        logActivity('PRINT', `Job #${job.jobId || 'NEW'} printed successfully on ${job.printedOn || 'printer'}`, 'online')
+      } else if (eventType === 'FAILED') {
+        logActivity('ERROR', `Job #${job.jobId || 'NEW'} failed to print: ${job.error || 'Unknown error'}`, 'error')
+        showToast(`Print failed for Job #${job.jobId || ''}: ${job.error || 'Unknown error'}`, 'error')
+      }
     })
   }
 
   // Initial load
-  await loadPrinters()
+  await refreshAllPrinterData()
   logActivity('READY', 'Scan&Print Agent UI Ready. Background services online.', 'ready')
+
+  // Keep the live Printers panel fresh in the background (every 20s) without
+  // the user needing to click Refresh manually.
+  setInterval(loadDetailedPrinterStatus, 20000)
 })

@@ -6,6 +6,7 @@ import configStore from './src/store/configStore.js'
 import printerManager from './src/services/printerManager.js'
 import printService from './src/services/printService.js'
 import socketService from './src/services/socketService.js'
+import { checkForUpdates, isUpdateDownloaded, onUpdateDownloaded, quitAndInstall } from './src/services/updateService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -49,7 +50,7 @@ function createDesktopShortcut() {
         fs.writeFileSync(safeIcoPath, fs.readFileSync(bundledIco))
         iconLocation = safeIcoPath
       }
-    } catch (e) {}
+    } catch (e) { }
 
     const shortcutPath = path.join(desktopPath, 'Scan&Print Agent.lnk')
 
@@ -96,10 +97,10 @@ function createMainWindow() {
   const iconPath = fs.existsSync(icoPath) ? icoPath : pngPath
 
   mainWindow = new BrowserWindow({
-    width: 620,
-    height: 780,
-    minWidth: 560,
-    minHeight: 640,
+    width: 1040,
+    height: 720,
+    minWidth: 900,
+    minHeight: 600,
     resizable: true,
     autoHideMenuBar: true,
     show: false,
@@ -169,8 +170,15 @@ function updateTrayMenu() {
   else if (status === 'UNCONFIGURED') statusText = 'Unconfigured'
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: `🖨️ Scan&Print Agent v1.0.3`, enabled: false },
+    { label: `🖨️ Scan&Print Agent v${app.getVersion() || '2.0.0'}`, enabled: false },
     { label: `Status: ${statusText}`, enabled: false },
+    {
+      label: 'Restart & Install Update',
+      enabled: isUpdateDownloaded(),
+      click: () => {
+        quitAndInstall()
+      },
+    },
     { type: 'separator' },
     {
       label: '⚙️ Open Settings & Dashboard',
@@ -244,9 +252,24 @@ function setupIpcHandlers() {
   })
 
   ipcMain.handle('save-config', (event, newConfig) => {
+    // Capture the connection-relevant fields BEFORE saving, so we can tell
+    // whether this save actually needs a socket reconnect. Forcing a full
+    // reconnect on every save (e.g. just flipping the "Auto-start" checkbox)
+    // unnecessarily drops the live connection and can interrupt an in-flight
+    // print job or a counter-order approval that's currently pending.
+    const previousConfig = configStore.getAll()
     const success = configStore.saveConfig(newConfig)
+
     if (success) {
-      socketService.reconnect()
+      const connectionFieldsChanged =
+        ('shopId' in newConfig && newConfig.shopId !== previousConfig.shopId) ||
+        ('secretKey' in newConfig && newConfig.secretKey !== previousConfig.secretKey) ||
+        ('serverUrl' in newConfig && newConfig.serverUrl !== previousConfig.serverUrl)
+
+      if (connectionFieldsChanged) {
+        socketService.reconnect()
+      }
+
       if (typeof newConfig.autoStartOnBoot === 'boolean') {
         app.setLoginItemSettings({
           openAtLogin: newConfig.autoStartOnBoot,
@@ -260,6 +283,12 @@ function setupIpcHandlers() {
 
   ipcMain.handle('get-printers', async () => {
     return await printerManager.getAvailablePrinters()
+  })
+
+  // Live, driver-reported printer status + real capabilities (color/duplex)
+  // for the dashboard's Printers panel. Never hardcoded - see printerManager.js.
+  ipcMain.handle('get-printers-status', async () => {
+    return await printerManager.getPrintersWithCapabilities()
   })
 
   ipcMain.handle('test-print', async (event, printerName, mode = 'Black & White') => {
@@ -296,7 +325,7 @@ function setupIpcHandlers() {
   })
 
   ipcMain.handle('get-app-version', () => {
-    return app.getVersion() || '1.0.3'
+    return app.getVersion() || '2.0.0'
   })
 
   // Counter Payment Approval & Denial IPC Handlers
@@ -313,6 +342,7 @@ function setupIpcHandlers() {
     if (jobData) {
       try {
         const result = await printService.executePrintJob(jobData)
+        socketService.notifyJobEvent('SUCCESS', { ...jobData, printedOn: result?.printedOn })
         if (socketService.socket && socketService.socket.connected) {
           socketService.socket.emit('JOB_SUCCESS', {
             jobId: jobId,
@@ -323,6 +353,7 @@ function setupIpcHandlers() {
         return { success: true }
       } catch (err) {
         console.error(`[Main] ❌ Failed to print counter job #${jobId}:`, err.message)
+        socketService.notifyJobEvent('FAILED', { ...jobData, error: err.message })
         if (socketService.socket && socketService.socket.connected) {
           socketService.socket.emit('JOB_FAILED', {
             jobId: jobId,
@@ -382,8 +413,8 @@ function showCounterOrderPopup(jobData) {
     return
   }
 
-  let popupWidth = 360
-  let popupHeight = 260
+  let popupWidth = 400
+  let popupHeight = 350
   let x = 100
   let y = 100
 
@@ -451,6 +482,8 @@ function showCounterOrderPopup(jobData) {
   counterPopupWindows.set(jobData.jobId, { win: popupWin, jobData })
 }
 
+
+
 app.whenReady().then(() => {
   // Disable default Electron menu bar across the entire application
   Menu.setApplicationMenu(null)
@@ -487,7 +520,41 @@ app.whenReady().then(() => {
     }
   })
 
+  // Forward job lifecycle events (arrived / printed / failed) to the Settings
+  // window so the owner sees live activity there too, not just in the
+  // separate counter-order popup.
+  socketService.onJobEvent((eventType, jobData) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('incoming-job', { ...jobData, eventType })
+    }
+  })
+
   socketService.connect()
+
+  // Listen for downloaded updates to dynamically enable the tray menu item
+  onUpdateDownloaded(() => {
+    updateTrayMenu()
+  })
+
+  // Schedule auto-update checks: once ~30s after startup, then every 6 hours
+  setTimeout(() => {
+    checkForUpdates()
+  }, 30000)
+
+  setInterval(() => {
+    checkForUpdates()
+  }, 6 * 60 * 60 * 1000)
+
+  // React to remote config updates immediately in memory
+  socketService.onConfigUpdate((validUpdates) => {
+    if (typeof validUpdates.autoStartOnBoot === 'boolean') {
+      app.setLoginItemSettings({
+        openAtLogin: validUpdates.autoStartOnBoot,
+        openAsHidden: true,
+        path: process.execPath,
+      })
+    }
+  })
 })
 
 app.on('window-all-closed', () => {

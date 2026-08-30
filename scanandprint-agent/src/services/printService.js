@@ -6,11 +6,68 @@ import configStore from '../store/configStore.js'
 import { ensurePdfBuffer } from '../utils/pdfConverter.js'
 import printerManager from './printerManager.js'
 
+// Valid "side" values accepted by pdf-to-printer / SumatraPDF for duplex printing.
+const VALID_DUPLEX_SIDES = ['duplex', 'duplexshort', 'duplexlong', 'simplex']
+
+/**
+ * Resolves whether a job should print in color or monochrome (black & white).
+ * `colorType` is treated as the canonical field sent by the backend; anything
+ * other than the literal string 'COLOR' is treated as black & white, matching
+ * the printer-selection logic already used elsewhere in this file.
+ * @param {Object} jobData
+ * @returns {boolean} true = print in black & white, false = print in color
+ */
+function resolveMonochrome(jobData) {
+  const colorType = String(jobData?.colorType || '').toUpperCase().trim()
+  return colorType !== 'COLOR'
+}
+
+/**
+ * Resolves the duplex ("both sides") print option for a job.
+ * Different backend payload versions may use different field names, so we
+ * check a small set of known aliases before falling back to single-sided.
+ * Always returns an explicit value ('duplex...' or 'simplex') - never
+ * undefined - so a job never silently inherits the printer's own saved
+ * default side setting.
+ * @param {Object} jobData
+ * @returns {string} a value accepted by pdf-to-printer's `side` option:
+ *   'duplex' | 'duplexshort' | 'duplexlong' | 'simplex'.
+ */
+function resolveDuplexSide(jobData) {
+  // Explicit side/duplex-mode string, e.g. 'duplex', 'duplexshort', 'duplexlong', 'simplex'.
+  const explicitSide = String(
+    jobData?.side || jobData?.duplexMode || jobData?.printSide || ''
+  ).toLowerCase().trim()
+
+  if (VALID_DUPLEX_SIDES.includes(explicitSide)) {
+    return explicitSide
+  }
+
+  // Boolean-style flags used by the customer web app / backend for "print on both sides".
+  const isDuplexRequested =
+    jobData?.duplex === true ||
+    jobData?.isDuplex === true ||
+    jobData?.doubleSided === true ||
+    jobData?.printSides === 'DOUBLE' ||
+    jobData?.printSides === 'double' ||
+    jobData?.sides === 'double'
+
+  if (isDuplexRequested) {
+    return 'duplex'
+  }
+
+  // No duplex requested -> explicitly force single-sided. We must NOT leave
+  // this undefined: if a printer's Windows driver has duplex saved as its own
+  // current/default setting, an omitted `side` option would silently let a
+  // single-sided order print double-sided. Sending 'simplex' guarantees the
+  // job always prints exactly what the customer paid for, regardless of
+  // whatever the printer's own last-used setting happens to be.
+  return 'simplex'
+}
+
 class PrintService {
   constructor() {
     this.tempDir = path.join(process.env.TEMP || '/tmp', 'scan-and-print-jobs')
-    this.preFetchedJobs = new Map()
-    this.cachedPrinterName = null
     this.ensureTempDir()
   }
 
@@ -25,126 +82,84 @@ class PrintService {
   }
 
   /**
-   * Fast-track fetch document buffer with direct backend stream priority (<80ms)
-   */
-  async fetchJobBuffer(jobData) {
-    const { jobId, fileUrl, downloadUrl } = jobData
-
-    // 1. Base64 payload (0 network latency)
-    if (fileUrl && fileUrl.startsWith('data:')) {
-      const base64Data = fileUrl.replace(/^data:[^;]+;base64,/, '')
-      return Buffer.from(base64Data, 'base64')
-    }
-
-    const serverUrl = (configStore.get('serverUrl') || 'https://scanandprint.onrender.com').replace(/\/+$/, '')
-    const candidateUrls = []
-
-    // Priority 1: Direct backend local file stream (<80ms over LAN/Broadband)
-    candidateUrls.push(`${serverUrl}/api/kiosk/download/${jobId}`)
-
-    // Priority 2: Direct downloadUrl
-    if (downloadUrl) {
-      if (downloadUrl.startsWith('http')) {
-        candidateUrls.push(downloadUrl)
-      } else {
-        candidateUrls.push(`${serverUrl}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
-      }
-    }
-
-    // Priority 3: Remote Cloudinary or external CDN url
-    if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://'))) {
-      candidateUrls.push(fileUrl)
-    }
-
-    // Fallback cloud mirror
-    candidateUrls.push(`https://scanandprint.onrender.com/api/kiosk/download/${jobId}`)
-
-    for (const targetUrl of candidateUrls) {
-      try {
-        const response = await axios({
-          method: 'GET',
-          url: targetUrl,
-          responseType: 'arraybuffer',
-          timeout: 6000,
-          maxRedirects: 3,
-        })
-
-        if (response.status === 200 && response.data && response.data.byteLength > 0) {
-          const buf = Buffer.from(response.data)
-          if (buf.length > 10) {
-            return buf
-          }
-        }
-      } catch {
-        // Try next candidate in waterfall
-      }
-    }
-
-    throw new Error(`Could not download a valid document file for Job #${jobId}`)
-  }
-
-  /**
-   * ⚡ Background Pre-fetcher: Downloads & writes file to disk while popup is opening
-   */
-  async preFetchJobFile(jobData) {
-    const { jobId } = jobData
-    if (!jobId) return null
-    if (this.preFetchedJobs.has(jobId)) {
-      return this.preFetchedJobs.get(jobId)
-    }
-
-    const fetchPromise = (async () => {
-      try {
-        console.log(`[PrintService] ⚡ Background pre-fetching Job #${jobId}...`)
-        const tempFilePath = path.join(this.tempDir, `job_${jobId}_${Date.now()}.pdf`)
-        let fileBuffer = await this.fetchJobBuffer(jobData)
-        fileBuffer = await ensurePdfBuffer(fileBuffer, jobData.originalFileName || `${jobId}.pdf`)
-        fs.writeFileSync(tempFilePath, fileBuffer)
-        console.log(`[PrintService] ⚡ Pre-fetch complete for Job #${jobId} (${fileBuffer.length} bytes ready on disk)`)
-        return tempFilePath
-      } catch (err) {
-        console.warn(`[PrintService] Pre-fetch failed for Job #${jobId}:`, err.message)
-        this.preFetchedJobs.delete(jobId)
-        return null
-      }
-    })()
-
-    this.preFetchedJobs.set(jobId, fetchPromise)
-    return fetchPromise
-  }
-
-  /**
-   * Execute silent print job (instantly if pre-fetched!)
+   * Execute silent print job downloaded from Cloud Server / Storage
+   * @param {Object} jobData - { jobId, fileUrl, downloadUrl, colorType, copies, pages,
+   *   targetPrinterName, duplex/isDuplex/doubleSided/side/duplexMode (any one of these
+   *   is accepted to request double-sided printing - see resolveDuplexSide()) }
    */
   async executePrintJob(jobData) {
-    const { jobId, colorType, copies = 1, targetPrinterName } = jobData
-    console.log(`[PrintService] 🖨️ Processing Job #${jobId}...`, { colorType, copies })
+    const { jobId, fileUrl, downloadUrl, colorType, copies = 1, targetPrinterName } = jobData
+    console.log(`[PrintService] 🖨️ Processing Job #${jobId}...`, {
+      colorType,
+      copies,
+      duplexRequested: Boolean(resolveDuplexSide(jobData)),
+      fileUrl: fileUrl?.slice?.(0, 40),
+    })
 
-    let tempFilePath = null
+    const tempFilePath = path.join(this.tempDir, `job_${jobId}_${Date.now()}.pdf`)
 
     try {
-      // Check if file was already pre-fetched in background!
-      if (this.preFetchedJobs.has(jobId)) {
-        try {
-          tempFilePath = await this.preFetchedJobs.get(jobId)
-          if (tempFilePath && fs.existsSync(tempFilePath)) {
-            console.log(`[PrintService] 🚀 Instant Print Cache HIT for Job #${jobId}! (0ms download delay)`)
+      let fileBuffer = null
+
+      // Case 1: Base64 data string
+      if (fileUrl && fileUrl.startsWith('data:')) {
+        console.log(`[PrintService] Decoding Base64 file payload for #${jobId}...`)
+        const base64Data = fileUrl.replace(/^data:[^;]+;base64,/, '')
+        fileBuffer = Buffer.from(base64Data, 'base64')
+      } else {
+        // Case 2: Download from remote URLs (Cloudinary, Backend Proxy, or downloadUrl)
+        const serverUrl = configStore.get('serverUrl') || 'https://scanandprint.onrender.com'
+        const candidateUrls = []
+
+        // Remote & fallback URLs
+        if (downloadUrl) {
+          if (downloadUrl.startsWith('http')) {
+            candidateUrls.push(downloadUrl)
           } else {
-            tempFilePath = null
+            candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
+            candidateUrls.push(`https://scanandprint.onrender.com${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
           }
-        } catch {
-          tempFilePath = null
+        }
+        if (fileUrl && (fileUrl.startsWith('http://') || fileUrl.startsWith('https://'))) {
+          candidateUrls.push(fileUrl)
+        }
+        candidateUrls.push(`${serverUrl.replace(/\/+$/, '')}/api/kiosk/download/${jobId}`)
+        candidateUrls.push(`https://scanandprint.onrender.com/api/kiosk/download/${jobId}`)
+
+        for (const targetUrl of candidateUrls) {
+          try {
+            console.log(`[PrintService] Attempting file download from: ${targetUrl}`)
+            const response = await axios({
+              method: 'GET',
+              url: targetUrl,
+              responseType: 'arraybuffer',
+              timeout: 15000,
+              maxRedirects: 5,
+            })
+
+            if (response.status === 200 && response.data && response.data.byteLength > 0) {
+              const buf = Buffer.from(response.data)
+              if (buf.length > 10) {
+                fileBuffer = buf
+                console.log(`[PrintService] ✅ Downloaded document (${fileBuffer.length} bytes) from: ${targetUrl}`)
+                break
+              }
+            }
+          } catch (dlErr) {
+            // Try next candidate URL
+          }
         }
       }
 
-      // If not pre-fetched, download now
-      if (!tempFilePath) {
-        tempFilePath = path.join(this.tempDir, `job_${jobId}_${Date.now()}.pdf`)
-        let fileBuffer = await this.fetchJobBuffer(jobData)
-        fileBuffer = await ensurePdfBuffer(fileBuffer, jobData.originalFileName || `${jobId}.pdf`)
-        fs.writeFileSync(tempFilePath, fileBuffer)
-        console.log(`[PrintService] Saved local print file: ${tempFilePath} (${fileBuffer.length} bytes)`)
+      if (!fileBuffer || fileBuffer.length === 0) {
+        throw new Error(`Could not download a valid document file for Job #${jobId}`)
       }
+
+      // Convert any image (PNG, JPG, etc.) to valid A4 printable PDF
+      fileBuffer = await ensurePdfBuffer(fileBuffer, jobData.originalFileName || `${jobId}.pdf`)
+
+      fs.writeFileSync(tempFilePath, fileBuffer)
+      console.log(`[PrintService] Saved local print file: ${tempFilePath} (${fileBuffer.length} bytes)`)
 
       // Determine Target Printer (B&W vs Color or Explicit target)
       const config = configStore.getAll()
@@ -158,39 +173,51 @@ class PrintService {
         }
       }
 
-      // High-Speed Printer Resolution: Use cache or quick lookup
-      if (!selectedPrinter) {
-        if (this.cachedPrinterName) {
-          selectedPrinter = this.cachedPrinterName
-        } else {
-          try {
-            const availablePrinters = await printerManager.getAvailablePrinters(1, 300)
-            const physical = availablePrinters.find(
-              (p) =>
-                !p.name.includes('Print to PDF') &&
-                !p.name.includes('OneNote') &&
-                !p.name.includes('XPS') &&
-                !p.name.includes('Fax')
-            )
-            if (physical) selectedPrinter = physical.name
-            else if (availablePrinters.length > 0) selectedPrinter = availablePrinters[0].name
-
-            if (!selectedPrinter) {
-              selectedPrinter = await ptp.getDefaultPrinter().catch(() => null)
-            }
-            if (selectedPrinter) this.cachedPrinterName = selectedPrinter
-          } catch {
-            // Ignore printer detection errors
+      // Auto-detect physical printer ONLY when we still don't know which printer
+      // to use. Calling getAvailablePrinters() shells out to Windows PowerShell/WMI,
+      // which typically costs 1-3+ seconds. Skipping it whenever targetPrinterName
+      // or a configured default printer is already known makes every normal job
+      // print near-instantly instead of paying this cost on every single job.
+      if (!selectedPrinter || selectedPrinter === 'Microsoft Print to PDF') {
+        try {
+          const availablePrinters = await printerManager.getAvailablePrinters(2, 1000)
+          const physical = availablePrinters.find(
+            (p) =>
+              !p.name.includes('Print to PDF') &&
+              !p.name.includes('OneNote') &&
+              !p.name.includes('XPS') &&
+              !p.name.includes('Fax')
+          )
+          if (physical) {
+            selectedPrinter = physical.name
+            console.log(`[PrintService] Auto-selected hardware printer: ${selectedPrinter}`)
+          } else if (availablePrinters.length > 0) {
+            selectedPrinter = availablePrinters[0].name
           }
-        }
+          if (!selectedPrinter) {
+            try {
+              const defP = await ptp.getDefaultPrinter()
+              if (defP) selectedPrinter = defP
+            } catch (e) {}
+          }
+        } catch (pErr) {}
       }
 
-      console.log(`[PrintService] Sending silent print job to printer: ${selectedPrinter || 'System Default'}`)
+      // Resolve color and duplex ("both sides") settings from the incoming job data.
+      const monochrome = resolveMonochrome(jobData)
+      const duplexSide = resolveDuplexSide(jobData)
 
-      // Execute Silent Hardware Print via pdf-to-printer
+      console.log(
+        `[PrintService] Sending silent print job to printer: ${selectedPrinter || 'System Default'} ` +
+        `(color: ${monochrome ? 'B&W' : 'COLOR'}, side: ${duplexSide})`
+      )
+
+      // Execute Silent Hardware Print via pdf-to-printer (Requires explicit printer name for 0 GUI dialog)
       const printOptions = {
         copies: Number(copies) || 1,
         silent: true,
+        monochrome,
+        side: duplexSide, // always explicit ('duplex...' or 'simplex') - see resolveDuplexSide()
       }
 
       if (selectedPrinter) {
@@ -202,18 +229,31 @@ class PrintService {
           await ptp.print(tempFilePath, printOptions)
           console.log(`[PrintService] ✅ Silent hardware print executed successfully for Job #${jobId}`)
         } else {
+          // If no printer detected, use silent PowerShell spooler instead of opening Sumatra GUI.
+          // NOTE: the PowerShell fallback below uses the printer's OS-level default settings and
+          // cannot force color/duplex options - those only apply on the pdf-to-printer path above.
+          console.warn(
+            '[PrintService] ⚠️ No target printer resolved - falling back to OS default print verb. ' +
+            'Color/duplex options requested for this job will NOT be applied via this fallback path.'
+          )
           await this.fallbackWindowsPrint(tempFilePath, null)
         }
       } catch (printErr) {
         console.warn(`[PrintService] Silent print note (${printErr.message}), trying fallback...`)
+        console.warn(
+          '[PrintService] ⚠️ Fallback path cannot apply color/duplex options for this job.'
+        )
         await this.fallbackWindowsPrint(tempFilePath, selectedPrinter)
       }
 
-      // Clean prefetch cache
-      this.preFetchedJobs.delete(jobId)
-
-      // Auto-Purge File after 3 seconds for 100% privacy
-      setTimeout(() => this.purgeFile(tempFilePath), 3000)
+      // Auto-Purge File Immediately for Privacy - but wait long enough for the
+      // print spooler to have actually finished reading the file first. A fixed
+      // 3s delay is too short for large multi-page PDFs or slow USB/network
+      // printers, which can cause a corrupted/incomplete print. Scale the delay
+      // with file size (roughly 1s per MB) with a safe minimum and maximum.
+      const fileSizeMb = fileBuffer.length / (1024 * 1024)
+      const purgeDelayMs = Math.min(Math.max(5000, fileSizeMb * 1000), 20000)
+      setTimeout(() => this.purgeFile(tempFilePath), purgeDelayMs)
 
       return {
         success: true,

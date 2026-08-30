@@ -19,9 +19,17 @@
       --emerald: #10B981;
       --emerald-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
       --emerald-glow: rgba(16, 185, 129, 0.35);
+      --emerald-bg: rgba(16, 185, 129, 0.12);
+      --emerald-border: rgba(16, 185, 129, 0.35);
       --rose: #F43F5E;
       --rose-gradient: linear-gradient(135deg, #F43F5E 0%, #e11d48 100%);
       --rose-glow: rgba(244, 63, 94, 0.35);
+      --amber: #F59E0B;
+      --amber-bg: rgba(245, 158, 11, 0.12);
+      --amber-border: rgba(245, 158, 11, 0.35);
+      --sky: #38bdf8;
+      --sky-bg: rgba(56, 189, 248, 0.12);
+      --sky-border: rgba(56, 189, 248, 0.35);
       --text-primary: #FAFAFA;
       --text-secondary: #A1A1AA;
       --text-muted: #71717A;
@@ -38,7 +46,7 @@
     body {
       background-color: var(--bg-main);
       color: var(--text-primary);
-      padding: 12px 14px;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       height: 100vh;
@@ -52,103 +60,176 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 8px;
     }
 
     .header-icon-title {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
     }
 
     .icon-badge {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       background: rgba(240, 36, 92, 0.15);
       color: var(--brand);
       border: 1px solid rgba(240, 36, 92, 0.3);
-      border-radius: 6px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 15px;
       flex-shrink: 0;
     }
 
     .title {
-      font-size: 13px;
+      font-size: 14.5px;
       font-weight: 800;
       color: var(--text-primary);
       letter-spacing: -0.2px;
     }
 
     .time-badge {
-      font-size: 10.5px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
       color: var(--text-muted);
       background: rgba(255, 255, 255, 0.04);
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 3px 7px;
+      border-radius: 5px;
       border: 1px solid var(--border-subtle);
     }
 
     .info-card {
       background-color: var(--bg-card);
       border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 9px 12px;
+      border-radius: 14px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      margin: 4px 0;
+      gap: 9px;
+      margin: 8px 0;
       -webkit-app-region: no-drag;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
     }
 
-    .info-row {
+    .file-row {
       display: flex;
-      font-size: 11.5px;
-      line-height: 1.35;
       align-items: center;
-      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .info-label {
-      font-weight: 700;
+    .file-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
       color: var(--text-secondary);
       flex-shrink: 0;
-      font-size: 10.5px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
     }
 
-    .info-value {
-      color: var(--text-primary);
+    .file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: #e4e4e7;
       font-weight: 600;
-      text-align: right;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      max-width: 210px;
+      max-width: 230px;
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .spec-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 7px 9px;
+    }
+
+    .spec-chip i {
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .spec-chip-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+      min-width: 0;
+    }
+
+    .spec-chip-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--text-muted);
+    }
+
+    .spec-chip-val {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .spec-chip.chip-color i { color: var(--sky); }
+    .spec-chip.chip-color.is-bw i { color: var(--text-secondary); }
+    .spec-chip.chip-duplex i { color: var(--emerald); }
+    .spec-chip.chip-duplex.is-single i { color: var(--text-secondary); }
+    .spec-chip.chip-pages i { color: var(--amber); }
+    .spec-chip.chip-copies i { color: var(--brand); }
+
+    .amount-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 9px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .amount-label {
+      font-weight: 700;
+      color: var(--text-secondary);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     .amount-highlight {
       color: var(--emerald);
       font-weight: 800;
-      font-size: 13px;
+      font-size: 17px;
     }
 
     .amount-note {
       color: var(--text-muted);
       font-size: 10px;
       font-weight: 500;
-      margin-left: 3px;
+      margin-left: 4px;
     }
 
     .actions-container {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
       -webkit-app-region: no-drag;
     }
 
@@ -161,16 +242,16 @@
     button {
       border: none;
       outline: none;
-      padding: 8px 10px;
-      border-radius: 9px;
-      font-size: 11.5px;
+      padding: 10px 10px;
+      border-radius: 10px;
+      font-size: 12.5px;
       font-weight: 800;
       color: #ffffff;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
+      gap: 6px;
       transition: all 0.15s ease;
     }
 
@@ -200,7 +281,7 @@
 
     .footer-note {
       text-align: center;
-      font-size: 10px;
+      font-size: 10.5px;
       color: var(--text-muted);
       font-weight: 500;
     }
@@ -219,20 +300,48 @@
 
   <!-- Order Details Box -->
   <div class="info-card">
-    <div class="info-row">
-      <span class="info-label">Print</span>
-      <span class="info-value" id="val-print">⚫ B&W • 1 page • 1 copy</span>
+    <div class="file-row">
+      <div class="file-icon"><i class='bx bxs-file-pdf' id="file-icon-el"></i></div>
+      <div class="file-name" id="val-file">document.pdf</div>
     </div>
-    <div class="info-row">
-      <span class="info-label">Collect</span>
-      <span class="info-value" id="val-amount">
-        <span class="amount-highlight">₹5</span>
-        <span class="amount-note">(Cash at counter)</span>
+
+    <div class="spec-grid">
+      <div class="spec-chip chip-pages">
+        <i class='bx bx-copy-alt'></i>
+        <div class="spec-chip-text">
+          <span class="spec-chip-label">Pages</span>
+          <span class="spec-chip-val" id="val-pages">1</span>
+        </div>
+      </div>
+      <div class="spec-chip chip-copies">
+        <i class='bx bx-layer'></i>
+        <div class="spec-chip-text">
+          <span class="spec-chip-label">Copies</span>
+          <span class="spec-chip-val" id="val-copies">1</span>
+        </div>
+      </div>
+      <div class="spec-chip chip-color" id="chip-color">
+        <i class='bx bx-palette' id="icon-color"></i>
+        <div class="spec-chip-text">
+          <span class="spec-chip-label">Color Mode</span>
+          <span class="spec-chip-val" id="val-color">B&W</span>
+        </div>
+      </div>
+      <div class="spec-chip chip-duplex" id="chip-duplex">
+        <i class='bx bx-duplicate' id="icon-duplex"></i>
+        <div class="spec-chip-text">
+          <span class="spec-chip-label">Sides</span>
+          <span class="spec-chip-val" id="val-duplex">Single-sided</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="amount-row">
+      <span class="amount-label">Collect at Counter</span>
+      <span>
+        <span class="amount-highlight" id="val-amount-num">₹0</span>
+        <span class="amount-note">Cash</span>
       </span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">File</span>
-      <span class="info-value" id="val-file" style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #e4e4e7;">document.pdf</span>
     </div>
   </div>
 
@@ -281,23 +390,60 @@
       })
     }
 
+    // Same duplex-detection logic as printService.js's resolveDuplexSide(),
+    // kept in sync so the popup always shows exactly what will actually print.
+    function isDuplexRequested(jobData) {
+      const explicitSide = String(jobData?.side || jobData?.duplexMode || jobData?.printSide || '').toLowerCase().trim()
+      if (explicitSide.startsWith('duplex')) return true
+      return (
+        jobData?.duplex === true ||
+        jobData?.isDuplex === true ||
+        jobData?.doubleSided === true ||
+        jobData?.printSides === 'DOUBLE' ||
+        jobData?.printSides === 'double' ||
+        jobData?.sides === 'double'
+      )
+    }
+
+    function fileIconFor(fileName) {
+      const ext = (fileName || '').split('.').pop().toLowerCase()
+      if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) return 'bx-image'
+      if (ext === 'doc' || ext === 'docx') return 'bxs-file-doc'
+      return 'bxs-file-pdf'
+    }
+
     function renderJobData(jobData) {
       if (!jobData) return
       currentJobId = jobData?.jobId
       playAlertChime()
 
       const isColor = jobData?.colorType === 'COLOR'
-      const printTypeIcon = isColor ? '🌈 Color' : '⚫ B&W'
+      const isDuplex = isDuplexRequested(jobData)
       const pages = Number(jobData?.totalPages) || 1
       const copies = Number(jobData?.copies) || 1
       const amount = Number(jobData?.totalAmount) || 0
       const fileName = jobData?.originalFileName || 'document.pdf'
       const timeStr = formatTime(jobData?.createdAt ? new Date(jobData.createdAt) : new Date())
 
-      document.getElementById('val-print').textContent = `${printTypeIcon} • ${pages} page (pages: ${pages}) • ${copies} copy`
-      document.getElementById('val-amount').innerHTML = `<span class="amount-highlight">₹${amount}</span><span class="amount-note">(counter par lena hai)</span>`
       document.getElementById('val-file').textContent = fileName
+      document.getElementById('file-icon-el').className = 'bx ' + fileIconFor(fileName)
       document.getElementById('val-time').textContent = timeStr
+      document.getElementById('val-pages').textContent = `${pages} page${pages > 1 ? 's' : ''}`
+      document.getElementById('val-copies').textContent = copies > 1 ? `${copies} copies` : '1 copy'
+
+      const colorChip = document.getElementById('chip-color')
+      const colorIcon = document.getElementById('icon-color')
+      document.getElementById('val-color').textContent = isColor ? 'Full Color' : 'Black & White'
+      colorChip.classList.toggle('is-bw', !isColor)
+      colorIcon.className = 'bx ' + (isColor ? 'bx-palette' : 'bx-brightness')
+
+      const duplexChip = document.getElementById('chip-duplex')
+      const duplexIcon = document.getElementById('icon-duplex')
+      document.getElementById('val-duplex').textContent = isDuplex ? 'Double-sided' : 'Single-sided'
+      duplexChip.classList.toggle('is-single', !isDuplex)
+      duplexIcon.className = 'bx ' + (isDuplex ? 'bx-duplicate' : 'bx-file-blank')
+
+      document.getElementById('val-amount-num').textContent = `₹${amount}`
     }
 
     window.electronAPI?.onCounterOrder((jobData) => {

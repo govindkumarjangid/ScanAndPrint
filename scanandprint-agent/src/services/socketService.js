@@ -6,6 +6,10 @@ import printService from './printService.js'
 import printerManager from './printerManager.js'
 import { getDeviceFingerprint, getAccuratePhysicalIp } from './deviceFingerprint.js'
 
+// Explicit allowlist of safe non-identity config keys that may be updated remotely via Socket.IO
+// Shop identity fields (shopId, secretKey, serverUrl) are strictly excluded and never modified remotely
+const ALLOWED_CONFIG_KEYS = ['defaultBwPrinter', 'defaultColorPrinter', 'autoStartOnBoot']
+
 // Extract active local physical network IPv4 address (filters out virtual VMware, VirtualBox, WSL, Hyper-V adapters)
 function getRealLocalIp() {
   try {
@@ -49,7 +53,7 @@ function getRealLocalIp() {
 
     // 3. Fallback
     if (candidates.length > 0) return candidates[0].address
-  } catch (e) {}
+  } catch (e) { }
   return '127.0.0.1'
 }
 
@@ -87,11 +91,18 @@ class SocketService {
     this.socket = null
     this.isConnected = false
     this.statusListeners = []
+    this.jobListeners = []
     this.hasLoggedOffline = false
     this.counterPopupHandler = null
     this.heldJobs = new Map()
     this.deviceInfo = null
     this.approvalPollTimer = null
+    this.manualDisconnect = false
+    this.configListeners = []
+  }
+
+  onConfigUpdate(callback) {
+    this.configListeners.push(callback)
   }
 
   setCounterPopupHandler(handler) {
@@ -104,6 +115,19 @@ class SocketService {
 
   notifyStatusChange(status, details = {}) {
     this.statusListeners.forEach((cb) => cb(status, details))
+  }
+
+  /**
+   * Subscribe to job lifecycle events (arrived / printed / failed) so the
+   * Settings/Dashboard window can show a live banner, chime, and activity log
+   * entry instead of only the shopkeeper ever seeing job activity.
+   */
+  onJobEvent(callback) {
+    this.jobListeners.push(callback)
+  }
+
+  notifyJobEvent(eventType, jobData) {
+    this.jobListeners.forEach((cb) => cb(eventType, jobData))
   }
 
   stopApprovalPolling() {
@@ -121,10 +145,10 @@ class SocketService {
       try {
         const cleanServer = targetServerUrl.replace(/\/+$/, '')
         const checkUrl = `${cleanServer}/api/devices/check-status?shopCode=${encodeURIComponent(shopId)}&fingerprint=${encodeURIComponent(fingerprint)}`
-        
+
         const res = await fetch(checkUrl)
         const json = await res.json()
-        
+
         if (json?.success && json?.data?.isApproved) {
           console.log(`[SocketService] 🎉 PC Device APPROVED by Shop Owner! Establishing live connection...`)
           this.stopApprovalPolling()
@@ -154,14 +178,20 @@ class SocketService {
       return
     }
 
+    if (this.socket && (this.socket.connected || this.socket.connecting)) {
+      return
+    }
+
     let targetServerUrl = serverUrl || 'https://scanandprint.onrender.com'
     if (!targetServerUrl || targetServerUrl.includes('localhost:5000') || targetServerUrl.includes('127.0.0.1:5000')) {
       targetServerUrl = 'https://scanandprint.onrender.com'
     }
     console.log(`[SocketService] Target Server: ${targetServerUrl} (Shop: ${shopId})`)
 
+    this.manualDisconnect = false
     if (this.socket) {
       this.socket.disconnect()
+      this.socket = null
     }
 
     this.hasLoggedOffline = false
@@ -191,8 +221,10 @@ class SocketService {
 
     this.socket.on('connect', async () => {
       console.log(`[SocketService] 🟢 Connected & Authorized! Socket ID: ${this.socket.id}`)
+      this.isConnected = true
+      this.manualDisconnect = false
       this.stopApprovalPolling()
-      
+
       // Auto detect installed printers on this PC and register with Cloud Server
       let availablePrinters = []
       try {
@@ -209,13 +241,13 @@ class SocketService {
       let publicWanIp = null
       try {
         publicWanIp = await fetchPublicIp()
-      } catch (e) {}
+      } catch (e) { }
 
       const effectiveIp = realLocalIp || publicWanIp || '127.0.0.1'
-      
+
       // Emit handshake with detected printers and real live system info
-      this.socket.emit('AGENT_REGISTER', { 
-        shopId: shopId.trim(), 
+      this.socket.emit('AGENT_REGISTER', {
+        shopId: shopId.trim(),
         secretApiKey: secretKey.trim(),
         agentVersion: '1.0.3',
         osArch: `${process.platform} (${process.arch})`,
@@ -233,11 +265,11 @@ class SocketService {
           localIp: realLocalIp,
         },
       })
-      
+
       this.isConnected = true
       this.hasLoggedOffline = false
-      this.notifyStatusChange('CONNECTED', { 
-        socketId: this.socket.id, 
+      this.notifyStatusChange('CONNECTED', {
+        socketId: this.socket.id,
         shopId,
         deviceFingerprint: this.deviceInfo.fingerprint,
         hostname: os.hostname(),
@@ -267,8 +299,11 @@ class SocketService {
       }
     })
 
-    // Map to hold pending print jobs in queue before owner approval
-    this.heldJobs = new Map()
+    // Map to hold pending print jobs in queue before owner approval.
+    // NOTE: intentionally NOT re-initialized here - it's already created once
+    // in the constructor. Resetting it on every connect()/reconnect() would
+    // wipe out jobs that are still waiting on counter approval or were just
+    // recovered from fetchQueuedJobs() if a reconnect happens mid-flight.
 
     // Listen for manual remote rescan request from Web Dashboard
     this.socket.on('REQUEST_PRINTER_SCAN', async () => {
@@ -281,6 +316,54 @@ class SocketService {
         })
       } catch (err) {
         console.error('[SocketService] Failed to rescan printers on remote request:', err.message)
+      }
+    })
+
+    // Remote Configuration Update Event (No rebuild, no restart)
+    this.socket.on('AGENT_CONFIG_UPDATE', (data) => {
+      const updates = data?.updates
+      if (!updates || typeof updates !== 'object') {
+        console.warn('[SocketService] ⚠️ AGENT_CONFIG_UPDATE received with invalid or missing updates payload')
+        if (this.socket && this.socket.connected) {
+          this.socket.emit('AGENT_CONFIG_UPDATE_ACK', {
+            applied: [],
+            rejected: [],
+          })
+        }
+        return
+      }
+
+      const applied = []
+      const rejected = []
+      const validUpdates = {}
+
+      for (const [key, value] of Object.entries(updates)) {
+        if (ALLOWED_CONFIG_KEYS.includes(key)) {
+          validUpdates[key] = value
+          applied.push(key)
+        } else {
+          rejected.push(key)
+          console.warn(`[SocketService] ⚠️ Rejected config update for key '${key}': Not allowed or protected identity setting`)
+        }
+      }
+
+      if (applied.length > 0) {
+        configStore.saveConfig(validUpdates)
+        console.log(`[SocketService] ✅ Applied remote config updates for keys: ${applied.join(', ')}`)
+        this.configListeners.forEach((cb) => {
+          try {
+            cb(validUpdates)
+          } catch (e) {
+            console.error('[SocketService] Error in config update listener:', e)
+          }
+        })
+      }
+
+      if (this.socket && this.socket.connected) {
+        this.socket.emit('AGENT_CONFIG_UPDATE_ACK', {
+          applied,
+          rejected,
+        })
       }
     })
 
@@ -380,10 +463,6 @@ class SocketService {
       const jobId = jobData?.jobId
       if (jobId) {
         this.heldJobs.set(jobId, jobData)
-        // ⚡ ULTRA-FAST: Pre-fetch & prepare file on disk immediately in parallel with popup!
-        printService.preFetchJobFile(jobData).catch((err) => {
-          console.warn(`[SocketService] Background pre-fetch notice for #${jobId}:`, err.message)
-        })
       }
 
       console.log(`[SocketService] 📩 Received PRINT_JOB_DISPATCH for Job #${jobId}:`, {
@@ -424,9 +503,11 @@ class SocketService {
 
       // If Online Gateway: Zero-Click Automatic Hardware Print
       console.log(`[SocketService] 🖨️ Zero-Click Auto-Printing Verified Gateway Job #${jobId} directly...`)
+      this.notifyJobEvent('DISPATCHED', jobData)
 
       try {
         const result = await printService.executePrintJob(jobData)
+        this.notifyJobEvent('SUCCESS', { ...jobData, printedOn: result?.printedOn })
         if (this.socket && this.socket.connected) {
           this.socket.emit('JOB_SUCCESS', {
             jobId: jobId,
@@ -436,6 +517,7 @@ class SocketService {
         }
       } catch (err) {
         console.error(`[SocketService] ❌ Failed to auto-print job #${jobId}:`, err.message)
+        this.notifyJobEvent('FAILED', { ...jobData, error: err.message })
         if (this.socket && this.socket.connected) {
           this.socket.emit('JOB_FAILED', {
             jobId: jobId,
@@ -480,16 +562,21 @@ class SocketService {
   }
 
   disconnect() {
+    this.manualDisconnect = true
     if (this.socket) {
       this.socket.disconnect()
       this.socket = null
-      this.isConnected = false
-      this.notifyStatusChange('DISCONNECTED', { reason: 'Manual disconnect' })
     }
+    this.isConnected = false
+    this.notifyStatusChange('DISCONNECTED', { reason: 'Manual disconnect' })
   }
 
   reconnect() {
-    this.disconnect()
+    this.manualDisconnect = false
+    if (this.socket) {
+      this.socket.disconnect()
+      this.socket = null
+    }
     this.connect()
   }
 
@@ -503,7 +590,7 @@ class SocketService {
           'x-secret-api-key': secretApiKey
         }
       })
-      
+
       if (response.data && response.data.data && response.data.data.jobs) {
         const queuedJobs = response.data.data.jobs
         if (queuedJobs.length > 0) {

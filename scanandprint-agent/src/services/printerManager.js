@@ -1,8 +1,13 @@
 import ptp from 'pdf-to-printer'
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import configStore from '../store/configStore.js'
+
+const execAsync = promisify(exec)
 
 function logToFile(line) {
   try {
@@ -16,7 +21,152 @@ function logToFile(line) {
   }
 }
 
+// Maps the numeric Win32_Printer.PrinterStatus code (reported live by the
+// Windows print spooler / driver itself) to a human label. Nothing here is
+// guessed - these are the exact values documented for Win32_Printer.
+const PRINTER_STATUS_MAP = {
+  1: 'Other',
+  2: 'Unknown',
+  3: 'Idle',
+  4: 'Printing',
+  5: 'Warming Up',
+  6: 'Stopped',
+  7: 'Offline',
+}
+
+// PowerShell script (written to a temp .ps1 and executed) that asks Windows
+// itself - via WMI (Win32_Printer) and the PrintManagement module - what
+// each installed printer's REAL driver-reported capabilities and live
+// status are. Nothing here is hardcoded per-model: every field comes
+// straight from the printer's own driver/spooler entry.
+const CAPABILITY_PS_SCRIPT = `
+$ErrorActionPreference = 'SilentlyContinue'
+$result = @()
+$printers = Get-CimInstance -ClassName Win32_Printer
+foreach ($p in $printers) {
+  $colorCap = $false
+  $duplexCap = $false
+  if ($p.CapabilityDescriptions) {
+    foreach ($cap in $p.CapabilityDescriptions) {
+      if ($cap -match 'Color') { $colorCap = $true }
+      if ($cap -match 'Duplex') { $duplexCap = $true }
+    }
+  }
+  $curColor = $null
+  $curDuplex = $null
+  try {
+    $cfg = Get-PrintConfiguration -PrinterName $p.Name -ErrorAction Stop
+    if ($cfg.Color) { $curColor = $cfg.Color.ToString() }
+    if ($cfg.DuplexingMode) { $curDuplex = $cfg.DuplexingMode.ToString() }
+    if ($curColor -eq 'Color') { $colorCap = $true }
+    if ($curDuplex -and $curDuplex -ne 'OneSided') { $duplexCap = $true }
+  } catch {}
+  $result += [PSCustomObject]@{
+    Name              = $p.Name
+    IsDefault         = [bool]$p.Default
+    PortName          = $p.PortName
+    DriverName        = $p.DriverName
+    WorkOffline       = [bool]$p.WorkOffline
+    PrinterStatus     = [int]$p.PrinterStatus
+    SupportsColor     = $colorCap
+    SupportsDuplex    = $duplexCap
+    CurrentColorMode  = $curColor
+    CurrentDuplexMode = $curDuplex
+  }
+}
+@($result) | ConvertTo-Json -Compress -Depth 4
+`
+
 class PrinterManager {
+  /**
+   * Queries Windows (WMI + PrintManagement) for the REAL, driver-reported
+   * capabilities and live status of every installed printer:
+   *   - supportsColor / supportsDuplex -> read directly from the printer's
+   *     own driver capability list (CapabilityDescriptions) and current
+   *     print configuration. Nothing is guessed by name/model.
+   *   - status -> the live Win32_Printer.PrinterStatus code from the spooler
+   *     (Idle / Printing / Warming Up / Stopped / Offline / Unknown).
+   * Used by the dashboard's "Printers" panel. Not used in the hot print-job
+   * path (see printService.js) since it costs ~1-2s for the whole batch.
+   */
+  async getPrintersWithCapabilities() {
+    if (process.platform !== 'win32') {
+      // Non-Windows dev environment: fall back to the basic list so the UI
+      // still has something real to render, just without capability flags.
+      const basic = await this.getAvailablePrinters(1, 0)
+      return basic.map((p) => ({
+        name: p.name,
+        isDefault: p.isDefault,
+        statusCode: 3,
+        statusText: 'Idle',
+        isOnline: true,
+        supportsColor: null,
+        supportsDuplex: null,
+        currentColorMode: null,
+        currentDuplexMode: null,
+      }))
+    }
+
+    const tempDir = path.join(os.tmpdir(), 'scan-and-print-jobs')
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true })
+    const scriptPath = path.join(tempDir, `printer-capabilities-${Date.now()}.ps1`)
+
+    try {
+      fs.writeFileSync(scriptPath, CAPABILITY_PS_SCRIPT, 'utf8')
+      const { stdout } = await execAsync(
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${scriptPath}"`,
+        { timeout: 15000, maxBuffer: 1024 * 1024 * 5 }
+      )
+
+      let parsed = []
+      try {
+        parsed = JSON.parse(stdout.trim() || '[]')
+      } catch (parseErr) {
+        logToFile(`getPrintersWithCapabilities: JSON parse failed: ${parseErr.message} | raw: ${stdout.slice(0, 400)}`)
+        parsed = []
+      }
+      if (!Array.isArray(parsed)) parsed = [parsed]
+
+      return parsed.map((p) => {
+        const statusCode = Number(p.PrinterStatus) || 0
+        const isOffline = Boolean(p.WorkOffline) || statusCode === 7
+        return {
+          name: p.Name,
+          isDefault: Boolean(p.IsDefault),
+          portName: p.PortName || '',
+          driverName: p.DriverName || '',
+          statusCode,
+          statusText: isOffline ? 'Offline' : (PRINTER_STATUS_MAP[statusCode] || 'Unknown'),
+          isOnline: !isOffline,
+          supportsColor: Boolean(p.SupportsColor),
+          supportsDuplex: Boolean(p.SupportsDuplex),
+          currentColorMode: p.CurrentColorMode || null,
+          currentDuplexMode: p.CurrentDuplexMode || null,
+        }
+      })
+    } catch (err) {
+      logToFile(`getPrintersWithCapabilities ERROR: ${err.message}`)
+      // Graceful fallback so the Printers panel still shows something
+      // useful (name + default) even if the capability query itself failed.
+      const basic = await this.getAvailablePrinters(1, 0)
+      return basic.map((p) => ({
+        name: p.name,
+        isDefault: p.isDefault,
+        statusCode: 0,
+        statusText: 'Unknown',
+        isOnline: true,
+        supportsColor: null,
+        supportsDuplex: null,
+        currentColorMode: null,
+        currentDuplexMode: null,
+      }))
+    } finally {
+      try {
+        if (fs.existsSync(scriptPath)) fs.unlinkSync(scriptPath)
+      } catch (e) {}
+    }
+  }
+
   /**
    * Get list of all installed printers on the system.
    * Retries a few times with a short delay if the first attempt returns
@@ -353,7 +503,14 @@ class PrinterManager {
       const pdfBuffer = await this.generateTestPagePdf(printerName, mode)
       fs.writeFileSync(testFilePath, pdfBuffer)
 
-      const options = {}
+      const isColorMode = String(mode).toLowerCase().includes('color')
+
+      // Explicitly tell the printer whether to use color or black & white -
+      // without this, some printer drivers silently default to monochrome
+      // regardless of which "Test ___ Print" button was clicked.
+      const options = {
+        monochrome: !isColorMode,
+      }
       if (printerName) {
         options.printer = printerName
       }

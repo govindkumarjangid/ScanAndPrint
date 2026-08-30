@@ -1,13 +1,17 @@
 import { PDFDocument } from 'pdf-lib'
 
 /**
- * Ensures that any input buffer (PDF, PNG, JPG, JPEG, WEBP) is converted to a valid printable PDF Buffer.
+ * Ensures that any input buffer (PDF, PNG, or JPG/JPEG) is converted to a valid printable PDF Buffer.
  * If the buffer is already a PDF, it is returned untouched.
- * If it is an image (PNG, JPG, etc.), it is scaled proportionally and embedded into a crisp A4 PDF page.
+ * If it is an image (PNG or JPG/JPEG), it is scaled proportionally and embedded into a crisp A4 PDF page.
+ *
+ * Other formats (WEBP, HEIC/HEIF, TIFF, BMP, GIF, etc.) are NOT supported and will throw -
+ * see the error thrown at the end of this function.
  *
  * @param {Buffer} buffer - File buffer
  * @param {string} originalFileName - Original filename for format hints
  * @returns {Promise<Buffer>}
+ * @throws {Error} if the buffer is neither a valid PDF nor a PNG/JPG image
  */
 export async function ensurePdfBuffer(buffer, originalFileName = '') {
   if (!buffer || buffer.length === 0) return buffer
@@ -89,5 +93,14 @@ export async function ensurePdfBuffer(buffer, originalFileName = '') {
     console.error('[Agent PDFConverter] Conversion failed:', err.message)
   }
 
-  return buffer
+  // If we reach here, the file was not already a PDF and could not be embedded
+  // as an image either (e.g. WEBP, HEIC/HEIF from iPhones, TIFF, BMP, or a
+  // corrupted upload). Returning the raw buffer here would silently hand a
+  // non-PDF file to the printer, which either fails with a confusing spooler
+  // error or prints nothing at all. Fail loudly instead so the caller can
+  // surface a clear, actionable error and mark the job as FAILED.
+  throw new Error(
+    `Unsupported or unreadable file format for "${originalFileName || 'upload'}". ` +
+    'Only PDF, PNG, and JPG/JPEG are currently supported by the print agent.'
+  )
 }
