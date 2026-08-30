@@ -60,10 +60,10 @@ export default function OwnerAgentDownload() {
             Windows 10 / 11 Compatible
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold font-heading">
-            Download Print Agent Setup v1.0.3
+            Download Print Agent Setup v2.0.0
           </h2>
           <p className="text-rose-100 text-xs sm:text-sm max-w-md leading-relaxed">
-            Windows installer (~103MB). Automatically creates a Desktop Shortcut and runs silently in your Windows System Tray next to the clock.
+            Windows installer (~107MB). Automatically creates a Desktop Shortcut and runs silently in your Windows System Tray next to the clock.
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export default function OwnerAgentDownload() {
           href={downloadUrl}
           target="_blank"
           rel="noopener noreferrer"
-          download="Scan_and_Print_Agent_Setup_1.0.3.exe"
+          download="Scan_and_Print_Agent_Setup_2.0.0.exe"
           className="shrink-0 w-full sm:w-auto"
         >
           <motion.button
@@ -80,7 +80,7 @@ export default function OwnerAgentDownload() {
             className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50! px-6 sm:px-8 py-3.5 sm:py-4 shadow-lg text-sm sm:text-base cursor-pointer w-full sm:w-auto justify-center"
           >
             <Download className="w-5 h-5" />
-            <span>Download .exe (103MB)</span>
+            <span>Download .exe (107MB)</span>
           </motion.button>
         </a>
       </div>
@@ -166,7 +166,7 @@ export default function OwnerAgentDownload() {
           <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
             <span className="w-6 h-6 rounded-full bg-stone-900 text-white font-extrabold flex items-center justify-center shrink-0 text-xs">1</span>
             <span className="min-w-0 flex-1 wrap-break-words">
-              Download & Run <strong className="font-bold text-stone-900 font-mono break-all inline-block">Scan_and_Print_Agent_Setup_1.0.3.exe</strong>
+              Download & Run <strong className="font-bold text-stone-900 font-mono break-all inline-block">Scan_and_Print_Agent_Setup_2.0.0.exe</strong>
             </span>
           </div>
           <div className="p-3.5 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200 flex items-start gap-3 min-w-0 overflow-hidden">
