@@ -38,7 +38,7 @@ const shopSchema = new mongoose.Schema(
     passwordHash: {
       type: String,
       required: [true, 'Password is required'],
-      select: false, 
+      select: false,
     },
     secretApiKey: {
       type: String,
@@ -133,7 +133,7 @@ const shopSchema = new mongoose.Schema(
       index: true,
     },
     paymentSettings: {
-      paymentMode: { type: String, default: 'online_counter' },
+      paymentMode: { type: String, default: 'counter' },
       paymentGateway: { type: String, default: 'razorpay' },
       razorpayKeyId: { type: String, default: '' },
       razorpayKeySecret: { type: String, default: '' }, // bcrypt hashed

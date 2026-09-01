@@ -24,7 +24,7 @@ import toast from 'react-hot-toast'
 export default function OwnerPaymentSetup() {
   const { currentShop, fetchProfile, updatePaymentSettings, isSavingPayment } = useAuthStore()
 
-  const [paymentMode, setPaymentMode] = useState(currentShop?.paymentSettings?.paymentMode || 'online_counter')
+  const [paymentMode, setPaymentMode] = useState(currentShop?.paymentSettings?.paymentMode || 'counter')
   const [razorpayKeyId, setRazorpayKeyId] = useState(currentShop?.paymentSettings?.razorpayKeyId || '')
   const [razorpayKeySecret, setRazorpayKeySecret] = useState('')
   const [showSecret, setShowSecret] = useState(false)

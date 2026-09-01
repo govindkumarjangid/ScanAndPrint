@@ -78,7 +78,7 @@ export const SEO_ROUTES = {
           '@type': 'Offer',
           price: '0.00',
           priceCurrency: 'INR',
-          description: '100% Free 2-Hour Full Feature Demo Trial'
+          description: '100% Free 48-Hour Full Feature Demo Trial'
         },
         aggregateRating: {
           '@type': 'AggregateRating',
@@ -172,7 +172,7 @@ export const SEO_ROUTES = {
   '/pricing': {
     title: 'Scan&Print Pricing – 48-Hour Free Demo & Affordable Monthly/Yearly Plans',
     description:
-      'Transparent, affordable pricing for Indian print shops. Get a 100% free 2-hour demo trial with zero commitments, or choose our monthly ₹1,299 or yearly ₹1,799 plans.',
+      'Transparent, affordable pricing for Indian print shops. Get a 100% free 48-hour demo trial with zero commitments, or choose our monthly ₹199 or yearly ₹999 plans.',
     canonical: 'https://scanandprint.in/pricing',
     keywords:
       'scan and print pricing, cyber cafe software price, printing kiosk subscription, free demo print software, affordable print kiosk',
@@ -511,7 +511,7 @@ export const SEO_ROUTES = {
   },
 
   '/register': {
-    title: 'Register Your Print Shop – Start 2-Hour Free Demo | Scan&Print',
+    title: 'Register Your Print Shop – Start 48-Hour Free Demo | Scan&Print',
     description:
       'Create your Scan&Print shop account in under 2 minutes. Start automating customer print jobs, receive direct UPI payments, and eliminate counter congestion today.',
     canonical: 'https://scanandprint.in/register',
