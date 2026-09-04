@@ -1,6 +1,17 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Minus, ArrowRight, ArrowLeft, Layers, Check, AlertCircle, Crop } from 'lucide-react'
+import {
+  Plus,
+  Minus,
+  ArrowRight,
+  ArrowLeft,
+  Layers,
+  Check,
+  AlertCircle,
+  Crop,
+  Maximize2,
+  Image as ImageIcon,
+} from 'lucide-react'
 import { parsePageRange } from '../../lib/pdfUtil'
 
 export default function PrintOptionsStage({
@@ -12,6 +23,14 @@ export default function PrintOptionsStage({
   setCopies,
   isDuplex,
   setIsDuplex,
+  paperSize = 'A4',
+  setPaperSize,
+  photoCount = 0,
+  setPhotoCount,
+  jobType = 'DOCUMENT',
+  setJobType,
+  pricingBreakdown,
+  pricingResult,
   customerPhone,
   setCustomerPhone,
   totalDocPages,
@@ -32,6 +51,13 @@ export default function PrintOptionsStage({
   const colorRate = shopInfo?.colorRate ?? 10
   const [rangeError, setRangeError] = useState('')
   const isImage = selectedFile && selectedFile.type?.startsWith('image/')
+
+  const settings = shopInfo?.pricingSettings || {}
+  const advanceEnabled = Boolean(settings.advanceFeaturesEnabled)
+  const bigSizeEnabled = advanceEnabled && Boolean(settings.bigSizeEnabled)
+  const duplexEnabled = advanceEnabled && Boolean(settings.duplexEnabled)
+  const duplexExtraRate = Number(settings.duplexExtraRate) || 0
+  const photoSheetEnabled = advanceEnabled && Boolean(settings.photoSheetEnabled)
 
   const handleCustomRangeChange = (val) => {
     setCustomRangeStr(val)
@@ -61,7 +87,10 @@ export default function PrintOptionsStage({
     }
   }
 
-  const ratePerPage = colorType === 'COLOR' ? colorRate : bwRate
+  // Available photo rates
+  const validPhotoCounts = [4, 6, 8, 10, 12].filter(
+    (cnt) => Number(settings.photoSheetPricing?.rates?.[`p${cnt}`]) > 0
+  )
 
   return (
     <motion.div
@@ -92,7 +121,6 @@ export default function PrintOptionsStage({
 
       {/* Main Options Form */}
       <div className="bg-white rounded-3xl p-4 sm:p-6 border border-stone-200/80 shadow-md flex flex-col gap-4 sm:gap-5">
-        
         {/* Image Cropping & Editing Shortcut Banner */}
         {isImage && (
           <div className="p-3 sm:p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200/80 flex items-center justify-between gap-2.5 sm:gap-3">
@@ -139,8 +167,101 @@ export default function PrintOptionsStage({
           </div>
         )}
 
-        {/* 1. Page Range Selection (If document has > 1 page) */}
-        {totalDocPages > 1 && (
+        {/* Big Size Paper Selection (A4, A3, A2, A1) */}
+        {bigSizeEnabled && (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
+              <Maximize2 className="w-3.5 h-3.5 text-stone-500" />
+              <span>Paper Size</span>
+            </label>
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+              {['A4', 'A3', 'A2', 'A1'].map((sz) => (
+                <button
+                  key={sz}
+                  type="button"
+                  onClick={() => setPaperSize && setPaperSize(sz)}
+                  className={`py-2 px-2 rounded-2xl border text-center font-extrabold text-xs transition-all cursor-pointer ${
+                    paperSize === sz
+                      ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
+                      : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                  }`}
+                >
+                  {sz}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 4x6 Photo Sheet Mode Selector (if image and photoSheetEnabled) */}
+        {isImage && photoSheetEnabled && validPhotoCounts.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-stone-500" />
+                <span>Print Mode</span>
+              </span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (setJobType) setJobType('DOCUMENT')
+                  if (setPhotoCount) setPhotoCount(0)
+                }}
+                className={`py-2 px-3 rounded-2xl border text-center font-extrabold text-xs transition-all cursor-pointer ${
+                  jobType === 'DOCUMENT'
+                    ? 'bg-brand text-white border-brand shadow-sm'
+                    : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                Standard Document
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (setJobType) setJobType('PHOTO_SHEET')
+                  if (setPhotoCount && photoCount === 0) setPhotoCount(validPhotoCounts[0])
+                }}
+                className={`py-2 px-3 rounded-2xl border text-center font-extrabold text-xs transition-all cursor-pointer ${
+                  jobType === 'PHOTO_SHEET'
+                    ? 'bg-brand text-white border-brand shadow-sm'
+                    : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                4×6 Photo Sheet
+              </button>
+            </div>
+
+            {jobType === 'PHOTO_SHEET' && (
+              <div className="pt-1 flex flex-col gap-1.5">
+                <span className="text-[11px] font-bold text-stone-600">
+                  Select Photos per Sheet:
+                </span>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {validPhotoCounts.map((cnt) => (
+                    <button
+                      key={`pc-${cnt}`}
+                      type="button"
+                      onClick={() => setPhotoCount && setPhotoCount(cnt)}
+                      className={`py-1.5 rounded-xl border text-center text-xs font-black cursor-pointer ${
+                        photoCount === cnt
+                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                          : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                      }`}
+                    >
+                      {cnt} Pcs
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 1. Page Range Selection (If document has > 1 page and not photo sheet) */}
+        {jobType !== 'PHOTO_SHEET' && totalDocPages > 1 && (
           <div className="flex flex-col gap-2">
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700 flex items-center justify-between">
               <span>Pages to Print</span>
@@ -210,111 +331,119 @@ export default function PrintOptionsStage({
           </div>
         )}
 
-        {/* 2. Color Type Switcher */}
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
-            Print Color Mode
-          </label>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setColorType('BLACK_AND_WHITE')}
-              className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
-                colorType === 'BLACK_AND_WHITE'
-                  ? 'bg-stone-900 text-white border-stone-900 shadow-md ring-2 ring-stone-900/10'
-                  : 'bg-stone-50 text-stone-800 border-stone-200 hover:bg-stone-100'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-xs sm:text-sm">Black &amp; White</span>
-                {colorType === 'BLACK_AND_WHITE' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 stroke-3 shrink-0" />}
-              </div>
-              <span
-                className={`text-xs ${
-                  colorType === 'BLACK_AND_WHITE' ? 'text-stone-300 font-semibold' : 'text-stone-500 font-medium'
+        {/* 2. Color Type Switcher (only for documents/resumes) */}
+        {jobType !== 'PHOTO_SHEET' && (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
+              Print Color Mode
+            </label>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setColorType('BLACK_AND_WHITE')}
+                className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+                  colorType === 'BLACK_AND_WHITE'
+                    ? 'bg-stone-900 text-white border-stone-900 shadow-md ring-2 ring-stone-900/10'
+                    : 'bg-stone-50 text-stone-800 border-stone-200 hover:bg-stone-100'
                 }`}
               >
-                ₹{bwRate} / page
-              </span>
-            </button>
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-xs sm:text-sm">Black &amp; White</span>
+                  {colorType === 'BLACK_AND_WHITE' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 stroke-3 shrink-0" />}
+                </div>
+                <span
+                  className={`text-xs ${
+                    colorType === 'BLACK_AND_WHITE' ? 'text-stone-300 font-semibold' : 'text-stone-500 font-medium'
+                  }`}
+                >
+                  ₹{bwRate} / page
+                </span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setColorType('COLOR')}
-              className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
-                colorType === 'COLOR'
-                  ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20 ring-2 ring-brand/10'
-                  : 'bg-rose-50/50 text-stone-800 border-rose-200 hover:bg-rose-100/50'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-xs sm:text-sm">Color Print</span>
-                {colorType === 'COLOR' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white stroke-3 shrink-0" />}
-              </div>
-              <span
-                className={`text-xs ${
-                  colorType === 'COLOR' ? 'text-rose-100 font-semibold' : 'text-rose-600 font-semibold'
+              <button
+                type="button"
+                onClick={() => setColorType('COLOR')}
+                className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+                  colorType === 'COLOR'
+                    ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20 ring-2 ring-brand/10'
+                    : 'bg-rose-50/50 text-stone-800 border-rose-200 hover:bg-rose-100/50'
                 }`}
               >
-                ₹{colorRate} / page
-              </span>
-            </button>
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-xs sm:text-sm">Color Print</span>
+                  {colorType === 'COLOR' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white stroke-3 shrink-0" />}
+                </div>
+                <span
+                  className={`text-xs ${
+                    colorType === 'COLOR' ? 'text-rose-100 font-semibold' : 'text-rose-600 font-semibold'
+                  }`}
+                >
+                  ₹{colorRate} / page
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 3. Sides Mode: Single-Sided vs Double-Sided Book Mode */}
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
-            Print Sides &amp; Book Duplex
-          </label>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setIsDuplex(false)}
-              className={`p-3 sm:p-3.5 rounded-2xl border flex flex-col justify-between gap-1 text-left transition-all cursor-pointer ${
-                !isDuplex
-                  ? 'bg-rose-50/70 border-brand ring-2 ring-brand/20 shadow-xs'
-                  : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
-              }`}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span className="text-xs sm:text-sm font-black text-stone-900 leading-tight">Single-Sided</span>
-                <span className="text-[9px] sm:text-[10px] font-bold bg-white text-stone-600 px-1.5 py-0.5 rounded-md border border-stone-200 w-max shrink-0">
-                  1-Side
+        {duplexEnabled && jobType !== 'PHOTO_SHEET' && (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
+              Print Sides &amp; Book Duplex
+            </label>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setIsDuplex(false)}
+                className={`p-3 sm:p-3.5 rounded-2xl border flex flex-col justify-between gap-1 text-left transition-all cursor-pointer ${
+                  !isDuplex
+                    ? 'bg-rose-50/70 border-brand ring-2 ring-brand/20 shadow-xs'
+                    : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <span className="text-xs sm:text-sm font-black text-stone-900 leading-tight">Single-Sided</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold bg-white text-stone-600 px-1.5 py-0.5 rounded-md border border-stone-200 w-max shrink-0">
+                    1-Side
+                  </span>
+                </div>
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-tight">
+                  1 page per sheet (Front only)
                 </span>
-              </div>
-              <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-tight">
-                1 page per sheet (Front only)
-              </span>
-            </button>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setIsDuplex(true)}
-              className={`p-3 sm:p-3.5 rounded-2xl border flex flex-col justify-between gap-1 text-left transition-all cursor-pointer ${
-                isDuplex
-                  ? 'bg-rose-50/70 border-brand ring-2 ring-brand/20 shadow-xs'
-                  : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
-              }`}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span className="text-xs sm:text-sm font-black text-stone-900 leading-tight">Double-Sided</span>
-                <span className="text-[9px] sm:text-[10px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md w-max shrink-0">
-                  Front &amp; Back
+              <button
+                type="button"
+                onClick={() => setIsDuplex(true)}
+                className={`p-3 sm:p-3.5 rounded-2xl border flex flex-col justify-between gap-1 text-left transition-all cursor-pointer ${
+                  isDuplex
+                    ? 'bg-rose-50/70 border-brand ring-2 ring-brand/20 shadow-xs'
+                    : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <span className="text-xs sm:text-sm font-black text-stone-900 leading-tight">Double-Sided</span>
+                  <span className="text-[9px] sm:text-[10px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md w-max shrink-0">
+                    {duplexExtraRate > 0 ? `+₹${duplexExtraRate}/pg` : 'Front & Back'}
+                  </span>
+                </div>
+                <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-tight">
+                  Front = Page 1, Back = Page 2
                 </span>
-              </div>
-              <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium leading-tight">
-                Front = Page 1, Back = Page 2 (Book)
-              </span>
-            </button>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 4. Number of Copies */}
         <div className="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
           <div className="flex flex-col">
-            <span className="text-xs font-extrabold text-stone-900">Copies (Sets)</span>
-            <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium">Number of print copies</span>
+            <span className="text-xs font-extrabold text-stone-900">
+              {jobType === 'PHOTO_SHEET' ? 'Sets of Sheets' : 'Copies (Sets)'}
+            </span>
+            <span className="text-[10px] sm:text-[11px] text-stone-500 font-medium">
+              Number of print copies
+            </span>
           </div>
           <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-stone-300 shadow-2xs">
             <button
@@ -337,7 +466,7 @@ export default function PrintOptionsStage({
           </div>
         </div>
 
-        {/* 4. Customer Mobile Number */}
+        {/* Customer Mobile Number */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
             Mobile Number (Optional)
@@ -353,15 +482,15 @@ export default function PrintOptionsStage({
 
         {/* 5. Transparent Price Breakdown Card */}
         <div className="bg-linear-to-br from-rose-50/70 to-rose-100/40 p-3.5 sm:p-4 rounded-2xl border border-rose-200/80 flex items-center justify-between">
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0 flex-1 mr-2">
             <span className="text-[10px] font-extrabold text-stone-500 uppercase tracking-wider">
-              Total Calculation
+              Total Calculation Breakdown
             </span>
-            <span className="text-xs text-stone-800 font-bold mt-0.5">
-              {selectedPagesCount} {selectedPagesCount === 1 ? 'Page' : 'Pages'} × {copies} {copies === 1 ? 'Copy' : 'Copies'} @ ₹{ratePerPage}
+            <span className="text-xs text-stone-800 font-bold mt-0.5 break-words">
+              {pricingBreakdown || `${selectedPagesCount} page(s) × ${copies} copy(ies)`}
             </span>
           </div>
-          <div className="text-right">
+          <div className="text-right shrink-0">
             <span className="text-xl sm:text-2xl font-extrabold text-brand font-heading">
               ₹{totalAmount}
             </span>
@@ -372,7 +501,8 @@ export default function PrintOptionsStage({
         <button
           type="button"
           onClick={onProceedToPayment}
-          className="btn btn-primary py-3.5 shadow-lg w-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer"
+          disabled={totalAmount <= 0}
+          className="btn btn-primary py-3.5 shadow-lg w-full text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
           <span>Proceed to Payment (₹{totalAmount})</span>
           <ArrowRight className="w-4 h-4" />

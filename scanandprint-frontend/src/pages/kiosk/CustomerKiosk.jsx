@@ -14,6 +14,7 @@ import PrintTrackingStage from '../../components/kiosk/PrintTrackingStage'
 import { useKioskStore } from '../../store/useKioskStore'
 import { getExactPageCount, combineFilesToPdf } from '../../lib/pdfUtil'
 import { getSocket } from '../../lib/socket'
+import { calculatePrice } from '../../lib/pricingUtil'
 import PageLoader from '../../components/common/PageLoader'
 
 export default function CustomerKiosk() {
@@ -45,6 +46,9 @@ export default function CustomerKiosk() {
   const [colorType, setColorType] = useState('BLACK_AND_WHITE')
   const [copies, setCopies] = useState(1)
   const [isDuplex, setIsDuplex] = useState(false)
+  const [paperSize, setPaperSize] = useState('A4')
+  const [photoCount, setPhotoCount] = useState(0)
+  const [jobType, setJobType] = useState('DOCUMENT')
   const [customerPhone, setCustomerPhone] = useState('')
   const [selectedPaymentMode, setSelectedPaymentMode] = useState('online')
   const [studioModalOpen, setStudioModalOpen] = useState(false)
@@ -83,7 +87,12 @@ export default function CustomerKiosk() {
 
     const handleRatesUpdated = (data) => {
       if (data && String(data.shopCode).toUpperCase() === String(shopCode).toUpperCase()) {
-        setLiveShopOverrides((prev) => ({ ...prev, bwRate: data.bwRate, colorRate: data.colorRate }))
+        setLiveShopOverrides((prev) => ({
+          ...prev,
+          bwRate: data.bwRate,
+          colorRate: data.colorRate,
+          pricingSettings: data.pricingSettings,
+        }))
       }
     }
 
@@ -266,8 +275,20 @@ export default function CustomerKiosk() {
     )
   }
 
-  const ratePerPage = colorType === 'COLOR' ? (shopInfo?.colorRate ?? 10) : (shopInfo?.bwRate ?? 5)
-  const totalAmount = selectedPagesCount * copies * ratePerPage
+  const pricingResult = calculatePrice({
+    shop: shopInfo,
+    totalPages: selectedPagesCount,
+    copies,
+    colorType,
+    isDuplex,
+    paperSize,
+    photoCount,
+    jobType,
+  })
+
+  const totalAmount = pricingResult.totalAmount
+  const ratePerPage = pricingResult.rateApplied
+  const pricingBreakdown = pricingResult.breakdownText
 
   const getJobFormData = () => {
     const formData = new FormData()
@@ -280,6 +301,9 @@ export default function CustomerKiosk() {
     formData.append('colorType', colorType)
     formData.append('copies', String(copies))
     formData.append('isDuplex', String(isDuplex))
+    formData.append('paperSize', paperSize)
+    formData.append('photoCount', String(photoCount))
+    formData.append('jobType', jobType)
 
     if (tempId) {
       formData.append('tempId', tempId)
@@ -303,6 +327,9 @@ export default function CustomerKiosk() {
     setCustomRangeStr('')
     setCopies(1)
     setIsDuplex(false)
+    setPaperSize('A4')
+    setPhotoCount(0)
+    setJobType('DOCUMENT')
     setStep(1)
   }
 
@@ -454,6 +481,14 @@ export default function CustomerKiosk() {
             selectedPagesCount={selectedPagesCount}
             setSelectedPagesCount={setSelectedPagesCount}
             totalAmount={totalAmount}
+            paperSize={paperSize}
+            setPaperSize={setPaperSize}
+            photoCount={photoCount}
+            setPhotoCount={setPhotoCount}
+            jobType={jobType}
+            setJobType={setJobType}
+            pricingBreakdown={pricingBreakdown}
+            pricingResult={pricingResult}
             onOpenStudioModal={() => setStudioModalOpen(true)}
             onOpenPdfStudioModal={() => setPdfStudioModalOpen(true)}
             onOpenImageEditor={() => setStudioModalOpen(true)}

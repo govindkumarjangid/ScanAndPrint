@@ -60,6 +60,26 @@ const printJobSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    paperSize: {
+      type: String,
+      default: 'A4',
+    },
+    jobType: {
+      type: String,
+      default: 'DOCUMENT',
+    },
+    photoCount: {
+      type: Number,
+      default: 0,
+    },
+    pricingType: {
+      type: String,
+      default: 'STANDARD_A4',
+    },
+    pricingBreakdown: {
+      type: String,
+      default: '',
+    },
     bwPages: {
       type: Number,
       default: 0,

@@ -131,6 +131,7 @@ export const updateShopRates = asyncHandler(async (req, res, next) => {
       shopCode: updatedShop.shopCode,
       bwRate: updatedShop.bwRate,
       colorRate: updatedShop.colorRate,
+      pricingSettings: updatedShop.pricingSettings,
     })
   }
   return sendSuccess(res, 200, 'Print rates updated successfully', { shop: updatedShop })

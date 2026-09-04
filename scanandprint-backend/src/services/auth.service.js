@@ -11,6 +11,7 @@ import Admin from '../models/Admin.model.js'
 import AdminSettings from '../models/AdminSettings.model.js'
 import SubscriptionPayment from '../models/SubscriptionPayment.model.js'
 import { memoryCache } from '../utils/cache.util.js'
+import { sanitizeAndValidatePricingSettings } from '../validators/pricing.validator.js'
 
 const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60 // 7 days matching refresh token expiry
 
@@ -459,8 +460,16 @@ export const authService = {
   },
 
   // Refresh the access token using a valid refresh token
-  async updateRates(shopId, { bwRate, colorRate }) {
-    return await shopRepository.updateById(shopId, { bwRate, colorRate })
+  async updateRates(shopId, { bwRate, colorRate, pricingSettings }) {
+    const updatePayload = {}
+    if (bwRate !== undefined) updatePayload.bwRate = bwRate
+    if (colorRate !== undefined) updatePayload.colorRate = colorRate
+    if (pricingSettings !== undefined) {
+      updatePayload.pricingSettings = sanitizeAndValidatePricingSettings(pricingSettings)
+    }
+    const updated = await shopRepository.updateById(shopId, updatePayload)
+    if (shopId) memoryCache.invalidateShop(shopId)
+    return updated
   },
 
   // Update the shop's printer settings

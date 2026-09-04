@@ -1,13 +1,14 @@
 import { shopRepository } from '../repositories/shop.repository.js'
 import { jobRepository } from '../repositories/job.repository.js'
 import { memoryCache } from '../utils/cache.util.js'
+import { calculatePrice } from '../utils/pricing.util.js'
 
 export const kioskService = {
 
   // Get shop information by its code
   async getShopInfo(shopCode) {
     const shop = await shopRepository.findByCode(shopCode, {
-       select: 'shopCode shopName ownerName phone address cityState pincode bwRate colorRate printerBrand isOnline isSubscriptionActive isDemoAccount demoExpiresAt subscriptionExpiresAt subscriptionStatus paymentSettings isSuspended',
+       select: 'shopCode shopName ownerName phone address cityState pincode bwRate colorRate pricingSettings printerBrand isOnline isSubscriptionActive isDemoAccount demoExpiresAt subscriptionExpiresAt subscriptionStatus paymentSettings isSuspended',
       lean: true,
     })
     if (shop && shop.paymentSettings) {
@@ -31,8 +32,22 @@ export const kioskService = {
     const numCopies = Math.max(1, Number(copies) || 1)
     const numPages = Math.max(1, Number(totalPages) || 1)
     const isColor = colorType === 'COLOR'
-    const ratePerPage = isColor ? shop.colorRate : shop.bwRate
-    const totalAmount = numPages * numCopies * ratePerPage
+    const isDuplex = Boolean(jobData.isDuplex)
+    const paperSize = jobData.paperSize || 'A4'
+    const photoCount = jobData.photoCount || 0
+    const jobType = jobData.jobType || 'DOCUMENT'
+
+    const priceResult = calculatePrice({
+      shop,
+      totalPages: numPages,
+      copies: numCopies,
+      colorType,
+      isDuplex,
+      paperSize,
+      photoCount,
+      jobType,
+    })
+    const totalAmount = priceResult.totalAmount
 
     const jobId = `JOB_${shop.shopCode}_${Date.now().toString().slice(-6)}`
     const cleanFileName = jobData.originalFileName
@@ -46,6 +61,12 @@ export const kioskService = {
       shopId: shop._id,
       totalPages: numPages,
       copies: numCopies,
+      isDuplex,
+      paperSize,
+      jobType,
+      photoCount,
+      pricingType: priceResult.pricingType,
+      pricingBreakdown: priceResult.breakdownText,
       bwPages: isColor ? 0 : numPages,
       colorPages: isColor ? numPages : 0,
       bwRateApplied: shop.bwRate,
@@ -79,8 +100,22 @@ export const kioskService = {
     const numCopies = Math.max(1, Number(copies) || 1)
     const numPages = Math.max(1, Number(totalPages) || 1)
     const isColor = colorType === 'COLOR'
-    const ratePerPage = isColor ? shop.colorRate : shop.bwRate
-    const totalAmount = numPages * numCopies * ratePerPage
+    const isDuplex = Boolean(jobData.isDuplex)
+    const paperSize = jobData.paperSize || 'A4'
+    const photoCount = jobData.photoCount || 0
+    const jobType = jobData.jobType || 'DOCUMENT'
+
+    const priceResult = calculatePrice({
+      shop,
+      totalPages: numPages,
+      copies: numCopies,
+      colorType,
+      isDuplex,
+      paperSize,
+      photoCount,
+      jobType,
+    })
+    const totalAmount = priceResult.totalAmount
 
     const jobId = `JOB_${shop.shopCode}_${Date.now().toString().slice(-6)}`
     const cleanFileName = jobData.originalFileName
@@ -100,6 +135,12 @@ export const kioskService = {
       shopId: shop._id,
       totalPages: numPages,
       copies: numCopies,
+      isDuplex,
+      paperSize,
+      jobType,
+      photoCount,
+      pricingType: priceResult.pricingType,
+      pricingBreakdown: priceResult.breakdownText,
       bwPages: isColor ? 0 : numPages,
       colorPages: isColor ? numPages : 0,
       bwRateApplied: shop.bwRate,

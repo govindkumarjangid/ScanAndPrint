@@ -25,6 +25,7 @@ export const loginSchema = z.object({
 export const updateRatesSchema = z.object({
   bwRate: z.coerce.number().min(0.5, 'Must be at least 0.5'),
   colorRate: z.coerce.number().min(1, 'Must be at least 1.0'),
+  pricingSettings: z.any().optional(),
 })
 
 export const updatePrintersSchema = z.object({

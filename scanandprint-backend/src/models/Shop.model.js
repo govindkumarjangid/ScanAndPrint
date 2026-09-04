@@ -73,6 +73,64 @@ const shopSchema = new mongoose.Schema(
       default: 10.0,
       min: [1.0, 'Color Rate must be at least ₹1.0'],
     },
+    pricingSettings: {
+      advanceFeaturesEnabled: { type: Boolean, default: false },
+      documentPrintEnabled: { type: Boolean, default: true },
+      resumeEnabled: { type: Boolean, default: false },
+      photoSheetEnabled: { type: Boolean, default: false },
+      bigSizeEnabled: { type: Boolean, default: false },
+      miniPrintEnabled: { type: Boolean, default: false },
+      duplexEnabled: { type: Boolean, default: false },
+      duplexExtraRate: { type: Number, default: 0 },
+
+      pageRangePricing: {
+        enabled: { type: Boolean, default: false },
+        bwRanges: [
+          {
+            fromPage: { type: Number, required: true },
+            toPage: { type: Number, required: true },
+            ratePerPage: { type: Number, required: true },
+          },
+        ],
+        colorRanges: [
+          {
+            fromPage: { type: Number, required: true },
+            toPage: { type: Number, required: true },
+            ratePerPage: { type: Number, required: true },
+          },
+        ],
+      },
+
+      bigSizePricing: {
+        a3: {
+          bwRate: { type: Number, default: 0 },
+          colorRate: { type: Number, default: 0 },
+        },
+        a2: {
+          bwRate: { type: Number, default: 0 },
+          colorRate: { type: Number, default: 0 },
+        },
+        a1: {
+          bwRate: { type: Number, default: 0 },
+          colorRate: { type: Number, default: 0 },
+        },
+      },
+
+      photoSheetPricing: {
+        rates: {
+          p4: { type: Number, default: 0 },
+          p6: { type: Number, default: 0 },
+          p8: { type: Number, default: 0 },
+          p10: { type: Number, default: 0 },
+          p12: { type: Number, default: 0 },
+        },
+      },
+
+      resumePricing: {
+        bwRate: { type: Number, default: 0 },
+        colorRate: { type: Number, default: 0 },
+      },
+    },
     printerBrand: {
       type: String,
       default: 'Epson',
