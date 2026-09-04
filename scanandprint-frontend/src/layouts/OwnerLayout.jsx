@@ -462,7 +462,7 @@ export default function OwnerLayout() {
 
       {/* Desktop sidebar */}
       <aside
-        className={`relative hidden lg:flex flex-col bg-white border-r border-stone-200/80 h-full shrink-0 justify-between z-30 shadow-xs transition-all duration-300 ${isCollapsed ? 'w-18' : 'w-65'
+        className={`relative hidden lg:flex flex-col bg-white border-r border-stone-200/80 h-full shrink-0 justify-between z-30 shadow-xs transition-all duration-300 ${isCollapsed ? 'w-18' : 'w-60'
           }`}
       >
         {/* Floating Chevron Collapse / Expand Button placed at bottom-20 baseline */}
