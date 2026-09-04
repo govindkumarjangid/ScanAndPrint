@@ -115,7 +115,7 @@ export default function AdminLayout() {
   const totalConnected = overviewData?.totalAgents ?? overviewData?.totalShops ?? 0
 
   return (
-    <div className="h-screen h-dvh bg-stone-900 text-stone-100 flex font-sans overflow-hidden w-full max-w-full">
+    <div className="h-screen bg-stone-900 text-stone-100 flex font-sans overflow-hidden w-full max-w-full">
 
       {/* DESKTOP ADMIN SIDEBAR */}
       <aside
@@ -134,17 +134,21 @@ export default function AdminLayout() {
         </button>
 
         {/* 1. Header / Logo (Pinned at top, shrink-0) */}
-        <div className="px-3 pt-5 pb-2 flex items-center shrink-0">
-          <Link to="/admin/dashboard" title="Scan&Print Super Admin" className="flex items-center gap-3.5 group cursor-pointer">
+        <div className={`pt-5 pb-2 flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
+          <Link
+            to="/admin/dashboard"
+            title="Scan&Print Super Admin"
+            className={`flex items-center group cursor-pointer ${isCollapsed ? 'justify-center' : 'gap-3.5'}`}
+          >
             <div className="relative shrink-0">
-              <div className="w-12 h-12 rounded-2xl bg-white p-2 flex items-center justify-center shadow-lg shadow-rose-500/20 border border-stone-700/60 group-hover:scale-105 transition-transform duration-200">
-                <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
+              <div className="w-11 h-11 rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-lg shadow-rose-500/20 border border-stone-700/60 group-hover:scale-105 transition-transform duration-200 aspect-square">
+                <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain aspect-square" />
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-brand text-white flex items-center justify-center shadow-sm border border-stone-950">
                 <ShieldCheck className="w-2.5 h-2.5" />
               </div>
             </div>
-            <div className={`flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
+            <div className={`flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap ${isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100'}`}>
               <span className="font-extrabold text-lg tracking-tight text-white leading-none">
                 Scan<span className="text-brand">&Print</span>
               </span>
@@ -156,7 +160,7 @@ export default function AdminLayout() {
         </div>
 
         {/* 2. Navigation Links (Scrollable flex-1 overflow-y-auto with hidden scrollbar) */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 space-y-1.5 py-3 sidebar-nav no-scrollbar">
+        <nav className={`flex-1 overflow-y-auto overflow-x-hidden space-y-1.5 py-3 sidebar-nav no-scrollbar ${isCollapsed ? 'px-0 flex flex-col items-center' : 'px-3'}`}>
           {adminNavItems.map((item) => {
             const Icon = item.icon
             return (
@@ -165,16 +169,20 @@ export default function AdminLayout() {
                 to={item.path}
                 title={isCollapsed ? item.name : undefined}
                 className={({ isActive }) =>
-                  `flex items-center h-12 rounded-2xl text-sm font-bold transition-all duration-200 group px-3.5 overflow-hidden ${
+                  `flex items-center rounded-2xl text-sm font-bold transition-all duration-200 group overflow-hidden ${
+                    isCollapsed
+                      ? 'w-11 h-11 aspect-square justify-center p-0 mx-auto'
+                      : 'w-full h-12 px-3.5'
+                  } ${
                     isActive
                       ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
                       : 'text-stone-400 hover:bg-stone-900 hover:text-stone-100'
                   }`
                 }
               >
-                <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105" />
-                <span className={`ml-3.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                  isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+                <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105 aspect-square" />
+                <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                  isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100 ml-3.5'
                 }`}>
                   {item.name}
                 </span>
@@ -184,20 +192,24 @@ export default function AdminLayout() {
         </nav>
 
         {/* 3. Footer Logout Button (Pinned firmly at bottom, shrink-0) */}
-        <div className="p-3 border-t border-stone-900 w-full shrink-0 bg-stone-950">
+        <div className={`border-t border-stone-900 w-full shrink-0 bg-stone-950 ${isCollapsed ? 'py-3 flex justify-center px-0' : 'p-3'}`}>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
             title={isCollapsed ? 'Admin Sign Out' : undefined}
-            className="flex items-center h-12 px-3.5 rounded-2xl w-full text-stone-400 bg-stone-900/60 hover:bg-rose-950/40 hover:text-rose-400 border border-stone-800/80 hover:border-rose-900/40 transition-all duration-200 overflow-hidden cursor-pointer group"
+            className={`flex items-center rounded-2xl text-stone-400 bg-stone-900/60 hover:bg-rose-950/40 hover:text-rose-400 border border-stone-800/80 hover:border-rose-900/40 transition-all duration-200 overflow-hidden cursor-pointer group ${
+              isCollapsed
+                ? 'w-11 h-11 aspect-square justify-center p-0 mx-auto'
+                : 'h-12 px-3.5 w-full'
+            }`}
           >
             {isLoggingOut ? (
-              <Loader2 className="w-5 h-5 animate-spin text-rose-500 shrink-0" />
+              <Loader2 className="w-5 h-5 animate-spin text-rose-500 shrink-0 aspect-square" />
             ) : (
-              <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+              <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-0.5 aspect-square" />
             )}
-            <span className={`ml-3.5 text-xs font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${
-              isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+            <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+              isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100 ml-3.5 text-xs font-bold'
             }`}>
               {isLoggingOut ? 'Signing Out...' : 'Admin Sign Out'}
             </span>

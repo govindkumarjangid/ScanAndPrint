@@ -476,14 +476,18 @@ export default function OwnerLayout() {
         </button>
 
         {/* 1. Header / Logo (Pinned at top, shrink-0) */}
-        <div className="px-3 pt-3.5 pb-1.5 flex items-center shrink-0">
-          <Link to="/owner/overview" title="Scan&Print Owner Dashboard" className="flex items-center gap-3 group cursor-pointer">
+        <div className={`pt-3.5 pb-1.5 flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
+          <Link
+            to="/owner/overview"
+            title="Scan&Print Owner Dashboard"
+            className={`flex items-center group cursor-pointer ${isCollapsed ? 'justify-center' : 'gap-3'}`}
+          >
             <div className="relative shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-sm shadow-rose-500/10 border border-rose-100 group-hover:scale-105 transition-transform duration-200">
-                <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-sm shadow-rose-500/10 border border-rose-100 group-hover:scale-105 transition-transform duration-200 aspect-square">
+                <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain aspect-square" />
               </div>
             </div>
-            <div className={`flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
+            <div className={`flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap ${isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100'}`}>
               <span className="font-extrabold text-base tracking-tight text-stone-900 leading-none">
                 Scan<span className="text-brand">&Print</span>
               </span>
@@ -495,7 +499,7 @@ export default function OwnerLayout() {
         </div>
 
         {/* 2. Navigation Tabs (Scrollable flex-1 overflow-y-auto with hidden scrollbar) */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2.5 space-y-1 py-5 sidebar-nav no-scrollbar">
+        <nav className={`flex-1 overflow-y-auto overflow-x-hidden space-y-1.5 py-4 sidebar-nav no-scrollbar ${isCollapsed ? 'px-0 flex flex-col items-center' : 'px-2.5'}`}>
           {ownerNavItems.map((item) => {
             const Icon = item.icon
             return (
@@ -504,16 +508,22 @@ export default function OwnerLayout() {
                 to={item.path}
                 title={isCollapsed ? item.name : undefined}
                 className={({ isActive }) =>
-                  `flex items-center h-10 rounded-xl text-xs sm:text-[13px] font-bold transition-all duration-200 group px-3 overflow-hidden ${isActive
-                    ? 'bg-brand text-white shadow-md shadow-rose-500/20 font-extrabold'
-                    : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                  `flex items-center rounded-xl text-xs sm:text-[13px] font-bold transition-all duration-200 group overflow-hidden ${
+                    isCollapsed
+                      ? 'w-10 h-10 aspect-square justify-center p-0 mx-auto'
+                      : 'w-full h-10 px-3'
+                  } ${
+                    isActive
+                      ? 'bg-brand text-white shadow-md shadow-rose-500/20 font-extrabold'
+                      : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
                   }`
                 }
               >
-                <Icon className="w-4.5 h-4.5 shrink-0 transition-transform group-hover:scale-105" />
+                <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105 aspect-square" />
                 <span
-                  className={`ml-2.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
-                    }`}
+                  className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                    isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100 ml-2.5'
+                  }`}
                 >
                   {item.name}
                 </span>
@@ -523,21 +533,26 @@ export default function OwnerLayout() {
         </nav>
 
         {/* 3. Footer Logout Button (Pinned firmly at bottom, shrink-0, border-t) */}
-        <div className="p-2.5 border-t border-stone-100 w-full shrink-0 bg-white">
+        <div className={`border-t border-stone-100 w-full shrink-0 bg-white ${isCollapsed ? 'py-3 flex justify-center px-0' : 'p-2.5'}`}>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
             title={isCollapsed ? 'Sign Out' : undefined}
-            className="flex items-center h-10 px-3 rounded-xl w-full text-rose-600 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all duration-200 overflow-hidden cursor-pointer group text-xs font-bold"
+            className={`flex items-center rounded-xl text-rose-600 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all duration-200 overflow-hidden cursor-pointer group text-xs font-bold ${
+              isCollapsed
+                ? 'w-10 h-10 aspect-square justify-center p-0 mx-auto'
+                : 'h-10 px-3 w-full'
+            }`}
           >
             {isLoggingOut ? (
-              <Loader2 className="w-4.5 h-4.5 animate-spin text-rose-500 shrink-0" />
+              <Loader2 className="w-5 h-5 animate-spin text-rose-500 shrink-0 aspect-square" />
             ) : (
-              <LogOut className="w-4.5 h-4.5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+              <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-0.5 aspect-square" />
             )}
             <span
-              className={`ml-2.5 text-xs font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
-                }`}
+              className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100 ml-2.5 text-xs font-bold'
+              }`}
             >
               {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
             </span>
