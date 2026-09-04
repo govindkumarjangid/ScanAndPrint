@@ -478,7 +478,7 @@ export default function OwnerLayout() {
         {/* 1. Header / Logo (Pinned at top, shrink-0) */}
         <div className={`pt-3.5 pb-1.5 flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-3'}`}>
           <Link
-            to="/owner/overview"
+            to="owner/dashboard"
             title="Scan&Print Owner Dashboard"
             className={`flex items-center group cursor-pointer ${isCollapsed ? 'justify-center' : 'gap-3'}`}
           >
