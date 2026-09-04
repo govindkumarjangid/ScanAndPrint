@@ -103,83 +103,83 @@ function AdaptiveToaster() {
       toastOptions={
         isAdmin
           ? {
+            style: {
+              background: '#1c1917',
+              color: '#f5f5f4',
+              border: '1px solid #292524',
+              padding: '6px 8px',
+              fontSize: '12px',
+              borderRadius: '16px',
+              fontWeight: '600',
+              maxWidth: '340px',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
+            },
+            success: {
               style: {
                 background: '#1c1917',
                 color: '#f5f5f4',
-                border: '1px solid #292524',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
                 padding: '6px 8px',
                 fontSize: '12px',
                 borderRadius: '16px',
                 fontWeight: '600',
-                maxWidth: '340px',
-                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
               },
-              success: {
-                style: {
-                  background: '#1c1917',
-                  color: '#f5f5f4',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  padding: '6px 8px',
-                  fontSize: '12px',
-                  borderRadius: '16px',
-                  fontWeight: '600',
-                },
-                iconTheme: {
-                  primary: '#10b981',
-                  secondary: '#0c0a09',
-                },
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#0c0a09',
               },
-              error: {
-                style: {
-                  background: '#1c1917',
-                  color: '#f5f5f4',
-                  border: '1px solid rgba(244, 63, 94, 0.35)',
-                  padding: '6px 8px',
-                  fontSize: '12px',
-                  borderRadius: '16px',
-                  fontWeight: '600',
-                },
-                iconTheme: {
-                  primary: '#f43f5e',
-                  secondary: '#0c0a09',
-                },
+            },
+            error: {
+              style: {
+                background: '#1c1917',
+                color: '#f5f5f4',
+                border: '1px solid rgba(244, 63, 94, 0.35)',
+                padding: '6px 8px',
+                fontSize: '12px',
+                borderRadius: '16px',
+                fontWeight: '600',
               },
-            }
+              iconTheme: {
+                primary: '#f43f5e',
+                secondary: '#0c0a09',
+              },
+            },
+          }
           : {
+            style: {
+              background: '#ffffff',
+              color: '#1c1917',
+              border: '1px solid #e7e5e4',
+              padding: '4px 8px',
+              fontSize: '12px',
+              borderRadius: '14px',
+              fontWeight: '600',
+              maxWidth: '320px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+            },
+            success: {
               style: {
                 background: '#ffffff',
                 color: '#1c1917',
-                border: '1px solid #e7e5e4',
+                border: '1px solid #dcfce7',
                 padding: '4px 8px',
                 fontSize: '12px',
                 borderRadius: '14px',
                 fontWeight: '600',
-                maxWidth: '320px',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
               },
-              success: {
-                style: {
-                  background: '#ffffff',
-                  color: '#1c1917',
-                  border: '1px solid #dcfce7',
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  borderRadius: '14px',
-                  fontWeight: '600',
-                },
+            },
+            error: {
+              style: {
+                background: '#ffffff',
+                color: '#1c1917',
+                border: '1px solid #ffe4e6',
+                padding: '4px 8px',
+                fontSize: '12px',
+                borderRadius: '14px',
+                fontWeight: '600',
               },
-              error: {
-                style: {
-                  background: '#ffffff',
-                  color: '#1c1917',
-                  border: '1px solid #ffe4e6',
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  borderRadius: '14px',
-                  fontWeight: '600',
-                },
-              },
-            }
+            },
+          }
       }
     />
   )
@@ -209,8 +209,8 @@ export default function App() {
             </Route>
 
             {/* Customer Mobile Kiosk Routes (Scanned via QR Code) */}
-            <Route path="/p/:shopCode" element={<CustomerKiosk />} />
-            <Route path="/p" element={<CustomerKiosk />} />
+            <Route path="/shop/:shopCode" element={<CustomerKiosk />} />
+            <Route path="/shop" element={<CustomerKiosk />} />
             <Route path="/kiosk/:shopCode" element={<CustomerKiosk />} />
 
             {/* Standalone ID Card 2-in-1 Print Studio */}
