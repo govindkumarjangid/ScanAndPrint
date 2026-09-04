@@ -13,6 +13,7 @@ build/
 */build/
 scanandprint-agent/dist/
 scanandprint-frontend/public/downloads/
+plan.json
 
 # Uploads & Temp cache
 uploads/
