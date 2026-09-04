@@ -36,20 +36,16 @@ import { getNonOverlappingSlot } from '../../utils/kioskSlots'
 import KioskPerspectiveModal from './studio/KioskPerspectiveModal'
 import KioskPassportTab from './studio/KioskPassportTab'
 
-export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, onClose, onSave }) {
-  // Master Tabs: 'doc_studio' (Doc Scanner & Layout) | 'passport' (Passport Photo Grid) | 'id_card' (ID Card 2-in-1)
+export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, onClose, onSave, photoRates = {} }) {
+
   const [activeMode, setActiveMode] = useState('doc_studio')
   const [isProcessing, setIsProcessing] = useState(false)
 
-  // =========================================================================
-  // 1. DOC STUDIO: ALL-IN-ONE A4 CANVAS (ADD, DRAG, CORNER RESIZE, 4-POINT CROP)
-  // =========================================================================
+
   const [imageSrc, setImageSrc] = useState(null)
   const [brightness, setBrightness] = useState(100)
   const [contrast, setContrast] = useState(100)
 
-  // Multi-Image A4 Canvas Items
-  // Each item: { id, url, rawUrl, name, x, y, width, height, rotation, corners: [TL, TR, BR, BL] }
   const [canvasItems, setCanvasItems] = useState([])
   const [selectedItemId, setSelectedItemId] = useState(null)
 
@@ -57,9 +53,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
   const a4CanvasRef = useRef(null)
   const [canvasDragState, setCanvasDragState] = useState(null)
 
-  // =========================================================================
-  // DEDICATED 4-POINT PERSPECTIVE CROPPER OVERLAY (PIXEL-PERFECT TIGHT BOUNDS)
-  // =========================================================================
   const [croppingItem, setCroppingItem] = useState(null) // null or item object being cropped
   const [cropImgSize, setCropImgSize] = useState({ w: 4, h: 3 })
   const [docCorners, setDocCorners] = useState([
@@ -72,9 +65,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
   const [cornerDragStart, setCornerDragStart] = useState(null)
   const cropStageRef = useRef(null)
 
-  // =========================================================================
-  // 2. PASSPORT PHOTO GRID STATES (16+ COPIES)
-  // =========================================================================
   const [passportCount, setPassportCount] = useState(16) // 16, 20, 24, 30, 32, 36, 40, 48
   const [passportPreviewPage, setPassportPreviewPage] = useState(1)
   const passportTotalPages = Math.ceil(passportCount / 30)
@@ -174,9 +164,7 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
   // Get active item
   const activeItem = canvasItems.find((i) => i.id === selectedItemId) || canvasItems[0] || null
 
-  // =========================================================================
-  // MOUSE & TOUCH HANDLERS: A4 CANVAS MOVE & BOTTOM-RIGHT CORNER RESIZE
-  // =========================================================================
+
   const handleCanvasMouseMove = useCallback(
     (e) => {
       if (!canvasDragState || !a4CanvasRef.current) return
@@ -259,9 +247,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
     })
   }
 
-  // =========================================================================
-  // MOUSE & TOUCH HANDLERS: 4-POINT PERSPECTIVE CROPPER OVERLAY
-  // =========================================================================
   const handleCornerMouseMove = useCallback(
     (e) => {
       if (activeCornerHandle === null || !cornerDragStart || !cropStageRef.current) return
@@ -368,10 +353,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
       const total = updatedItems.length
 
       if (total === 2) {
-        // Front & Back 2-in-1 layout (Large Half-Page Fit, matching standard ID printouts)
-        // Standard ID card aspect ratio: 1.5858 (CR80).
-        // On A4 canvas (aspect ratio 1 / 1.4142 = 0.7071):
-        // Card width 72% -> Card height = 72 / (1.5858 * 1.4142) = 32.1%
         const cardW = 72
         const cardH = 32.1
         const cardX = 14
@@ -492,9 +473,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
       const actualH = croppedCanvas.height
       const cropAspect = actualW / actualH // aspect ratio (w / h)
 
-      // Calculate width and height on A4 canvas (physical ratio 1 / 1.4142):
-      // physical aspect = (w / h) * (1 / 1.4142) = cropAspect
-      // Therefore: h = w / (cropAspect * 1.4142)
       let newW = croppingItem.width
       let newH = newW / (cropAspect * 1.4142)
 
@@ -552,9 +530,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
     }
   }
 
-  // =========================================================================
-  // MULTI-IMAGE MANAGEMENT (ADD, DELETE, ROTATE, DUPLICATE)
-  // =========================================================================
   const handleAddMultipleFiles = (e) => {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
@@ -694,9 +669,6 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
     toast.success('Reset to original')
   }
 
-  // =========================================================================
-  // FINAL MASTER SAVE FUNCTION (PDF / IMAGE EXPORT)
-  // =========================================================================
   const handleSaveAndApply = async () => {
     if (!canvasItems.length && !imageSrc) return
     setIsProcessing(true)
@@ -733,11 +705,11 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
         )
       }
 
-      if (!generatedFile) {
-        throw new Error('Failed to generate printable PDF')
+      if (activeMode === 'passport') {
+        onSave(generatedFile, { mode: 'passport', passportCount })
+      } else {
+        onSave(generatedFile, { mode: 'doc_studio' })
       }
-
-      onSave(generatedFile)
     } catch (err) {
       console.error('Error generating document:', err)
       toast.error('Failed to process image: ' + (err.message || 'Unknown error'))
@@ -1254,6 +1226,7 @@ export default function KioskStudioModal({ imageFile, imageFiles = [], isOpen, o
                 <KioskPassportTab
                   passportCount={passportCount}
                   setPassportCount={setPassportCount}
+                  photoRates={photoRates}
                 />
               )}
 

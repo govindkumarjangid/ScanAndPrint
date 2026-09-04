@@ -48,8 +48,8 @@ export default function OwnerLayout() {
   const yearlyPrice = publicSettings?.yearlyPrice || 799
   const yearlyOriginalPrice = publicSettings?.yearlyOriginalPrice || 3588
 
-  const yearlyDiscountPercent = yearlyOriginalPrice > yearlyPrice 
-    ? Math.round(((yearlyOriginalPrice - yearlyPrice) / yearlyOriginalPrice) * 100) 
+  const yearlyDiscountPercent = yearlyOriginalPrice > yearlyPrice
+    ? Math.round(((yearlyOriginalPrice - yearlyPrice) / yearlyOriginalPrice) * 100)
     : Math.max(0, Math.round((((monthlyPrice * 12) - yearlyPrice) / (monthlyPrice * 12)) * 100))
 
   // Play audio alert chime
@@ -476,18 +476,18 @@ export default function OwnerLayout() {
         </button>
 
         {/* 1. Header / Logo (Pinned at top, shrink-0) */}
-        <div className="px-3 pt-5 pb-2 flex items-center shrink-0">
-          <Link to="/owner/overview" title="Scan&Print Owner Dashboard" className="flex items-center gap-3.5 group cursor-pointer">
+        <div className="px-3 pt-3.5 pb-1.5 flex items-center shrink-0">
+          <Link to="/owner/overview" title="Scan&Print Owner Dashboard" className="flex items-center gap-3 group cursor-pointer">
             <div className="relative shrink-0">
-              <div className="w-12 h-12 rounded-2xl bg-white p-2 flex items-center justify-center shadow-md shadow-rose-500/10 border border-rose-100 group-hover:scale-105 transition-transform duration-200">
+              <div className="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-sm shadow-rose-500/10 border border-rose-100 group-hover:scale-105 transition-transform duration-200">
                 <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
               </div>
             </div>
             <div className={`flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
-              <span className="font-extrabold text-lg tracking-tight text-stone-900 leading-none">
+              <span className="font-extrabold text-base tracking-tight text-stone-900 leading-none">
                 Scan<span className="text-brand">&Print</span>
               </span>
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">
+              <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">
                 Owner Dashboard
               </span>
             </div>
@@ -495,7 +495,7 @@ export default function OwnerLayout() {
         </div>
 
         {/* 2. Navigation Tabs (Scrollable flex-1 overflow-y-auto with hidden scrollbar) */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 space-y-1.5 py-3 sidebar-nav no-scrollbar">
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2.5 space-y-1 py-5 sidebar-nav no-scrollbar">
           {ownerNavItems.map((item) => {
             const Icon = item.icon
             return (
@@ -504,15 +504,15 @@ export default function OwnerLayout() {
                 to={item.path}
                 title={isCollapsed ? item.name : undefined}
                 className={({ isActive }) =>
-                  `flex items-center h-12 rounded-2xl text-sm font-bold transition-all duration-200 group px-3.5 overflow-hidden ${isActive
-                    ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
+                  `flex items-center h-10 rounded-xl text-xs sm:text-[13px] font-bold transition-all duration-200 group px-3 overflow-hidden ${isActive
+                    ? 'bg-brand text-white shadow-md shadow-rose-500/20 font-extrabold'
                     : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
                   }`
                 }
               >
-                <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105" />
+                <Icon className="w-4.5 h-4.5 shrink-0 transition-transform group-hover:scale-105" />
                 <span
-                  className={`ml-3.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+                  className={`ml-2.5 whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
                     }`}
                 >
                   {item.name}
@@ -523,20 +523,20 @@ export default function OwnerLayout() {
         </nav>
 
         {/* 3. Footer Logout Button (Pinned firmly at bottom, shrink-0, border-t) */}
-        <div className="p-3 border-t border-stone-100 w-full shrink-0 bg-white">
+        <div className="p-2.5 border-t border-stone-100 w-full shrink-0 bg-white">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
             title={isCollapsed ? 'Sign Out' : undefined}
-            className="flex items-center h-12 px-3.5 rounded-2xl w-full text-rose-600 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all duration-200 overflow-hidden cursor-pointer group"
+            className="flex items-center h-10 px-3 rounded-xl w-full text-rose-600 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/80 transition-all duration-200 overflow-hidden cursor-pointer group text-xs font-bold"
           >
             {isLoggingOut ? (
-              <Loader2 className="w-5 h-5 animate-spin text-rose-500 shrink-0" />
+              <Loader2 className="w-4.5 h-4.5 animate-spin text-rose-500 shrink-0" />
             ) : (
-              <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+              <LogOut className="w-4.5 h-4.5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
             )}
             <span
-              className={`ml-3.5 text-xs font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
+              className={`ml-2.5 text-xs font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'
                 }`}
             >
               {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
@@ -743,13 +743,13 @@ export default function OwnerLayout() {
                       to={item.path}
                       onClick={() => setSidebarOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
-                          ? 'bg-brand text-white shadow-md'
+                        `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${isActive
+                          ? 'bg-brand text-white shadow-sm font-extrabold'
                           : 'text-stone-700 hover:bg-stone-100'
                         }`
                       }
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4.5 h-4.5 shrink-0" />
                       <span>{item.name}</span>
                     </NavLink>
                   )
@@ -757,11 +757,11 @@ export default function OwnerLayout() {
               </nav>
 
               {/* Pinned Mobile Logout Button */}
-              <div className="pt-3 border-t border-stone-100 shrink-0">
+              <div className="pt-2 border-t border-stone-100 shrink-0">
                 <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center justify-center gap-2 text-xs font-bold"
+                  className="btn btn-outline w-full text-rose-600! border-rose-200! hover:bg-rose-50! flex items-center justify-center gap-2 text-xs font-bold py-2 rounded-xl"
                 >
                   {isLoggingOut ? (
                     <Loader2 className="w-4 h-4 animate-spin text-rose-500" />

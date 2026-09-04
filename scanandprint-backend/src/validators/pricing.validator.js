@@ -1,9 +1,5 @@
 import { validatePageRanges, safeNumber, roundCurrency } from '../utils/pricing.util.js'
 
-/**
- * Validates and sanitizes the owner pricing settings before saving to the database
- * Throws an Error with a user-friendly message if any validation fails.
- */
 export function sanitizeAndValidatePricingSettings(input = {}) {
   const sanitized = {
     advanceFeaturesEnabled: Boolean(input.advanceFeaturesEnabled),
@@ -37,13 +33,18 @@ export function sanitizeAndValidatePricingSettings(input = {}) {
     },
 
     photoSheetPricing: {
-      rates: {
-        p4: roundCurrency(safeNumber(input.photoSheetPricing?.rates?.p4, 0)),
-        p6: roundCurrency(safeNumber(input.photoSheetPricing?.rates?.p6, 0)),
-        p8: roundCurrency(safeNumber(input.photoSheetPricing?.rates?.p8, 0)),
-        p10: roundCurrency(safeNumber(input.photoSheetPricing?.rates?.p10, 0)),
-        p12: roundCurrency(safeNumber(input.photoSheetPricing?.rates?.p12, 0)),
-      },
+      rates: Object.keys(input.photoSheetPricing?.rates || {}).reduce((acc, key) => {
+        const m = key.match(/^p(\d+)$/)
+        if (m) {
+          const raw = input.photoSheetPricing.rates[key]
+          if (raw && typeof raw === 'object') {
+            acc[key] = roundCurrency(safeNumber(raw.colorRate || raw.bwRate, 0))
+          } else {
+            acc[key] = roundCurrency(safeNumber(raw, 0))
+          }
+        }
+        return acc
+      }, {}),
     },
 
     resumePricing: {

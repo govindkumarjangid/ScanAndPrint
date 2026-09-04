@@ -118,11 +118,13 @@ const shopSchema = new mongoose.Schema(
 
       photoSheetPricing: {
         rates: {
-          p4: { type: Number, default: 0 },
-          p6: { type: Number, default: 0 },
-          p8: { type: Number, default: 0 },
-          p10: { type: Number, default: 0 },
-          p12: { type: Number, default: 0 },
+          type: mongoose.Schema.Types.Mixed,
+          default: {
+            p16: 0,
+            p24: 0,
+            p36: 0,
+            p48: 0,
+          },
         },
       },
 

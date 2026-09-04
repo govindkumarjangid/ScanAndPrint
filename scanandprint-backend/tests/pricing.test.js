@@ -37,11 +37,14 @@ describe('Scan&Print Pricing Engine Unit Tests', () => {
 
       photoSheetPricing: {
         rates: {
-          p4: 30.0,
-          p6: 40.0,
-          p8: 50.0,
-          p10: 60.0,
-          p12: 70.0,
+          p2: { bwRate: 15.0, colorRate: 25.0 },
+          p4: { bwRate: 20.0, colorRate: 30.0 },
+          p6: { bwRate: 25.0, colorRate: 40.0 },
+          p8: { bwRate: 35.0, colorRate: 50.0 },
+          p10: { bwRate: 45.0, colorRate: 60.0 },
+          p12: { bwRate: 55.0, colorRate: 70.0 },
+          p16: 30.0,
+          p32: 60.0,
         },
       },
 
@@ -126,19 +129,59 @@ describe('Scan&Print Pricing Engine Unit Tests', () => {
   })
 
   // 5. 4x6 Photo Sheet Flat Pricing Test
-  test('5. Photo sheet charges flat per sheet multiplied by copies and ignores page count', () => {
-    const result = calculatePrice({
+  test('5. Photo sheet charges flat per sheet for Color and B&W rates, including 2 photos', () => {
+    // 5a. Color 6 Photos
+    const colorResult = calculatePrice({
       shop: baseShop,
       jobType: 'PHOTO_SHEET',
       photoCount: 6,
+      colorType: 'COLOR',
       totalPages: 2, // 2 sheets
       copies: 3,     // 3 sets
     })
-
     // 2 sheets * 3 sets * ₹40 flat = ₹240
-    assert.equal(result.totalAmount, 240.0)
-    assert.equal(result.rateApplied, 40.0)
-    assert.equal(result.pricingType, 'PHOTO_SHEET_FLAT')
+    assert.equal(colorResult.totalAmount, 240.0)
+    assert.equal(colorResult.rateApplied, 40.0)
+    assert.equal(colorResult.pricingType, 'PHOTO_SHEET_FLAT')
+
+    // 5b. B&W 2 Photos
+    const bw2Result = calculatePrice({
+      shop: baseShop,
+      jobType: 'PHOTO_SHEET',
+      photoCount: 2,
+      colorType: 'BLACK_AND_WHITE',
+      totalPages: 1,
+      copies: 2,
+    })
+    // 1 sheet * 2 copies * ₹15 flat = ₹30
+    assert.equal(bw2Result.totalAmount, 30.0)
+    assert.equal(bw2Result.rateApplied, 15.0)
+    assert.equal(bw2Result.pricingType, 'PHOTO_SHEET_FLAT')
+
+    // 5c. Passport Photo Grid (16 Photos & 32 Photos)
+    const passport16Result = calculatePrice({
+      shop: baseShop,
+      jobType: 'PHOTO_SHEET',
+      photoCount: 16,
+      colorType: 'COLOR',
+      totalPages: 1,
+      copies: 1,
+    })
+    assert.equal(passport16Result.totalAmount, 30.0)
+    assert.equal(passport16Result.rateApplied, 30.0)
+    assert.equal(passport16Result.pricingType, 'PHOTO_SHEET_FLAT')
+
+    const passport32Result = calculatePrice({
+      shop: baseShop,
+      jobType: 'PHOTO_SHEET',
+      photoCount: 32,
+      colorType: 'COLOR',
+      totalPages: 1,
+      copies: 2,
+    })
+    // 2 copies * ₹60 flat = ₹120
+    assert.equal(passport32Result.totalAmount, 120.0)
+    assert.equal(passport32Result.rateApplied, 60.0)
   })
 
   // 6. Resume Maker Flat Pricing Test

@@ -1,7 +1,3 @@
-/**
- * Pricing Utility & Central Calculation Engine for Scan&Print
- * Accurate calculation for Standard A4, Page Ranges, Big Sizes, Photo Sheets, Resume, and Duplex.
- */
 
 // Safe number parser with non-negative guarantee
 export function safeNumber(val, fallback = 0) {
@@ -15,14 +11,6 @@ export function roundCurrency(val) {
   return Math.round((Number(val || 0) + Number.EPSILON) * 100) / 100
 }
 
-/**
- * Validate a list of ranges:
- * - Must be array
- * - fromPage >= 1
- * - toPage >= fromPage
- * - ratePerPage > 0
- * - Strictly ascending with NO overlaps
- */
 export function validatePageRanges(ranges = []) {
   if (!Array.isArray(ranges) || ranges.length === 0) return { valid: true, sanitized: [] }
 
@@ -158,7 +146,17 @@ export function calculatePrice({
   // 4. PRIORITY 2: 4×6 PHOTO SHEET FLAT PRICING
   if (cleanJobType === 'PHOTO_SHEET') {
     const pKey = `p${photoCount}`
-    const sheetRate = safeNumber(settings.photoSheetPricing?.rates?.[pKey], 0)
+    const rateEntry = settings.photoSheetPricing?.rates?.[pKey]
+    let sheetRate = 0
+
+    if (rateEntry && typeof rateEntry === 'object') {
+      sheetRate = isColor ? safeNumber(rateEntry.colorRate, 0) : safeNumber(rateEntry.bwRate, 0)
+      if (sheetRate <= 0) {
+        sheetRate = isColor ? safeNumber(rateEntry.bwRate, 0) : safeNumber(rateEntry.colorRate, 0)
+      }
+    } else {
+      sheetRate = safeNumber(rateEntry, 0)
+    }
 
     if (sheetRate <= 0) {
       throw new Error(`Pricing for ${photoCount} photos per sheet is not configured by this shop.`)
@@ -172,7 +170,7 @@ export function calculatePrice({
       rateApplied: sheetRate,
       duplexCharge: 0,
       pricingType: 'PHOTO_SHEET_FLAT',
-      breakdownText: `Photo Sheet (${photoCount} photos): ${parsedPages} sheet(s) × ${parsedCopies} copy(ies) @ ₹${sheetRate}/sheet`,
+      breakdownText: `Photo Sheet (${photoCount} photos, ${isColor ? 'Color' : 'B&W'}): ${parsedPages} sheet(s) × ${parsedCopies} copy(ies) @ ₹${sheetRate}/sheet`,
     }
   }
 

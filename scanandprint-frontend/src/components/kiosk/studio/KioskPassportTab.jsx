@@ -3,16 +3,16 @@
  * Passport Photo Grid Controls & Preset Selector
  * Standard Indian Passport Photo Size: 35mm x 45mm
  */
-export default function KioskPassportTab({ passportCount, setPassportCount }) {
-  const PRESET_COUNTS = [16, 20, 24, 30, 32, 36, 40, 48]
+export default function KioskPassportTab({ passportCount, setPassportCount, photoRates = {} }) {
+  const PRESET_COUNTS = [16, 24, 36, 48]
 
   return (
     <div className="flex flex-col gap-3.5 sm:gap-4">
-      {/* Preset Buttons for Passport Copies (16 and above) */}
+      {/* Preset Buttons for Passport Copies (16, 24, 36, 48) */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
-            Number of Passport Copies (16+)
+            Number of Passport Copies
           </label>
           <span className="text-[10px] bg-purple-50 text-purple-700 font-extrabold px-2 py-0.5 rounded-full border border-purple-200">
             35 × 45 mm Standard
@@ -22,6 +22,10 @@ export default function KioskPassportTab({ passportCount, setPassportCount }) {
           {PRESET_COUNTS.map((count) => {
             const isSelected = passportCount === count
             const isMultiPage = count > 30
+            const rateEntry = photoRates?.[`p${count}`]
+            const price = typeof rateEntry === 'object' && rateEntry !== null
+              ? (rateEntry.colorRate || rateEntry.bwRate)
+              : rateEntry
 
             return (
               <button
@@ -34,7 +38,12 @@ export default function KioskPassportTab({ passportCount, setPassportCount }) {
                     : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                <span className="text-sm">{count}</span>
+                <span className="text-sm font-black">{count}</span>
+                {Number(price) > 0 && (
+                  <span className={`text-[10px] font-black ${isSelected ? 'text-amber-300' : 'text-emerald-700'}`}>
+                    ₹{price}
+                  </span>
+                )}
                 <span
                   className={`text-[9px] font-bold ${
                     isSelected ? 'text-purple-200' : isMultiPage ? 'text-amber-600 font-extrabold' : 'text-stone-400'

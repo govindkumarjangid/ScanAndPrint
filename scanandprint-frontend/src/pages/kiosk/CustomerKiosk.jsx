@@ -189,20 +189,33 @@ export default function CustomerKiosk() {
     await handleFileSelect(updated)
   }
 
-  const handleSaveEditedDocument = async (editedDocFile) => {
+  const handleSaveEditedDocument = async (editedDocFile, meta = {}) => {
     setSelectedFile(editedDocFile)
     setStudioModalOpen(false)
     setIsAnalyzingPdf(true)
     try {
       const realCount = await getExactPageCount(editedDocFile)
       setTotalDocPages(realCount)
-      setSelectedPagesCount(realCount)
+      if (meta?.mode === 'passport') {
+        setSelectedPagesCount(1)
+      } else {
+        setSelectedPagesCount(realCount)
+      }
     } catch {
       setTotalDocPages(1)
       setSelectedPagesCount(1)
     } finally {
       setIsAnalyzingPdf(false)
     }
+
+    if (meta?.mode === 'passport') {
+      setJobType('PHOTO_SHEET')
+      setPhotoCount(meta.passportCount || 16)
+      setColorType('COLOR')
+    } else {
+      setJobType('DOCUMENT')
+    }
+
     setPageRangeMode('all')
     setCustomRangeStr('')
     preUploadFile(editedDocFile)
@@ -543,6 +556,7 @@ export default function CustomerKiosk() {
         isOpen={studioModalOpen}
         onClose={() => setStudioModalOpen(false)}
         onSave={handleSaveEditedDocument}
+        photoRates={shopInfo?.pricingSettings?.photoSheetPricing?.rates || {}}
       />
 
       {/* PDF Studio & Page Manager Modal */}

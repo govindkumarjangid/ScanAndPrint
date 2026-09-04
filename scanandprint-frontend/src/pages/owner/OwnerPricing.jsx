@@ -78,14 +78,66 @@ export default function OwnerPricing() {
     colorRate: currentShop?.pricingSettings?.bigSizePricing?.a1?.colorRate ?? 0,
   })
 
-  // 4x6 Photo Sheet Pricing
-  const [photoRates, setPhotoRates] = useState({
-    p4: currentShop?.pricingSettings?.photoSheetPricing?.rates?.p4 ?? 0,
-    p6: currentShop?.pricingSettings?.photoSheetPricing?.rates?.p6 ?? 0,
-    p8: currentShop?.pricingSettings?.photoSheetPricing?.rates?.p8 ?? 0,
-    p10: currentShop?.pricingSettings?.photoSheetPricing?.rates?.p10 ?? 0,
-    p12: currentShop?.pricingSettings?.photoSheetPricing?.rates?.p12 ?? 0,
-  })
+  const DEFAULT_PHOTO_COUNTS = [16, 24, 36, 48]
+
+  // Helper to parse photo rates: Presets 16, 24, 36, 48 + any custom counts (exclude legacy < 16)
+  const parsePhotoList = (ratesObj) => {
+    if (!ratesObj || typeof ratesObj !== 'object') {
+      return DEFAULT_PHOTO_COUNTS.map((cnt) => ({ count: cnt, rate: '' }))
+    }
+    const entries = []
+    Object.keys(ratesObj).forEach((k) => {
+      const match = k.match(/^p(\d+)$/)
+      if (match) {
+        const count = parseInt(match[1], 10)
+        // Keep 16, 24, 36, 48 and any custom counts >= 16 (exclude legacy < 16)
+        if (count >= 16) {
+          const val = ratesObj[k]
+          const rate = typeof val === 'object' && val !== null ? (val.colorRate || val.bwRate || '') : (val ?? '')
+          entries.push({ count, rate: rate === 0 ? '' : rate })
+        }
+      }
+    })
+
+    // Ensure all 4 presets exist (16, 24, 36, 48)
+    const existingCounts = new Set(entries.map((e) => e.count))
+    DEFAULT_PHOTO_COUNTS.forEach((cnt) => {
+      if (!existingCounts.has(cnt)) {
+        entries.push({ count: cnt, rate: '' })
+      }
+    })
+    return entries.sort((a, b) => a.count - b.count)
+  }
+
+  // Passport & Photo Pricing (Color only, custom selectable counts)
+  const [photoList, setPhotoList] = useState(() =>
+    parsePhotoList(currentShop?.pricingSettings?.photoSheetPricing?.rates)
+  )
+
+  const updatePhotoRate = (idx, value) => {
+    const updated = [...photoList]
+    updated[idx] = { ...updated[idx], rate: value }
+    setPhotoList(updated)
+  }
+
+  const updatePhotoCount = (idx, value) => {
+    const updated = [...photoList]
+    updated[idx] = { ...updated[idx], count: Number(value) || 0 }
+    setPhotoList(updated)
+  }
+
+  const addPhotoCount = (customCount = null) => {
+    let nextCount = customCount
+    if (!nextCount) {
+      const currentMax = photoList.reduce((max, item) => Math.max(max, item.count), 0)
+      nextCount = currentMax > 0 ? currentMax + 4 : 16
+    }
+    setPhotoList([...photoList, { count: nextCount, rate: '' }].sort((a, b) => a.count - b.count))
+  }
+
+  const removePhotoCard = (idx) => {
+    setPhotoList(photoList.filter((_, i) => i !== idx))
+  }
 
   // Resume Maker Pricing
   const [resumeRates, setResumeRates] = useState({
@@ -129,13 +181,7 @@ export default function OwnerPricing() {
         colorRate: s.bigSizePricing?.a1?.colorRate ?? 0,
       })
 
-      setPhotoRates({
-        p4: s.photoSheetPricing?.rates?.p4 ?? 0,
-        p6: s.photoSheetPricing?.rates?.p6 ?? 0,
-        p8: s.photoSheetPricing?.rates?.p8 ?? 0,
-        p10: s.photoSheetPricing?.rates?.p10 ?? 0,
-        p12: s.photoSheetPricing?.rates?.p12 ?? 0,
-      })
+      setPhotoList(parsePhotoList(s.photoSheetPricing?.rates))
 
       setResumeRates({
         bwRate: s.resumePricing?.bwRate ?? 0,
@@ -242,13 +288,13 @@ export default function OwnerPricing() {
         },
 
         photoSheetPricing: {
-          rates: {
-            p4: Number(photoRates.p4) || 0,
-            p6: Number(photoRates.p6) || 0,
-            p8: Number(photoRates.p8) || 0,
-            p10: Number(photoRates.p10) || 0,
-            p12: Number(photoRates.p12) || 0,
-          },
+          rates: photoList.reduce((acc, item) => {
+            const cnt = Number(item.count)
+            if (cnt > 0) {
+              acc[`p${cnt}`] = Number(item.rate) || 0
+            }
+            return acc
+          }, {}),
         },
 
         resumePricing: {
@@ -364,7 +410,7 @@ export default function OwnerPricing() {
                 onChange={(e) => setAdvanceEnabled(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-14 h-7 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-600"></div>
+              <div className="w-14 h-7 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-1 after:bg-white after:border-stone-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-600"></div>
               <span className="ml-3 text-xs font-extrabold text-stone-800">
                 {advanceEnabled ? 'ACTIVE (ON)' : 'OFF'}
               </span>
@@ -384,9 +430,8 @@ export default function OwnerPricing() {
                 </span>
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-2.5">
-                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
-                  documentPrintEnabled ? 'bg-rose-50/70 border-brand/30 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
-                }`}>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-32.5 sm:min-w-35 whitespace-nowrap select-none ${documentPrintEnabled ? 'bg-rose-50/70 border-brand/30 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
+                  }`}>
                   <input
                     type="checkbox"
                     checked={documentPrintEnabled}
@@ -396,9 +441,8 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">Document</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
-                  duplexEnabled ? 'bg-indigo-50/70 border-indigo-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
-                }`}>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-32.5 sm:min-w-35 whitespace-nowrap select-none ${duplexEnabled ? 'bg-indigo-50/70 border-indigo-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
+                  }`}>
                   <input
                     type="checkbox"
                     checked={duplexEnabled}
@@ -408,9 +452,8 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">Duplex (2-Side)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
-                  bigSizeEnabled ? 'bg-amber-50/70 border-amber-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
-                }`}>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-32.5 sm:min-w-35 whitespace-nowrap select-none ${bigSizeEnabled ? 'bg-amber-50/70 border-amber-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
+                  }`}>
                   <input
                     type="checkbox"
                     checked={bigSizeEnabled}
@@ -420,9 +463,8 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">Big Size (A3/A2)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
-                  photoSheetEnabled ? 'bg-emerald-50/70 border-emerald-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
-                }`}>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-32.5 sm:min-w-35 whitespace-nowrap select-none ${photoSheetEnabled ? 'bg-emerald-50/70 border-emerald-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
+                  }`}>
                   <input
                     type="checkbox"
                     checked={photoSheetEnabled}
@@ -432,9 +474,8 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">4×6 Photo</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
-                  resumeEnabled ? 'bg-purple-50/70 border-purple-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
-                }`}>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-32.5 sm:min-w-35 whitespace-nowrap select-none ${resumeEnabled ? 'bg-purple-50/70 border-purple-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
+                  }`}>
                   <input
                     type="checkbox"
                     checked={resumeEnabled}
@@ -444,9 +485,8 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">Resume</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
-                  miniPrintEnabled ? 'bg-blue-50/70 border-blue-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
-                }`}>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-32.5 sm:min-w-35 whitespace-nowrap select-none ${miniPrintEnabled ? 'bg-blue-50/70 border-blue-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
+                  }`}>
                   <input
                     type="checkbox"
                     checked={miniPrintEnabled}
@@ -459,9 +499,8 @@ export default function OwnerPricing() {
             </div>
 
             {/* 1. Duplex Surcharge Setting (ALWAYS VISIBLE) */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-              duplexEnabled ? 'bg-indigo-50/50 border-indigo-200' : 'bg-stone-50/80 border-stone-200'
-            }`}>
+            <div className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${duplexEnabled ? 'bg-indigo-50/50 border-indigo-200' : 'bg-stone-50/80 border-stone-200'
+              }`}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-white border border-stone-200 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
                   <Copy className="w-4.5 h-4.5" />
@@ -471,9 +510,8 @@ export default function OwnerPricing() {
                     <h4 className="text-xs sm:text-sm font-extrabold text-stone-900">
                       Duplex (Both-Side) Additional Charge
                     </h4>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                      duplexEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
-                    }`}>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${duplexEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
+                      }`}>
                       {duplexEnabled ? 'Active on Kiosk' : 'Disabled on Kiosk'}
                     </span>
                   </div>
@@ -508,9 +546,8 @@ export default function OwnerPricing() {
                       <h3 className="text-xs sm:text-sm font-extrabold text-stone-900">
                         Bulk Page Range Pricing (Kagaz Se – Kagaz Tak)
                       </h3>
-                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                        rangePricingEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
-                      }`}>
+                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${rangePricingEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
+                        }`}>
                         {rangePricingEnabled ? 'Active on Kiosk' : 'Disabled on Kiosk'}
                       </span>
                     </div>
@@ -526,7 +563,7 @@ export default function OwnerPricing() {
                     onChange={(e) => setRangePricingEnabled(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-stone-900"></div>
+                  <div className="w-11 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-stone-900"></div>
                 </label>
               </div>
 
@@ -689,9 +726,8 @@ export default function OwnerPricing() {
                     <h3 className="text-xs sm:text-sm font-extrabold text-stone-900">
                       Big Size Pricing (A3, A2, A1 Flat ₹ / page)
                     </h3>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                      bigSizeEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
-                    }`}>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${bigSizeEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
+                      }`}>
                       {bigSizeEnabled ? 'Active on Kiosk' : 'Disabled on Kiosk'}
                     </span>
                   </div>
@@ -767,44 +803,83 @@ export default function OwnerPricing() {
               </div>
             </div>
 
-            {/* 4. 4×6 Photo Sheet Pricing (ALWAYS VISIBLE) */}
+            {/* 4. 4×6 Photo Sheet Pricing (Color Print Only) */}
             <div className="p-4 sm:p-5 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col gap-3.5">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-white border border-stone-200 text-stone-700 flex items-center justify-center shrink-0 shadow-2xs">
-                  <ImageIcon className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xs sm:text-sm font-extrabold text-stone-900">
-                      4×6 Photo Sheet Pricing (Flat ₹ / sheet)
-                    </h3>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                      photoSheetEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
-                    }`}>
-                      {photoSheetEnabled ? 'Active on Kiosk' : 'Disabled on Kiosk'}
-                    </span>
+              <div className="flex items-center justify-between gap-2.5 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-white border border-stone-200 text-stone-700 flex items-center justify-center shrink-0 shadow-2xs">
+                    <ImageIcon className="w-4.5 h-4.5" />
                   </div>
-                  <p className="text-[11px] text-stone-500 font-medium mt-0.5">
-                    Flat rate per photo sheet. 0 = that count is hidden from customer.
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xs sm:text-sm font-extrabold text-stone-900">
+                        Passport Photo Pricing (Color Print Only)
+                      </h3>
+                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${photoSheetEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
+                        }`}>
+                        {photoSheetEnabled ? 'Active on Kiosk' : 'Disabled on Kiosk'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-500 font-medium mt-0.5">
+                      Flat ₹ rate per package (Color print). Default presets: 16, 24, 36, 48.
+                    </p>
+                  </div>
                 </div>
+
+                {/* Add Custom Photo Count Button */}
+                <button
+                  type="button"
+                  onClick={() => addPhotoCount()}
+                  className="btn btn-xs py-1.5 px-3 rounded-lg bg-white border border-stone-300 hover:border-brand text-xs font-bold text-brand shadow-2xs flex items-center gap-1 cursor-pointer transition-all shrink-0 ml-auto"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Photo Count</span>
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                {[4, 6, 8, 10, 12].map((cnt) => (
-                  <div key={`photo-${cnt}`} className="bg-white p-3 rounded-xl border border-stone-200 flex flex-col gap-1.5 shadow-2xs">
-                    <span className="text-xs font-extrabold text-stone-700">{cnt} Photos</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {photoList.map((item, idx) => (
+                  <div key={`photo-${idx}`} className="bg-white p-3.5 rounded-2xl border border-stone-200 flex flex-col gap-2.5 shadow-2xs group relative">
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={item.count || ''}
+                          onChange={(e) => updatePhotoCount(idx, e.target.value)}
+                          className="w-11 h-6 px-1 text-center font-black text-xs rounded border border-stone-200 focus:border-brand outline-none bg-stone-50"
+                          title="Click to edit photo count"
+                        />
+                        <span className="text-xs font-extrabold text-stone-800">Photos</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-extrabold text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded">
+                          {item.count > 30 ? '2 Pages' : '1 Page'}
+                        </span>
+                        {photoList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removePhotoCard(idx)}
+                            className="text-stone-300 hover:text-rose-500 p-0.5 cursor-pointer rounded transition-colors"
+                            title="Remove this photo count"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="relative flex items-center">
-                      <span className="absolute left-2.5 text-stone-400 font-bold text-xs">₹</span>
+                      <span className="absolute left-3 text-stone-400 font-bold text-sm">₹</span>
                       <input
                         type="number"
                         min="0"
-                        value={photoRates[`p${cnt}`] || ''}
-                        onChange={(e) =>
-                          setPhotoRates({ ...photoRates, [`p${cnt}`]: e.target.value })
-                        }
+                        step="0.5"
                         placeholder="0"
-                        className="w-full h-9 pl-6 pr-2 rounded-lg border border-stone-300 text-xs font-extrabold text-stone-900 outline-none focus:border-brand"
+                        value={item.rate || ''}
+                        onChange={(e) => updatePhotoRate(idx, e.target.value)}
+                        className="w-full h-10 pl-7 pr-3 rounded-xl border border-stone-300 text-sm font-extrabold text-stone-900 outline-none focus:border-brand"
                       />
                     </div>
                   </div>
@@ -823,9 +898,8 @@ export default function OwnerPricing() {
                     <h3 className="text-xs sm:text-sm font-extrabold text-stone-900">
                       Resume Maker Pricing (Flat ₹ / resume)
                     </h3>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                      resumeEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
-                    }`}>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${resumeEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
+                      }`}>
                       {resumeEnabled ? 'Active on Kiosk' : 'Disabled on Kiosk'}
                     </span>
                   </div>

@@ -87,10 +87,14 @@ export default function PrintOptionsStage({
     }
   }
 
-  // Available photo rates
-  const validPhotoCounts = [4, 6, 8, 10, 12].filter(
-    (cnt) => Number(settings.photoSheetPricing?.rates?.[`p${cnt}`]) > 0
-  )
+  // Available photo rates: Default presets 16, 24, 36, 48 + any custom configured counts
+  const photoRatesObj = settings.photoSheetPricing?.rates || {}
+  const DEFAULT_PHOTO_COUNTS = [16, 24, 36, 48]
+  const customCounts = Object.keys(photoRatesObj)
+    .filter((k) => /^p\d+$/.test(k))
+    .map((k) => parseInt(k.replace('p', ''), 10))
+    .filter((cnt) => cnt >= 16)
+  const validPhotoCounts = Array.from(new Set([...DEFAULT_PHOTO_COUNTS, ...customCounts])).sort((a, b) => a - b)
 
   return (
     <motion.div
@@ -168,7 +172,8 @@ export default function PrintOptionsStage({
         )}
 
         {/* Big Size Paper Selection (A4, A3, A2, A1) */}
-        {bigSizeEnabled && (
+        {/* Big Size Paper Selection (A4, A3, A2, A1) */}
+        {jobType !== 'PHOTO_SHEET' && bigSizeEnabled && (
           <div className="flex flex-col gap-2">
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
               <Maximize2 className="w-3.5 h-3.5 text-stone-500" />
@@ -193,8 +198,8 @@ export default function PrintOptionsStage({
           </div>
         )}
 
-        {/* 4x6 Photo Sheet Mode Selector (if image and photoSheetEnabled) */}
-        {isImage && photoSheetEnabled && validPhotoCounts.length > 0 && (
+        {/* Passport & Photo Sheet Mode Selector */}
+        {(isImage || jobType === 'PHOTO_SHEET') && photoSheetEnabled && validPhotoCounts.length > 0 && (
           <div className="flex flex-col gap-2">
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
@@ -222,7 +227,8 @@ export default function PrintOptionsStage({
                 type="button"
                 onClick={() => {
                   if (setJobType) setJobType('PHOTO_SHEET')
-                  if (setPhotoCount && photoCount === 0) setPhotoCount(validPhotoCounts[0])
+                  if (setColorType) setColorType('COLOR')
+                  if (setPhotoCount && photoCount === 0 && validPhotoCounts.length > 0) setPhotoCount(validPhotoCounts[0])
                 }}
                 className={`py-2 px-3 rounded-2xl border text-center font-extrabold text-xs transition-all cursor-pointer ${
                   jobType === 'PHOTO_SHEET'
@@ -230,30 +236,44 @@ export default function PrintOptionsStage({
                     : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
                 }`}
               >
-                4×6 Photo Sheet
+                Passport / Photo Sheet
               </button>
             </div>
 
             {jobType === 'PHOTO_SHEET' && (
               <div className="pt-1 flex flex-col gap-1.5">
                 <span className="text-[11px] font-bold text-stone-600">
-                  Select Photos per Sheet:
+                  Select Passport Copies / Photo Count:
                 </span>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {validPhotoCounts.map((cnt) => (
-                    <button
-                      key={`pc-${cnt}`}
-                      type="button"
-                      onClick={() => setPhotoCount && setPhotoCount(cnt)}
-                      className={`py-1.5 rounded-xl border text-center text-xs font-black cursor-pointer ${
-                        photoCount === cnt
-                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                          : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
-                      }`}
-                    >
-                      {cnt} Pcs
-                    </button>
-                  ))}
+                <div className="grid grid-cols-4 gap-2">
+                  {validPhotoCounts.map((cnt) => {
+                    const r = photoRatesObj[`p${cnt}`]
+                    const price = typeof r === 'object' && r !== null
+                      ? (r.colorRate || r.bwRate)
+                      : r
+                    return (
+                      <button
+                        key={`pc-${cnt}`}
+                        type="button"
+                        onClick={() => {
+                          if (setPhotoCount) setPhotoCount(cnt)
+                          if (setColorType) setColorType('COLOR')
+                        }}
+                        className={`py-2 px-1 rounded-xl border text-center flex flex-col items-center justify-center cursor-pointer transition-all ${
+                          photoCount === cnt
+                            ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                            : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+                        }`}
+                      >
+                        <span className="text-xs font-black">{cnt} Pcs</span>
+                        {Number(price) > 0 && (
+                          <span className={`text-[10px] font-bold ${photoCount === cnt ? 'text-amber-300' : 'text-stone-500'}`}>
+                            ₹{price}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -331,59 +351,68 @@ export default function PrintOptionsStage({
           </div>
         )}
 
-        {/* 2. Color Type Switcher (only for documents/resumes) */}
-        {jobType !== 'PHOTO_SHEET' && (
-          <div className="flex flex-col gap-2">
+        {/* 2. Color Type Switcher (Available for all print jobs, Color pre-selected for Passport Photos) */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
             <label className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
               Print Color Mode
             </label>
-            <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={() => setColorType('BLACK_AND_WHITE')}
-                className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
-                  colorType === 'BLACK_AND_WHITE'
-                    ? 'bg-stone-900 text-white border-stone-900 shadow-md ring-2 ring-stone-900/10'
-                    : 'bg-stone-50 text-stone-800 border-stone-200 hover:bg-stone-100'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-xs sm:text-sm">Black &amp; White</span>
-                  {colorType === 'BLACK_AND_WHITE' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 stroke-3 shrink-0" />}
-                </div>
-                <span
-                  className={`text-xs ${
-                    colorType === 'BLACK_AND_WHITE' ? 'text-stone-300 font-semibold' : 'text-stone-500 font-medium'
-                  }`}
-                >
-                  ₹{bwRate} / page
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setColorType('COLOR')}
-                className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
-                  colorType === 'COLOR'
-                    ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20 ring-2 ring-brand/10'
-                    : 'bg-rose-50/50 text-stone-800 border-rose-200 hover:bg-rose-100/50'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-xs sm:text-sm">Color Print</span>
-                  {colorType === 'COLOR' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white stroke-3 shrink-0" />}
-                </div>
-                <span
-                  className={`text-xs ${
-                    colorType === 'COLOR' ? 'text-rose-100 font-semibold' : 'text-rose-600 font-semibold'
-                  }`}
-                >
-                  ₹{colorRate} / page
-                </span>
-              </button>
-            </div>
+            {jobType === 'PHOTO_SHEET' && (
+              <span className="text-[10px] font-extrabold text-brand bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                Color Pre-Selected for Photos
+              </span>
+            )}
           </div>
-        )}
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setColorType('BLACK_AND_WHITE')}
+              className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+                colorType === 'BLACK_AND_WHITE'
+                  ? 'bg-stone-900 text-white border-stone-900 shadow-md ring-2 ring-stone-900/10'
+                  : 'bg-stone-50 text-stone-800 border-stone-200 hover:bg-stone-100'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-xs sm:text-sm">Black &amp; White</span>
+                {colorType === 'BLACK_AND_WHITE' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 stroke-3 shrink-0" />}
+              </div>
+              <span
+                className={`text-xs ${
+                  colorType === 'BLACK_AND_WHITE' ? 'text-stone-300 font-semibold' : 'text-stone-500 font-medium'
+                }`}
+              >
+                {jobType === 'PHOTO_SHEET' && photoCount > 0 && photoRatesObj[`p${photoCount}`]
+                  ? `₹${typeof photoRatesObj[`p${photoCount}`] === 'object' ? (photoRatesObj[`p${photoCount}`]?.bwRate || photoRatesObj[`p${photoCount}`]?.colorRate) : photoRatesObj[`p${photoCount}`]} / package`
+                  : `₹${bwRate} / page`}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setColorType('COLOR')}
+              className={`p-3 sm:p-4 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+                colorType === 'COLOR'
+                  ? 'bg-brand text-white border-brand shadow-md shadow-rose-500/20 ring-2 ring-brand/10'
+                  : 'bg-rose-50/50 text-stone-800 border-rose-200 hover:bg-rose-100/50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-xs sm:text-sm">Color Print</span>
+                {colorType === 'COLOR' && <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white stroke-3 shrink-0" />}
+              </div>
+              <span
+                className={`text-xs ${
+                  colorType === 'COLOR' ? 'text-rose-100 font-semibold' : 'text-rose-600 font-semibold'
+                }`}
+              >
+                {jobType === 'PHOTO_SHEET' && photoCount > 0 && photoRatesObj[`p${photoCount}`]
+                  ? `₹${typeof photoRatesObj[`p${photoCount}`] === 'object' ? (photoRatesObj[`p${photoCount}`]?.colorRate || photoRatesObj[`p${photoCount}`]?.bwRate) : photoRatesObj[`p${photoCount}`]} / package`
+                  : `₹${colorRate} / page`}
+              </span>
+            </button>
+          </div>
+        </div>
 
         {/* 3. Sides Mode: Single-Sided vs Double-Sided Book Mode */}
         {duplexEnabled && jobType !== 'PHOTO_SHEET' && (

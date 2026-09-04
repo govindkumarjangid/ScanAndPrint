@@ -41,7 +41,7 @@ export default function OwnerAgentDownload() {
     'https://github.com/govindkumarjangid/ScanAndPrint/releases/download/v2.0.0/Scan.Print.Agent.Setup.2.0.0.exe'
 
   return (
-    <div className="flex flex-col gap-6  w-full max-w-full overflow-hidden">
+    <div className="flex flex-col gap-6  w-full max-w-5xl overflow-hidden">
 
       {/* Title */}
       <div>
