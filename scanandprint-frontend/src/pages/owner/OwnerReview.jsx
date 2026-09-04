@@ -145,7 +145,7 @@ export default function OwnerReview() {
               <button
                 type="submit"
                 disabled={isSubmittingReview}
-                className="btn btn-primary w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 text-sm sm:text-base font-bold shadow-md cursor-pointer"
+                className="btn btn-primary w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold shadow-sm cursor-pointer rounded-xl"
               >
                 {isSubmittingReview ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 <span>{isSubmittingReview ? 'Sending Feedback...' : 'Send Review'}</span>

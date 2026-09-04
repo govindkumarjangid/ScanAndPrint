@@ -251,7 +251,7 @@ export default function OwnerPrinters() {
           <button
             type="submit"
             disabled={isSavingPrinters}
-            className="btn btn-primary py-4 px-8 flex items-center gap-2 shadow-md"
+            className="btn btn-primary py-2.5 px-5 flex items-center gap-2 shadow-sm text-sm font-bold rounded-xl"
           >
             {isSavingPrinters ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             <span className="text-shadow-xs">{isSavingPrinters ? 'Saving Hardware Mapping...' : 'Save Printer Hardware Mapping'}</span>

@@ -77,7 +77,7 @@ export default function OwnerAgentDownload() {
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50! px-6 sm:px-8 py-3.5 sm:py-4 shadow-lg text-sm sm:text-base cursor-pointer w-full sm:w-auto justify-center"
+            className="btn btn-secondary bg-white! text-brand! hover:bg-rose-50! px-5 py-2.5 shadow-md text-sm font-bold cursor-pointer w-full sm:w-auto justify-center rounded-xl"
           >
             <Download className="w-5 h-5" />
             <span>Download .exe (107MB)</span>

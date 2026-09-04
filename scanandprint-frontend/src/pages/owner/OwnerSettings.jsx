@@ -192,7 +192,7 @@ export default function OwnerSettings() {
           <button
             type="submit"
             disabled={isSavingProfile}
-            className="btn btn-primary py-3.5 sm:py-4 px-6 sm:px-8 flex items-center justify-center gap-2 shadow-md w-full sm:w-auto text-sm sm:text-base font-bold cursor-pointer"
+            className="btn btn-primary py-2.5 px-5 flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto text-sm font-bold cursor-pointer rounded-xl"
           >
             {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span className="text-shadow-xs">{isSavingProfile ? 'Saving Profile...' : 'Save Profile Details'}</span>
@@ -269,7 +269,7 @@ export default function OwnerSettings() {
           <button
             type="submit"
             disabled={isUpdatingPassword}
-            className="btn btn-outline py-3.5 sm:py-4 px-6 sm:px-8 flex items-center justify-center gap-2 font-bold w-full sm:w-auto text-sm sm:text-base cursor-pointer"
+            className="btn btn-outline py-2.5 px-5 flex items-center justify-center gap-2 font-bold w-full sm:w-auto text-sm cursor-pointer rounded-xl"
           >
             {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin text-brand" /> : <Lock className="w-4 h-4 text-brand" />}
             <span>{isUpdatingPassword ? 'Updating Password...' : 'Update Password'}</span>

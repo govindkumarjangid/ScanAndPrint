@@ -371,7 +371,7 @@ export default function OwnerPaymentSetup() {
           <button
             type="submit"
             disabled={isSavingPayment}
-            className="btn btn-primary py-3.5 sm:py-4 px-6 sm:px-8 flex items-center justify-center gap-2 shadow-md w-full sm:w-auto"
+            className="btn btn-primary py-2.5 px-5 flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto text-sm font-bold rounded-xl"
           >
             {isSavingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{isSavingPayment ? 'Saving Payment Settings...' : 'Save Payment Settings'}</span>

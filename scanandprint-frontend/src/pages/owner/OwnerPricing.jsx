@@ -266,7 +266,7 @@ export default function OwnerPricing() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl w-full pb-10">
+    <div className="flex flex-col gap-6 max-w-5xl w-full pb-10">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading">
@@ -384,7 +384,7 @@ export default function OwnerPricing() {
                 </span>
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-2.5">
-                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   documentPrintEnabled ? 'bg-rose-50/70 border-brand/30 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
@@ -396,7 +396,7 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">Document</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   duplexEnabled ? 'bg-indigo-50/70 border-indigo-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
@@ -408,7 +408,7 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">Duplex (2-Side)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   bigSizeEnabled ? 'bg-amber-50/70 border-amber-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
@@ -420,7 +420,7 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">Big Size (A3/A2)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   photoSheetEnabled ? 'bg-emerald-50/70 border-emerald-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
@@ -432,7 +432,7 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">4×6 Photo</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   resumeEnabled ? 'bg-purple-50/70 border-purple-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
@@ -444,7 +444,7 @@ export default function OwnerPricing() {
                   <span className="whitespace-nowrap select-none">Resume</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   miniPrintEnabled ? 'bg-blue-50/70 border-blue-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
@@ -875,7 +875,7 @@ export default function OwnerPricing() {
           <button
             type="submit"
             disabled={isSavingRates || Boolean(bwRangeError) || Boolean(colorRangeError)}
-            className="btn btn-primary py-3.5 sm:py-4 px-6 sm:px-8 flex items-center justify-center gap-2 w-full sm:w-auto text-sm sm:text-base font-bold shadow-md cursor-pointer disabled:opacity-50"
+            className="btn btn-primary py-2.5 px-5 flex items-center justify-center gap-2 w-full sm:w-auto text-sm font-bold shadow-sm cursor-pointer disabled:opacity-50 rounded-xl"
           >
             {isSavingRates ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{isSavingRates ? 'Saving Rates...' : 'Save Customer Print Rates'}</span>
