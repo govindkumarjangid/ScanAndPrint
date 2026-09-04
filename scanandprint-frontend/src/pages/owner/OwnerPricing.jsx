@@ -383,77 +383,77 @@ export default function OwnerPricing() {
                   Controls which options customers see on Kiosk
                 </span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-                <label className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all ${
+              <div className="flex flex-wrap gap-2 sm:gap-2.5">
+                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   documentPrintEnabled ? 'bg-rose-50/70 border-brand/30 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
                     type="checkbox"
                     checked={documentPrintEnabled}
                     onChange={(e) => setDocumentPrintEnabled(e.target.checked)}
-                    className="rounded text-brand"
+                    className="rounded text-brand shrink-0 w-4 h-4 cursor-pointer"
                   />
-                  <span>Document</span>
+                  <span className="whitespace-nowrap select-none">Document</span>
                 </label>
 
-                <label className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all ${
+                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   duplexEnabled ? 'bg-indigo-50/70 border-indigo-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
                     type="checkbox"
                     checked={duplexEnabled}
                     onChange={(e) => setDuplexEnabled(e.target.checked)}
-                    className="rounded text-brand"
+                    className="rounded text-brand shrink-0 w-4 h-4 cursor-pointer"
                   />
-                  <span>Duplex (2-Side)</span>
+                  <span className="whitespace-nowrap select-none">Duplex (2-Side)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all ${
+                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   bigSizeEnabled ? 'bg-amber-50/70 border-amber-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
                     type="checkbox"
                     checked={bigSizeEnabled}
                     onChange={(e) => setBigSizeEnabled(e.target.checked)}
-                    className="rounded text-brand"
+                    className="rounded text-brand shrink-0 w-4 h-4 cursor-pointer"
                   />
-                  <span>Big Size (A3/A2)</span>
+                  <span className="whitespace-nowrap select-none">Big Size (A3/A2)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all ${
+                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   photoSheetEnabled ? 'bg-emerald-50/70 border-emerald-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
                     type="checkbox"
                     checked={photoSheetEnabled}
                     onChange={(e) => setPhotoSheetEnabled(e.target.checked)}
-                    className="rounded text-brand"
+                    className="rounded text-brand shrink-0 w-4 h-4 cursor-pointer"
                   />
-                  <span>4×6 Photo</span>
+                  <span className="whitespace-nowrap select-none">4×6 Photo</span>
                 </label>
 
-                <label className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all ${
+                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   resumeEnabled ? 'bg-purple-50/70 border-purple-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
                     type="checkbox"
                     checked={resumeEnabled}
                     onChange={(e) => setResumeEnabled(e.target.checked)}
-                    className="rounded text-brand"
+                    className="rounded text-brand shrink-0 w-4 h-4 cursor-pointer"
                   />
-                  <span>Resume</span>
+                  <span className="whitespace-nowrap select-none">Resume</span>
                 </label>
 
-                <label className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all ${
+                <label className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all flex-1 min-w-[130px] sm:min-w-[140px] whitespace-nowrap select-none ${
                   miniPrintEnabled ? 'bg-blue-50/70 border-blue-300 text-stone-900 shadow-2xs' : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                 }`}>
                   <input
                     type="checkbox"
                     checked={miniPrintEnabled}
                     onChange={(e) => setMiniPrintEnabled(e.target.checked)}
-                    className="rounded text-brand"
+                    className="rounded text-brand shrink-0 w-4 h-4 cursor-pointer"
                   />
-                  <span>Mini Print</span>
+                  <span className="whitespace-nowrap select-none">Mini Print</span>
                 </label>
               </div>
             </div>
