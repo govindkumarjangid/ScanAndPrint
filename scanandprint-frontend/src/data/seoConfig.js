@@ -396,13 +396,22 @@ export const SEO_ROUTES = {
           '@type': 'Organization',
           name: 'Scan&Print',
           url: 'https://scanandprint.in',
-          contactPoint: {
-            '@type': 'ContactPoint',
-            telephone: '+91 98765 43210',
-            contactType: 'customer service',
-            email: 'support@scanandprint.in',
-            availableLanguage: ['English', 'Hindi']
-          }
+          contactPoint: [
+            {
+              '@type': 'ContactPoint',
+              telephone: '+91 7073904473',
+              contactType: 'customer support',
+              email: 'support@scanandprint.in',
+              availableLanguage: ['English', 'Hindi']
+            },
+            {
+              '@type': 'ContactPoint',
+              telephone: '+91 98765 43210',
+              contactType: 'customer service',
+              email: 'support@scanandprint.in',
+              availableLanguage: ['English', 'Hindi']
+            }
+          ]
         }
       },
       {

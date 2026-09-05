@@ -68,7 +68,8 @@ export default function AdminDevices() {
     }, 0)
 
     const socket = getSocket()
-    socket.emit('JOIN_ADMIN_ROOM')
+    const token = localStorage.getItem('adminToken')
+    socket.emit('JOIN_ADMIN_ROOM', { token })
 
     const handleDeviceLiveUpdate = (data) => {
       if (data && (data.shopCode || data.shopId || data.deviceFingerprint)) {

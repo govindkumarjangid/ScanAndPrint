@@ -1,7 +1,9 @@
 import { shopRepository } from '../repositories/shop.repository.js'
 import { jobRepository } from '../repositories/job.repository.js'
+import { PrintJob } from '../models/PrintJob.model.js'
 import { memoryCache } from '../utils/cache.util.js'
 import { calculatePrice } from '../utils/pricing.util.js'
+import { envConfig } from '../configs/env.config.js'
 
 export const kioskService = {
 
@@ -183,11 +185,53 @@ export const kioskService = {
 
   // Verify payment for a specific job and dispatch it to the agent if successful
   async verifyPayment(jobId, paymentTxnId, io) {
+    if (!jobId || !paymentTxnId || typeof paymentTxnId !== 'string') {
+      throw new Error('Valid Job ID and Payment Transaction ID are required')
+    }
+
+    const cleanTxnId = paymentTxnId.trim()
+    if (cleanTxnId.length < 3) {
+      throw new Error('Invalid Payment Transaction ID format')
+    }
+
     const job = await jobRepository.findByJobId(jobId)
     if (!job) throw new Error('Print job not found')
 
+    if (job.status === 'PAYMENT_VERIFIED' || job.status === 'DISPATCHED_TO_AGENT' || job.status === 'PRINTED_SUCCESSFULLY') {
+      return job
+    }
+
+    // Replay attack prevention: Ensure this transaction ID has not been used for any other print job
+    const existingJobWithTxn = await PrintJob.findOne({
+      paymentTxnId: cleanTxnId,
+      jobId: { $ne: jobId },
+    }).lean()
+
+    if (existingJobWithTxn) {
+      throw new Error('This payment transaction has already been applied to another print job.')
+    }
+
+    // Real-time Razorpay gateway verification when secret keys are configured
+    if (cleanTxnId.startsWith('pay_') && envConfig.razorpayKeyId && envConfig.razorpayKeySecret) {
+      try {
+        const RazorpayModule = await import('razorpay')
+        const Razorpay = RazorpayModule.default || RazorpayModule
+        const rzp = new Razorpay({
+          key_id: envConfig.razorpayKeyId,
+          key_secret: envConfig.razorpayKeySecret,
+        })
+        const payment = await rzp.payments.fetch(cleanTxnId)
+        if (payment && !['captured', 'authorized'].includes(payment.status)) {
+          throw new Error(`Payment verification failed: Gateway returned status ${payment.status}`)
+        }
+      } catch (rzpErr) {
+        console.error('[Razorpay Verify Error]:', rzpErr.message)
+        throw new Error(`Razorpay payment validation failed: ${rzpErr.message}`)
+      }
+    }
+
     job.status = 'PAYMENT_VERIFIED'
-    job.paymentTxnId = paymentTxnId || `TXN_${Date.now()}`
+    job.paymentTxnId = cleanTxnId
     job.paymentMethod = 'RAZORPAY'
     await job.save()
 

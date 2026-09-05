@@ -20,6 +20,7 @@ import {
   notFoundHandler,
   globalErrorHandler,
 } from './middlewares/error.middleware.js';
+import { globalRateLimiter } from './middlewares/rateLimiter.middleware.js';
 
 import { setupSocket } from './socket.js';
 
@@ -110,11 +111,15 @@ app.set('trust proxy', 1);
 //* Middlewares
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors(corsOptions));
+app.use(globalRateLimiter);
 app.use(cookieParser());
-app.use(express.json({ limit: '10mb', }));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-if (envConfig.nodeEnv === 'development')
+if (envConfig.nodeEnv === 'development') {
   app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
+}
 
 //* Health Check
 app.get('/api/health', (req, res) => {

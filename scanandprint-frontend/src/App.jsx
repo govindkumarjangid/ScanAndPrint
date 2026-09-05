@@ -7,6 +7,7 @@ import MainLayout from './layouts/MainLayout'
 import OwnerLayout from './layouts/OwnerLayout'
 import AdminLayout from './layouts/AdminLayout'
 import PageLoader from './components/common/PageLoader'
+import ErrorBoundary from './components/common/ErrorBoundary'
 
 import { useAuthStore } from './store/useAuthStore'
 import { getSocket } from './lib/socket'
@@ -188,73 +189,75 @@ function AdaptiveToaster() {
 export default function App() {
   return (
     <HelmetProvider>
-      <BrowserRouter>
-        <GlobalSettingsInitializer />
-        <ThemeSynchronizer />
-        <AdaptiveToaster />
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {/* Main Website Layout */}
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/features" element={<Features />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/how-to-setup" element={<HowToSetup />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/disclaimer" element={<Disclaimer />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/refund-policy" element={<RefundPolicy />} />
-              <Route path="/terms-and-conditions" element={<TermsConditions />} />
-            </Route>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <GlobalSettingsInitializer />
+          <ThemeSynchronizer />
+          <AdaptiveToaster />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Main Website Layout */}
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/features" element={<Features />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/how-to-setup" element={<HowToSetup />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/disclaimer" element={<Disclaimer />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/refund-policy" element={<RefundPolicy />} />
+                <Route path="/terms-and-conditions" element={<TermsConditions />} />
+              </Route>
 
-            {/* Customer Mobile Kiosk Routes (Scanned via QR Code) */}
-            <Route path="/shop/:shopCode" element={<CustomerKiosk />} />
-            <Route path="/shop" element={<CustomerKiosk />} />
-            <Route path="/kiosk/:shopCode" element={<CustomerKiosk />} />
+              {/* Customer Mobile Kiosk Routes (Scanned via QR Code) */}
+              <Route path="/shop/:shopCode" element={<CustomerKiosk />} />
+              <Route path="/shop" element={<CustomerKiosk />} />
+              <Route path="/kiosk/:shopCode" element={<CustomerKiosk />} />
 
-            {/* Standalone ID Card 2-in-1 Print Studio */}
-            <Route path="/id-card-print" element={<IdCardPrintPage />} />
-            <Route path="/id-card" element={<IdCardPrintPage />} />
+              {/* Standalone ID Card 2-in-1 Print Studio */}
+              <Route path="/id-card-print" element={<IdCardPrintPage />} />
+              <Route path="/id-card" element={<IdCardPrintPage />} />
 
-            {/* Auth Routes */}
-            <Route path="/register" element={<RegisterShop />} />
-            <Route path="/shop-login" element={<ShopLogin />} />
+              {/* Auth Routes */}
+              <Route path="/register" element={<RegisterShop />} />
+              <Route path="/shop-login" element={<ShopLogin />} />
 
-            {/* Shop Owner Dashboard Routes */}
-            <Route path="/owner" element={<OwnerLayout />}>
-              <Route index element={<Navigate to="/owner/dashboard" replace />} />
-              <Route path="dashboard" element={<OwnerOverview />} />
-              <Route path="jobs" element={<OwnerJobs />} />
-              <Route path="printers" element={<OwnerPrinters />} />
-              <Route path="pricing" element={<OwnerPricing />} />
-              <Route path="qr-code" element={<OwnerQrCode />} />
-              <Route path="agent" element={<OwnerAgentDownload />} />
-              <Route path="settings" element={<OwnerSettings />} />
-              <Route path="payment-setup" element={<OwnerPaymentSetup />} />
-              <Route path="devices" element={<OwnerDevices />} />
-              <Route path="review" element={<OwnerReview />} />
-            </Route>
+              {/* Shop Owner Dashboard Routes */}
+              <Route path="/owner" element={<OwnerLayout />}>
+                <Route index element={<Navigate to="/owner/dashboard" replace />} />
+                <Route path="dashboard" element={<OwnerOverview />} />
+                <Route path="jobs" element={<OwnerJobs />} />
+                <Route path="printers" element={<OwnerPrinters />} />
+                <Route path="pricing" element={<OwnerPricing />} />
+                <Route path="qr-code" element={<OwnerQrCode />} />
+                <Route path="agent" element={<OwnerAgentDownload />} />
+                <Route path="settings" element={<OwnerSettings />} />
+                <Route path="payment-setup" element={<OwnerPaymentSetup />} />
+                <Route path="devices" element={<OwnerDevices />} />
+                <Route path="review" element={<OwnerReview />} />
+              </Route>
 
-            {/* Admin Auth Route */}
-            <Route path="/admin-login" element={<AdminLogin />} />
+              {/* Admin Auth Route */}
+              <Route path="/admin-login" element={<AdminLogin />} />
 
-            {/* Super Admin Dashboard Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<AdminOverview />} />
-              <Route path="shops" element={<AdminShops />} />
-              <Route path="transactions" element={<AdminTransactions />} />
-              <Route path="agents" element={<AdminAgents />} />
-              <Route path="devices" element={<AdminDevices />} />
-              <Route path="settings" element={<AdminSettings />} />
-            </Route>
+              {/* Super Admin Dashboard Routes */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminOverview />} />
+                <Route path="shops" element={<AdminShops />} />
+                <Route path="transactions" element={<AdminTransactions />} />
+                <Route path="agents" element={<AdminAgents />} />
+                <Route path="devices" element={<AdminDevices />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
 
-            {/* 404 Not Found Catch-All Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+              {/* 404 Not Found Catch-All Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </ErrorBoundary>
     </HelmetProvider>
   )
 }

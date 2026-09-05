@@ -34,6 +34,8 @@ export const quickDispatchSchema = z.object({
 
 export const verifyPaymentSchema = z.object({
   jobId: z.string().min(1, 'Job ID is required'),
-  paymentTxnId: z.string().optional(),
+  paymentTxnId: z.string().min(3, 'Valid payment transaction ID is required'),
+  razorpay_order_id: z.string().optional(),
+  razorpay_signature: z.string().optional(),
 })
 

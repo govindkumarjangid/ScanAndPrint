@@ -4,6 +4,8 @@ import { sendSuccess, sendError } from '../utils/apiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { getIo, kickRevokedDeviceSocket, activeAgentsMap } from '../socket.js'
 
+const escapeRegex = (text) => String(text || '').replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+
 // Get all registered devices for the authenticated shop owner
 export const getMyDevices = asyncHandler(async (req, res) => {
   const shopId = req.shop._id
@@ -147,7 +149,7 @@ export const getAdminDevices = asyncHandler(async (req, res) => {
     query.status = status.trim().toUpperCase()
 
   if (search && search.trim()) {
-    const regex = new RegExp(search.trim(), 'i')
+    const regex = new RegExp(escapeRegex(search.trim()), 'i')
     query.$or = [
       { 'meta.hostname': regex },
       { 'meta.cpuModel': regex },

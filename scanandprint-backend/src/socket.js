@@ -1,6 +1,7 @@
 import { agentService } from './services/agent.service.js'
 import { shopRepository } from './repositories/shop.repository.js'
 import { createSocketDeviceBindingMiddleware } from './middlewares/socketDeviceBinding.middleware.js'
+import { verifyToken } from './utils/jwt.util.js'
 import {
   setAgentPresence,
   removeAgentPresence,
@@ -119,9 +120,26 @@ export const setupSocket = (io) => {
     })
 
     // Admin Dashboard Client Joins Admin Room for live real-time telemetry
-    socket.on('JOIN_ADMIN_ROOM', () => {
+    socket.on('JOIN_ADMIN_ROOM', (data) => {
+      const token = data?.token || socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1]
+      
+      if (!token) {
+        console.warn(`⚠️ [Socket Admin Reject]: No token provided for JOIN_ADMIN_ROOM from socket ${socket.id}`)
+        return socket.emit('ADMIN_AUTH_ERROR', { message: 'Authentication required for admin telemetry' })
+      }
+
+      try {
+        const decoded = verifyToken(token)
+        if (!decoded?.adminId) {
+          return socket.emit('ADMIN_AUTH_ERROR', { message: 'Invalid admin credentials' })
+        }
+      } catch (err) {
+        console.warn(`⚠️ [Socket Admin Reject]: Token invalid from socket ${socket.id}:`, err.message)
+        return socket.emit('ADMIN_AUTH_ERROR', { message: 'Admin token expired or invalid' })
+      }
+
       socket.join('admin:room')
-      console.log(`🛡️ [Admin Connected]: Socket ${socket.id} joined admin:room`)
+      console.log(`🛡️ [Admin Authenticated]: Socket ${socket.id} joined admin:room`)
 
       // Emit live real-time agents map to Admin immediately
       const liveList = []

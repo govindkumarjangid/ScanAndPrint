@@ -9,6 +9,7 @@ import { useJobStore } from '../store/useJobStore'
 import { getSocket } from '../lib/socket'
 import { loadRazorpayScript } from '../lib/razorpay'
 import toast from 'react-hot-toast'
+import SEO from '../components/common/SEO'
 
 export default function OwnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -459,6 +460,7 @@ export default function OwnerLayout() {
 
   return (
     <div className="h-dvh bg-stone-100/70 flex text-stone-800 relative overflow-hidden w-full max-w-full">
+      <SEO noIndex title="Shop Owner Portal - Scan&Print" />
 
       {/* Desktop sidebar */}
       <aside

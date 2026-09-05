@@ -109,7 +109,8 @@ export const loginAdmin = asyncHandler(async (req, res, next) => {
 
   const { accessToken, admin } = await authService.adminLogin({ email, password });
 
-  res.cookie('adminToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 }); // 2 hours
+  res.cookie('adminAccessToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 });
+  res.cookie('adminToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 });
 
   return sendSuccess(res, 200, 'Admin login successful!', {
     token: accessToken,

@@ -18,6 +18,7 @@ import { AdminLogo } from '../components/ui/AdminLogo'
 import { useAdminStore } from '../store/useAdminStore'
 import { getSocket } from '../lib/socket'
 import toast from 'react-hot-toast'
+import SEO from '../components/common/SEO'
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -40,7 +41,8 @@ export default function AdminLayout() {
   useEffect(() => {
     const socket = getSocket()
     const joinAdmin = () => {
-      socket.emit('JOIN_ADMIN_ROOM')
+      const token = localStorage.getItem('adminToken')
+      socket.emit('JOIN_ADMIN_ROOM', { token })
     }
 
     if (socket.connected) {
@@ -114,6 +116,7 @@ export default function AdminLayout() {
 
   return (
     <div className="h-screen bg-stone-900 text-stone-100 flex font-sans overflow-hidden w-full max-w-full">
+      <SEO noIndex title="Super Admin Portal - Scan&Print" />
 
       {/* DESKTOP ADMIN SIDEBAR */}
       <aside

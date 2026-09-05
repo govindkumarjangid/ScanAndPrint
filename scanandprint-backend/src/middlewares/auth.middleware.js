@@ -6,7 +6,7 @@ import { getShopSession } from '../configs/redis.config.js'
 // Authenticate shop middleware
 export const authenticateShop = async (req, res, next) => {
   try {
-    const token = req.cookies?.accessToken || req.headers.authorization?.split(' ')[1];
+    const token = req.cookies?.accessToken || req.cookies?.shopToken || req.cookies?.shopAccessToken || req.headers.authorization?.split(' ')[1];
 
     if (!token)
       return sendError(res, 401, 'Unauthorized: Access token is missing or invalid');
@@ -75,10 +75,8 @@ export const authenticateShop = async (req, res, next) => {
       '/refresh-token',
     ];
 
-    const isPathAllowed = openExpiredPaths.some((path) =>
-      req.path.endsWith(path) ||
-      req.originalUrl.includes(path)
-    );
+    const cleanPath = (req.path || '').replace(/\/+$/, '')
+    const isPathAllowed = openExpiredPaths.some((p) => cleanPath === p || cleanPath.endsWith(p));
 
     if (isExpired && !isPathAllowed)
       return res.status(403).json({
@@ -138,7 +136,7 @@ export const authenticateAgent = async (req, res, next) => {
 // Authenticate admin middleware
 export const authenticateAdmin = (req, res, next) => {
   try {
-    const token = req.cookies?.adminAccessToken || req.headers.authorization?.split(' ')[1];
+    const token = req.cookies?.adminAccessToken || req.cookies?.adminToken || req.headers.authorization?.split(' ')[1];
 
     if (!token)
       return sendError(res, 401, 'Unauthorized: Admin access token is missing or invalid');

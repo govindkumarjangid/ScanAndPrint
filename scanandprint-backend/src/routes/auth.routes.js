@@ -21,6 +21,7 @@ import {
 } from '../controllers/auth.controller.js'
 import { authenticateShop } from '../middlewares/auth.middleware.js'
 import { validateRequest } from '../middlewares/validate.middleware.js'
+import { authRateLimiter } from '../middlewares/rateLimiter.middleware.js'
 import {
   registerSchema,
   loginSchema,
@@ -30,16 +31,16 @@ import {
 
 const router = express.Router()
 
-router.route('/register').post(validateRequest(registerSchema), registerShop)
-router.route('/register-init').post(validateRequest(registerSchema), registerInit)
+router.route('/register').post(authRateLimiter, validateRequest(registerSchema), registerShop)
+router.route('/register-init').post(authRateLimiter, validateRequest(registerSchema), registerInit)
 router.route('/verify-subscription-payment').post(verifySubscriptionPayment)
 router.route('/create-subscription-order').post(authenticateShop, createSubscriptionOrder)
-router.route('/login').post(validateRequest(loginSchema), loginShop)
+router.route('/login').post(authRateLimiter, validateRequest(loginSchema), loginShop)
 router.route('/logout').post(authenticateShop, logoutShop)
-router.route('/refresh-token').post(refreshToken)
+router.route('/refresh-token').post(authRateLimiter, refreshToken)
 
 // Admin Route
-router.route('/admin/login').post(loginAdmin)
+router.route('/admin/login').post(authRateLimiter, loginAdmin)
 
 // Public Route
 router.route('/reviews').get(getPublicReviews)

@@ -188,7 +188,14 @@ export const authService = {
       .update(hmacBody)
       .digest('hex')
 
-    if (expectedSignature !== razorpay_signature) {
+    // Timing-safe cryptographic signature comparison
+    const sigBuffer = Buffer.from(String(razorpay_signature || ''), 'hex')
+    const expectedBuffer = Buffer.from(String(expectedSignature || ''), 'hex')
+    const isSignatureValid =
+      sigBuffer.length === expectedBuffer.length &&
+      crypto.timingSafeEqual(sigBuffer, expectedBuffer)
+
+    if (!isSignatureValid) {
       // Mark transaction as failed
       await SubscriptionPayment.findOneAndUpdate(
         { razorpayOrderId: razorpay_order_id },
@@ -348,12 +355,16 @@ export const authService = {
 
   // Admin login for superadmin access
   async adminLogin({ email, password }) {
-    if (email !== 'scanqrandprint@gmail.com')
+    const configuredAdminEmail = (envConfig.adminEmail || 'scanqrandprint@gmail.com').toLowerCase().trim();
+    const cleanEmail = String(email || '').toLowerCase().trim();
+
+    if (cleanEmail !== configuredAdminEmail)
       throw new Error('Invalid admin email');
 
-    let admin = await Admin.findOne({ email });
+    let admin = await Admin.findOne({ email: cleanEmail });
     if (!admin) {
-      admin = new Admin({ email, password: 'adminofscanandprint@2026' });
+      const defaultPass = process.env.ADMIN_PASSWORD || 'adminofscanandprint@2026';
+      admin = new Admin({ email: cleanEmail, password: defaultPass });
       await admin.save();
     }
 

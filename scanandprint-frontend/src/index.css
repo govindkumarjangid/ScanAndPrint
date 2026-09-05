@@ -377,3 +377,13 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-tap-highlight-color: transparent !important;
   user-select: none !important;
 }
+
+/* Accessible focus-visible indicators for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #F0245C !important;
+  outline-offset: 2px !important;
+}

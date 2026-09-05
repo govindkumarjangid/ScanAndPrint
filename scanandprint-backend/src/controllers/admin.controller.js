@@ -11,6 +11,8 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { activeAgentsMap } from '../socket.js'
 import { invalidatePublicSettingsCache } from './auth.controller.js'
 
+export const escapeRegex = (text) => String(text || '').replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+
 // login admin
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body
@@ -83,7 +85,7 @@ const resolveShopStatusAndPlan = (shop) => {
 }
 
 // complete analytics for charts and telemetry
-const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPayments = []) => {
+const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPayments = [], statusBreakdownAgg = []) => {
   const now = new Date()
   const twoDaysFromNow = new Date(now.getTime() + 48 * 60 * 60 * 1000).getTime()
 
@@ -198,24 +200,39 @@ const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPaymen
 
   const dailyTrend = Array.from(dailyMap.values())
 
-  // Job Status Breakdown
+  // Job Status Breakdown (Aggregated from MongoDB or computed from jobs)
   let completedCount = 0
   let printingCount = 0
   let failedCount = 0
   let pendingCount = 0
 
-  allJobs.forEach((j) => {
-    const st = String(j.status || '').toUpperCase()
-    if (['PRINTED_SUCCESSFULLY', 'COMPLETED'].includes(st)) {
-      completedCount++
-    } else if (['PRINTING', 'DISPATCHED_TO_AGENT', 'DOWNLOADING'].includes(st)) {
-      printingCount++
-    } else if (['FAILED', 'CANCELLED', 'PRINT_FAILED'].includes(st)) {
-      failedCount++
-    } else {
-      pendingCount++
-    }
-  })
+  if (Array.isArray(statusBreakdownAgg) && statusBreakdownAgg.length > 0) {
+    statusBreakdownAgg.forEach(({ _id, count }) => {
+      const st = String(_id || '').toUpperCase()
+      if (['PRINTED_SUCCESSFULLY', 'COMPLETED'].includes(st)) {
+        completedCount += count
+      } else if (['PRINTING', 'DISPATCHED_TO_AGENT', 'DOWNLOADING'].includes(st)) {
+        printingCount += count
+      } else if (['FAILED', 'CANCELLED', 'PRINT_FAILED'].includes(st)) {
+        failedCount += count
+      } else {
+        pendingCount += count
+      }
+    })
+  } else {
+    allJobs.forEach((j) => {
+      const st = String(j.status || '').toUpperCase()
+      if (['PRINTED_SUCCESSFULLY', 'COMPLETED'].includes(st)) {
+        completedCount++
+      } else if (['PRINTING', 'DISPATCHED_TO_AGENT', 'DOWNLOADING'].includes(st)) {
+        printingCount++
+      } else if (['FAILED', 'CANCELLED', 'PRINT_FAILED'].includes(st)) {
+        failedCount++
+      } else {
+        pendingCount++
+      }
+    })
+  }
 
   // Platform Subscription Revenue
   let subscriptionRevenue = 0
@@ -255,12 +272,78 @@ const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPaymen
 
 // get dashboard stats
 export const getDashboardStats = asyncHandler(async (req, res) => {
-  const [totalShops, allShopsRaw, allJobs, subscriptionPayments] = await Promise.all([
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
+  const [
+    totalShops,
+    allShopsRaw,
+    jobAggResult,
+    statusBreakdownAgg,
+    recentJobs,
+    subscriptionPayments,
+  ] = await Promise.all([
     Shop.countDocuments(),
-    Shop.find().select('shopName ownerName email phone shopCode createdAt planType isOnline lastHeartbeatAt cityState address subscriptionStatus isSubscriptionActive isDemoAccount demoExpiresAt subscriptionExpiresAt').lean(),
-    PrintJob.find().select('totalPages copies totalAmount status createdAt').lean(),
-    SubscriptionPayment.find({ status: 'SUCCESS' }).select('amount planType createdAt').lean(),
+    Shop.find()
+      .select('shopName ownerName email phone shopCode createdAt planType isOnline lastHeartbeatAt cityState address subscriptionStatus isSubscriptionActive isDemoAccount demoExpiresAt subscriptionExpiresAt')
+      .lean(),
+    // Database-level Aggregation Pipeline for fast, memory-safe lifetime totals
+    PrintJob.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalJobs: { $sum: 1 },
+          totalPrints: {
+            $sum: {
+              $multiply: [
+                { $ifNull: ['$totalPages', 1] },
+                { $ifNull: ['$copies', 1] },
+              ],
+            },
+          },
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', ['PRINTED_SUCCESSFULLY', 'COMPLETED', 'PAID', 'PRINTING', 'DISPATCHED_TO_AGENT']] },
+                { $ifNull: ['$totalAmount', 0] },
+                0,
+              ],
+            },
+          },
+          completedJobsCount: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', ['PRINTED_SUCCESSFULLY', 'COMPLETED']] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]),
+    // Lifetime status breakdown aggregated in DB
+    PrintJob.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+    // Query ONLY the last 7 days of jobs for the weekly trend chart (saves huge RAM)
+    PrintJob.find({ createdAt: { $gte: sevenDaysAgo } })
+      .select('totalPages copies totalAmount status createdAt')
+      .lean(),
+    SubscriptionPayment.find({ status: 'SUCCESS' })
+      .select('amount planType createdAt')
+      .lean(),
   ])
+
+  const agg = jobAggResult[0] || {}
+  const totalJobs = agg.totalJobs || 0
+  const totalPrints = agg.totalPrints || 0
+  const totalRevenue = agg.totalRevenue || 0
+  const completedJobsCount = agg.completedJobsCount || 0
 
   // Count distinct live connected agents
   const onlineShopCodes = new Set()
@@ -273,26 +356,6 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     if (isRecent) onlineShopCodes.add(clean)
   })
   const totalAgents = onlineShopCodes.size
-
-  // Accurate Print Jobs Count & Total Pages Printed
-  const totalJobs = allJobs.length
-  let totalPrints = 0
-  let totalRevenue = 0
-  let completedJobsCount = 0
-
-  allJobs.forEach((job) => {
-    const pages = Number(job.totalPages) || 1
-    const copies = Number(job.copies) || 1
-    totalPrints += pages * copies
-
-    const s = String(job.status || '').toUpperCase()
-    if (['PRINTED_SUCCESSFULLY', 'COMPLETED', 'PAID', 'PRINTING', 'DISPATCHED_TO_AGENT'].includes(s)) {
-      totalRevenue += Number(job.totalAmount) || 0
-    }
-    if (['PRINTED_SUCCESSFULLY', 'COMPLETED'].includes(s)) {
-      completedJobsCount += 1
-    }
-  })
 
   // Recent shops with accurate resolved status & planType
   const recentShopsRaw = await Shop.find()
@@ -314,8 +377,8 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     }
   })
 
-  // Compute analytics
-  const analytics = computeAnalyticsPayload(allShopsRaw, allJobs, subscriptionPayments)
+  // Compute analytics using recentJobs for trend & statusBreakdownAgg for lifetime status
+  const analytics = computeAnalyticsPayload(allShopsRaw, recentJobs, subscriptionPayments, statusBreakdownAgg)
 
   return sendSuccess(res, 200, 'Stats fetched successfully', {
     stats: {
@@ -337,7 +400,7 @@ export const getShops = asyncHandler(async (req, res) => {
   const query = {}
 
   if (search && search.trim()) {
-    const regex = new RegExp(search.trim(), 'i')
+    const regex = new RegExp(escapeRegex(search.trim()), 'i')
     query.$or = [{ shopName: regex }, { shopCode: regex }, { email: regex }, { phone: regex }]
   }
 
@@ -382,7 +445,7 @@ export const getAgents = asyncHandler(async (req, res) => {
   const query = {}
 
   if (search && search.trim()) {
-    const regex = new RegExp(search.trim(), 'i')
+    const regex = new RegExp(escapeRegex(search.trim()), 'i')
     query.$or = [{ shopName: regex }, { shopCode: regex }, { email: regex }]
   }
 
@@ -480,7 +543,7 @@ export const getTransactions = asyncHandler(async (req, res) => {
   }
 
   if (search && search.trim()) {
-    const regex = new RegExp(search.trim(), 'i')
+    const regex = new RegExp(escapeRegex(search.trim()), 'i')
     query.$or = [{ jobId: regex }, { shopCode: regex }, { customerPhone: regex }, { originalFileName: regex }]
   }
 

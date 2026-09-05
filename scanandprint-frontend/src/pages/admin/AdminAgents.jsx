@@ -28,7 +28,8 @@ export default function AdminAgents() {
   // Real-time socket sync for live agent IP and connection changes
   useEffect(() => {
     const socket = getSocket()
-    socket.emit('JOIN_ADMIN_ROOM')
+    const token = localStorage.getItem('adminToken')
+    socket.emit('JOIN_ADMIN_ROOM', { token })
 
     const handleLiveAgentStatus = (data) => {
       console.log('📡 [AdminAgents Live Sync]:', data)
