@@ -2,8 +2,6 @@ import { Helmet } from 'react-helmet-async'
 import { SITE_CONFIG, SEO_ROUTES } from '../../data/seoConfig'
 
 /**
- * Reusable SEO Component for React Helmet Async.
- * Automatically synchronizes document head with route configuration.
  *
  * @param {Object} props
  * @param {string} [props.path] - Route path matching SEO_ROUTES (e.g., '/pricing')

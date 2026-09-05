@@ -16,11 +16,7 @@ export default function IntersectionLazyView({ children, placeholderHeight = '30
         threshold: 0.01,
       }
     )
-
-    if (ref.current) {
-      observer.observe(ref.current)
-    }
-
+    if (ref.current) observer.observe(ref.current)
     return () => observer.disconnect()
   }, [])
 
