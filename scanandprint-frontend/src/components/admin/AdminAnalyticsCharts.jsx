@@ -178,11 +178,17 @@ export default function AdminAnalyticsCharts({
   // 3. Plan Breakdown Data
   const planData = useMemo(() => {
     if (Array.isArray(rawPlanBreakdown) && rawPlanBreakdown.length > 0) {
-      return rawPlanBreakdown.map((p) => ({
-        name: p.name || 'Plan',
-        value: Math.max(0, Number(p.value) || 0),
-        color: p.color || '#f43f5e',
-      }))
+      return rawPlanBreakdown.map((p) => {
+        let name = p.name || 'Plan'
+        if (name.includes('2-Hr') || /2\s*hour/i.test(name)) {
+          name = name.replace(/2-Hr/g, '48-Hr').replace(/2\s*Hours?/gi, '48-Hr')
+        }
+        return {
+          name,
+          value: Math.max(0, Number(p.value) || 0),
+          color: p.color || '#f43f5e',
+        }
+      })
     }
     return [
       { name: 'Free Demo (48-Hr)', value: freeTrialCount, color: '#f59e0b' },

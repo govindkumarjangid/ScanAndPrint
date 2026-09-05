@@ -111,7 +111,7 @@ export function useAdminMutations() {
 
   // Extend Demo Mutation
   const extendDemoMutation = useMutation({
-    mutationFn: async ({ shopId, hours = 2 }) => {
+    mutationFn: async ({ shopId, hours = 48 }) => {
       const res = await api.post(`/admin/shops/${shopId}/extend-demo`, { hours })
       return res.data
     },

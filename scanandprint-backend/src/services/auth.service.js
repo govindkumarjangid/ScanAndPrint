@@ -56,7 +56,7 @@ export const authService = {
     }
     const monthlyPrice = Number(settings?.monthlyPrice) || 299
     const yearlyPrice = Number(settings?.yearlyPrice) || 799
-    const demoDurationHours = Number(settings?.demoDurationHours) > 0 ? Number(settings.demoDurationHours) : 2
+    const demoDurationHours = Number(settings?.demoDurationHours) > 0 ? Number(settings.demoDurationHours) : 48
 
     // 3. Handle Free Trial (Demo) Immediate Activation
     if (planType === 'FREE_TRIAL') {

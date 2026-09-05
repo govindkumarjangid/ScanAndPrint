@@ -21,7 +21,7 @@ export default function AdminDemoTimer({
       targetTime = new Date(effectiveExpiresAt).getTime()
     } else if (createdAt) {
       if (planType === 'FREE_TRIAL') {
-        targetTime = new Date(createdAt).getTime() + 2 * 60 * 60 * 1000
+        targetTime = new Date(createdAt).getTime() + 48 * 60 * 60 * 1000
       } else if (planType === 'YEARLY_799') {
         targetTime = new Date(createdAt).getTime() + 365 * 24 * 60 * 60 * 1000
       } else {

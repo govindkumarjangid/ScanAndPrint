@@ -75,7 +75,7 @@ export default function ShopAuth() {
   const monthlyOriginalPrice = publicSettings?.monthlyOriginalPrice || 499
   const yearlyPrice = publicSettings?.yearlyPrice || 799
   const yearlyOriginalPrice = publicSettings?.yearlyOriginalPrice || 3588
-  const demoDurationHours = publicSettings?.demoDurationHours || 2
+  const demoDurationHours = publicSettings?.demoDurationHours || 48
   const isDemoAvailable = publicSettings?.demoMode ?? true
 
   const monthlyDiscountPercent = monthlyOriginalPrice > monthlyPrice
@@ -247,7 +247,7 @@ export default function ShopAuth() {
     try {
       setIsSubmitting(true)
 
-      // 1. If 2-Hour Demo Free Trial is selected (Instant Zero-Payment Access)
+      // 1. If 48-Hour Demo Free Trial is selected (Instant Zero-Payment Access)
       if (targetPlan === 'FREE_TRIAL') {
         await registerInit({
           fullName: registerData.fullName,

@@ -47,7 +47,7 @@ const adminSettingsSchema = new mongoose.Schema({
   },
   demoDurationHours: {
     type: Number,
-    default: 2
+    default: 48
   },
   filePurgeMinutes: {
     type: Number,

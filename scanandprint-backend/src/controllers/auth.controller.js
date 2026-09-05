@@ -16,9 +16,9 @@ export const registerInit = asyncHandler(async (req, res, next) => {
 
   if (result.isFreeTrial && result.tokens) {
     const { accessToken, refreshToken, shop } = result.tokens
-    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
-    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
-    return sendSuccess(res, 201, '2-Hour Free Demo access activated successfully!', {
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 48 * 60 * 60 * 1000 })
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 48 * 60 * 60 * 1000 })
+    return sendSuccess(res, 201, '48-Hour Free Demo access activated successfully!', {
       isFreeTrial: true,
       token: accessToken,
       shop,
@@ -77,8 +77,8 @@ export const registerShop = asyncHandler(async (req, res, next) => {
 
   if (result.isFreeTrial && result.tokens) {
     const { accessToken, refreshToken, shop } = result.tokens
-    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
-    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 })
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 48 * 60 * 60 * 1000 })
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 48 * 60 * 60 * 1000 })
     return sendSuccess(res, 201, 'Shop registered successfully! Welcome to Scan&Print.', {
       token: accessToken,
       shop,

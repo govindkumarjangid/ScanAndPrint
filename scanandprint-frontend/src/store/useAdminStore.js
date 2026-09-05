@@ -43,7 +43,7 @@ export const useAdminStore = create((set, get) => ({
     supportEmail: 'scanqrandprint@gmail.com',
     supportPhone: '+91 7073904473',
     supportAddress: 'Tonk Road, Near University Campus, Jaipur, Rajasthan 302015',
-    demoDurationHours: 2,
+    demoDurationHours: 48,
     filePurgeMinutes: 60,
     systemNotice: '',
   },
@@ -106,7 +106,7 @@ export const useAdminStore = create((set, get) => ({
                 { day: 'Sun', prints: 0, revenue: 0, jobs: 0 },
               ],
               planBreakdown: [
-                { name: 'Free Demo (2-Hr)', value: freeCount || (stats.totalShops ? Math.max(1, stats.totalShops - 1) : 0), color: '#f59e0b' },
+                { name: 'Free Demo (48-Hr)', value: freeCount || (stats.totalShops ? Math.max(1, stats.totalShops - 1) : 0), color: '#f59e0b' },
                 { name: 'Monthly (₹299)', value: monthlyCount, color: '#f43f5e' },
                 { name: 'Yearly (₹799)', value: yearlyCount || 1, color: '#a855f7' },
               ],
@@ -159,7 +159,7 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  extendShopDemo: async (shopId, hours = 2) => {
+  extendShopDemo: async (shopId, hours = 48) => {
     try {
       const res = await api.post(`/admin/shops/${shopId}/extend-demo`, { hours })
       if (res.data.success) {

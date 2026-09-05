@@ -20,7 +20,7 @@ const adminSettingsSchema = z.object({
   monthlyOriginalPrice: z.number().min(1, 'Minimum price is ₹1'),
   yearlyPrice: z.number().min(1, 'Minimum price is ₹1'),
   yearlyOriginalPrice: z.number().min(1, 'Minimum price is ₹1'),
-  demoDurationHours: z.number().min(1).max(72),
+  demoDurationHours: z.number().min(1).max(168),
   filePurgeMinutes: z.number().min(10).max(1440),
   supportPhone: z.string().min(5, 'Enter valid phone'),
   supportEmail: z.string().email('Enter valid email'),
@@ -48,7 +48,7 @@ export default function AdminSettings() {
       monthlyOriginalPrice: 599,
       yearlyPrice: 999,
       yearlyOriginalPrice: 3999,
-      demoDurationHours: 72,
+      demoDurationHours: 48,
       filePurgeMinutes: 60,
       supportPhone: '+91 7073904473',
       supportEmail: 'scanqrandprint@gmail.com',
@@ -66,7 +66,7 @@ export default function AdminSettings() {
         monthlyOriginalPrice: Number(settingsData.monthlyOriginalPrice) || 499,
         yearlyPrice: Number(settingsData.yearlyPrice) || 799,
         yearlyOriginalPrice: Number(settingsData.yearlyOriginalPrice) || 3588,
-        demoDurationHours: Number(settingsData.demoDurationHours) || 2,
+        demoDurationHours: Number(settingsData.demoDurationHours) || 48,
         filePurgeMinutes: Number(settingsData.filePurgeMinutes) || 60,
         supportPhone: settingsData.supportPhone || '+91 7073904473',
         supportEmail: settingsData.supportEmail || 'scanqrandprint@gmail.com',
@@ -205,7 +205,7 @@ export default function AdminSettings() {
                 <input
                   type="number"
                   min="1"
-                  max="72"
+                  max="168"
                   {...register('demoDurationHours', { valueAsNumber: true })}
                   className="w-full h-11 px-4 rounded-2xl border border-stone-800 bg-stone-900 focus:border-brand text-sm font-bold text-white outline-none"
                 />

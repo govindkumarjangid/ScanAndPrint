@@ -54,7 +54,7 @@ const resolveShopStatusAndPlan = (shop) => {
 
   let demoExpiresAt = shop.demoExpiresAt
   if (isDemo && !demoExpiresAt && shop.createdAt) {
-    demoExpiresAt = new Date(new Date(shop.createdAt).getTime() + 2 * 60 * 60 * 1000)
+    demoExpiresAt = new Date(new Date(shop.createdAt).getTime() + 48 * 60 * 60 * 1000)
   }
 
   let status = 'Active'
@@ -231,7 +231,7 @@ const computeAnalyticsPayload = (allShops = [], allJobs = [], subscriptionPaymen
   return {
     dailyTrend,
     planBreakdown: [
-      { name: 'Free Demo (2-Hr)', value: freeTrialCount, color: '#f59e0b' },
+      { name: 'Free Demo (48-Hr)', value: freeTrialCount, color: '#f59e0b' },
       { name: 'Monthly (₹299)', value: monthlyCount, color: '#f43f5e' },
       { name: 'Yearly (₹799)', value: yearlyCount, color: '#a855f7' },
     ],
@@ -549,7 +549,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
 // Extend Demo Trial for a shop
 export const extendDemoTrial = asyncHandler(async (req, res) => {
   const { id } = req.params
-  const { hours = 2 } = req.body
+  const { hours = 48 } = req.body
 
   const shop = await Shop.findById(id)
   if (!shop) return sendError(res, 404, 'Shop not found')
@@ -604,7 +604,7 @@ export const updateShopPlan = asyncHandler(async (req, res) => {
   if (planType === 'FREE_TRIAL') {
     shop.isDemoAccount = true
     let settings = await AdminSettings.findOne().lean()
-    const defaultHours = Number(settings?.demoDurationHours) > 0 ? Number(settings.demoDurationHours) : 2
+    const defaultHours = Number(settings?.demoDurationHours) > 0 ? Number(settings.demoDurationHours) : 48
     const grantHours = Number(days) > 0 ? Number(days) * 24 : defaultHours
     const baseDemoTime = shop.demoExpiresAt && new Date(shop.demoExpiresAt).getTime() > Date.now()
       ? new Date(shop.demoExpiresAt).getTime()

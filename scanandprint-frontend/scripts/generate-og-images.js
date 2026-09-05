@@ -40,9 +40,9 @@ const ogCards = [
   {
     fileName: 'og-pricing.png',
     badge: 'TRANSPARENT & AFFORDABLE PRICING',
-    title: '100% Free 2-Hour Demo & Flexible Shop Plans',
-    description: 'Experience unlimited automated printing. Test live with 2-Hour Free Demo or choose Monthly/Yearly.',
-    features: ['🎁 Free 2-Hr Full Demo', '🚀 Monthly Plan ₹299', '⭐ Yearly 78% Off ₹799'],
+    title: '100% Free 48-Hour Demo & Flexible Shop Plans',
+    description: 'Experience unlimited automated printing. Test live with 48-Hour Free Demo or choose Monthly/Yearly.',
+    features: ['🎁 Free 48-Hr Full Demo', '🚀 Monthly Plan ₹299', '⭐ Yearly 78% Off ₹799'],
     accentColor: '#f59e0b',
   },
   {
@@ -80,9 +80,9 @@ const ogCards = [
   {
     fileName: 'og-register.png',
     badge: 'MERCHANT ONBOARDING',
-    title: 'Register Your Shop & Start 2-Hour Free Demo',
+    title: 'Register Your Shop & Start 48-Hour Free Demo',
     description: 'Automate your counter, accept instant customer payments, and boost your daily printing revenue.',
-    features: ['⚡ Instant Account Creation', '🆓 2-Hour Full Trial', '🖨️ Zero Setup Fees'],
+    features: ['⚡ Instant Account Creation', '🆓 48-Hour Full Trial', '🖨️ Zero Setup Fees'],
     accentColor: '#e11d48',
   },
 ]

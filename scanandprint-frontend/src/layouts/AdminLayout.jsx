@@ -107,9 +107,7 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken')
-    if (!token) {
-      navigate('/admin-login')
-    }
+    if (!token) navigate('/admin-login')
   }, [navigate])
 
   const totalConnected = overviewData?.totalAgents ?? overviewData?.totalShops ?? 0
@@ -119,9 +117,8 @@ export default function AdminLayout() {
 
       {/* DESKTOP ADMIN SIDEBAR */}
       <aside
-        className={`relative hidden lg:flex flex-col bg-stone-950 border-r border-stone-800 h-full shrink-0 justify-between z-30 transition-all duration-300 ${
-          isCollapsed ? 'w-18' : 'w-65'
-        }`}
+        className={`relative hidden lg:flex flex-col bg-stone-950 border-r border-stone-800 h-full shrink-0 justify-between z-30 transition-all duration-300 ${isCollapsed ? 'w-18' : 'w-65'
+          }`}
       >
         {/* Floating Chevron Collapse / Expand Button placed at header divider baseline */}
         <button
@@ -169,21 +166,18 @@ export default function AdminLayout() {
                 to={item.path}
                 title={isCollapsed ? item.name : undefined}
                 className={({ isActive }) =>
-                  `flex items-center rounded-2xl text-sm font-bold transition-all duration-200 group overflow-hidden ${
-                    isCollapsed
-                      ? 'w-11 h-11 aspect-square justify-center p-0 mx-auto'
-                      : 'w-full h-12 px-3.5'
-                  } ${
-                    isActive
-                      ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
-                      : 'text-stone-400 hover:bg-stone-900 hover:text-stone-100'
+                  `flex items-center rounded-2xl text-sm font-bold transition-all duration-200 group overflow-hidden ${isCollapsed
+                    ? 'w-11 h-11 aspect-square justify-center p-0 mx-auto'
+                    : 'w-full h-12 px-3.5'
+                  } ${isActive
+                    ? 'bg-brand text-white shadow-lg shadow-rose-500/25 font-extrabold'
+                    : 'text-stone-400 hover:bg-stone-900 hover:text-stone-100'
                   }`
                 }
               >
                 <Icon className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105 aspect-square" />
-                <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                  isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100 ml-3.5'
-                }`}>
+                <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100 ml-3.5'
+                  }`}>
                   {item.name}
                 </span>
               </NavLink>
@@ -197,20 +191,18 @@ export default function AdminLayout() {
             onClick={handleLogout}
             disabled={isLoggingOut}
             title={isCollapsed ? 'Admin Sign Out' : undefined}
-            className={`flex items-center rounded-2xl text-stone-400 bg-stone-900/60 hover:bg-rose-950/40 hover:text-rose-400 border border-stone-800/80 hover:border-rose-900/40 transition-all duration-200 overflow-hidden cursor-pointer group ${
-              isCollapsed
-                ? 'w-11 h-11 aspect-square justify-center p-0 mx-auto'
-                : 'h-12 px-3.5 w-full'
-            }`}
+            className={`flex items-center rounded-2xl text-stone-400 bg-stone-900/60 hover:bg-rose-950/40 hover:text-rose-400 border border-stone-800/80 hover:border-rose-900/40 transition-all duration-200 overflow-hidden cursor-pointer group ${isCollapsed
+              ? 'w-11 h-11 aspect-square justify-center p-0 mx-auto'
+              : 'h-12 px-3.5 w-full'
+              }`}
           >
             {isLoggingOut ? (
               <Loader2 className="w-5 h-5 animate-spin text-rose-500 shrink-0 aspect-square" />
             ) : (
               <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-0.5 aspect-square" />
             )}
-            <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
-              isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100 ml-3.5 text-xs font-bold'
-            }`}>
+            <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'max-w-0 opacity-0 ml-0 pointer-events-none' : 'max-w-48 opacity-100 ml-3.5 text-xs font-bold'
+              }`}>
               {isLoggingOut ? 'Signing Out...' : 'Admin Sign Out'}
             </span>
           </button>

@@ -813,7 +813,7 @@ export default function OwnerLayout() {
                 </h3>
                 <p className="text-xs text-stone-600 leading-relaxed max-w-sm">
                   {isDemoExpired
-                    ? 'Your 2-Hour free trial has ended. Renew your plan below to unlock your Owner Dashboard, Customer Kiosk, and Print Agent.'
+                    ? 'Your 48-Hour free trial has ended. Renew your plan below to unlock your Owner Dashboard, Customer Kiosk, and Print Agent.'
                     : 'Your shop subscription has expired. Please renew your plan below to continue receiving customer print jobs.'}
                 </p>
               </div>

@@ -58,17 +58,17 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col justify-between py-10 px-4 sm:px-6 relative overflow-hidden font-sans select-none">
-      
+
       {/* Decorative Ambient Background Security Glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-rose-500/12 rounded-full blur-[140px]" />
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-150 h-150 bg-rose-500/12 rounded-full blur-[140px]" />
         <div className="absolute bottom-10 -right-40 w-96 h-96 bg-amber-500/8 rounded-full blur-[120px]" />
         <div className="absolute top-1/3 -left-40 w-96 h-96 bg-rose-900/15 rounded-full blur-[120px]" />
       </div>
 
       {/* Top Branding Section */}
       <div className="relative z-10 flex flex-col items-center text-center gap-2 max-w-md mx-auto w-full pt-4">
-        
+
         {/* Security Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-950/80 text-rose-300 border border-rose-900/70 text-xs font-extrabold mb-2 shadow-sm">
           <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
@@ -84,7 +84,7 @@ export default function AdminLogin() {
             >
               <img src="/svgs/logo.svg" alt="Scan&Print Logo" className="w-full h-full object-contain" />
             </motion.div>
-            
+
             <motion.div
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
@@ -115,7 +115,7 @@ export default function AdminLogin() {
         <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-brand to-transparent opacity-80" />
 
         <form onSubmit={handleLogin} noValidate className="flex flex-col gap-4 text-left">
-          
+
           {/* Admin Email Input */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-stone-300 uppercase tracking-wider">

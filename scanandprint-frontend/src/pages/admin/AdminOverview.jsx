@@ -11,9 +11,10 @@ import {
   Clock,
   FileText,
   Sliders,
+  User,
+  MapPin,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
-import AdminDemoTimer from '../../components/ui/AdminDemoTimer'
 import AdminExpiringAlerts from '../../components/admin/AdminExpiringAlerts'
 import MetricCardSkeleton from '../../components/skeleton/MetricCardSkeleton'
 import TableSkeleton from '../../components/skeleton/TableSkeleton'
@@ -165,26 +166,134 @@ export default function AdminOverview() {
       </Suspense>
 
       {/* Recent Onboarded Shops Table */}
-      <div className="bg-stone-950 rounded-3xl p-6 sm:p-8 border border-stone-800 flex flex-col gap-5 shadow-sm">
-        <div className="flex items-center justify-between border-b border-stone-800 pb-4">
+      <div className="bg-stone-950 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-stone-800 flex flex-col gap-4 sm:gap-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-800 pb-4">
           <div>
-            <h3 className="text-xl font-extrabold text-white font-heading">Recently Onboarded Shops</h3>
-            <p className="text-xs text-stone-400 mt-0.5">Real-time status, subscription plan & agent connectivity</p>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg sm:text-xl font-extrabold text-white font-heading">Recently Onboarded Shops</h3>
+              {recentShops.length > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-stone-900 border border-stone-800 text-stone-400">
+                  {recentShops.length}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-stone-400 mt-0.5">Real-time status & subscription info</p>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse min-w-200">
+        {/* Mobile View: Clean Responsive Card Stack (< md) */}
+        <div className="md:hidden flex flex-col gap-3">
+          {overviewLoading && recentShops.length === 0 ? (
+            <div className="flex flex-col gap-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-4 rounded-2xl bg-stone-900/40 border border-stone-800/80 animate-pulse flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="h-4 bg-stone-800 rounded w-28" />
+                    <div className="h-4 bg-stone-800 rounded w-16" />
+                  </div>
+                  <div className="h-3 bg-stone-800/60 rounded w-36" />
+                  <div className="h-10 bg-stone-800/40 rounded-xl" />
+                </div>
+              ))}
+            </div>
+          ) : recentShops.length === 0 ? (
+            <div className="py-8 text-center text-stone-500 text-sm bg-stone-900/20 rounded-2xl border border-dashed border-stone-800">
+              No shops onboarded yet.
+            </div>
+          ) : (
+            recentShops.map((s) => {
+              const pType = s.planType || s.plan || (s.isDemoAccount ? 'FREE_TRIAL' : 'MONTHLY_299')
+              const subStatus = s.status || (s.isDemoAccount ? 'Demo Active' : 'Active')
+
+              return (
+                <div
+                  key={s.shopCode || s._id}
+                  className="p-4 rounded-2xl bg-stone-900/50 border border-stone-800/80 hover:border-stone-700/80 transition-all flex flex-col gap-3"
+                >
+                  {/* Top Bar: Shop Name, Code & Subscription Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col min-w-0">
+                      <h4 className="font-bold text-white text-sm truncate">
+                        {s.shopName || s.name || '—'}
+                      </h4>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="font-mono text-[11px] font-bold text-rose-400 bg-stone-950 px-2 py-0.5 rounded border border-stone-800 select-all">
+                          {s.shopCode || s.code || '—'}
+                        </span>
+                        <span className="text-stone-600 text-xs">•</span>
+                        <span className="text-stone-300 text-xs font-medium flex items-center gap-1 truncate">
+                          <User className="w-3 h-3 text-stone-500 shrink-0" />
+                          <span className="truncate">{s.ownerName || s.owner || '—'}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Subscription Status Pill */}
+                    <div className="shrink-0">
+                      {s.isDemoAccount || pType === 'FREE_TRIAL' ? (
+                        subStatus === 'Demo Active' || subStatus === 'Active' ? (
+                          <span className="inline-flex items-center gap-1 bg-amber-950/90 text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-amber-800/80 shadow-xs">
+                            <Clock className="w-3 h-3 text-amber-400 animate-pulse" />
+                            <span>Demo Active</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 bg-rose-950/90 text-rose-300 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-rose-900">
+                            <AlertCircle className="w-3 h-3 text-rose-400" />
+                            <span>Demo Expired</span>
+                          </span>
+                        )
+                      ) : subStatus === 'Active' ? (
+                        <span className="inline-flex items-center gap-1 bg-emerald-950/90 text-emerald-300 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-emerald-900 shadow-xs">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <span>Active</span>
+                        </span>
+                      ) : subStatus === 'Expired' ? (
+                        <span className="inline-flex items-center gap-1 bg-rose-950/90 text-rose-300 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-rose-900">
+                          <AlertCircle className="w-3 h-3 text-rose-400" />
+                          <span>Expired</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 bg-amber-950/90 text-amber-300 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-amber-900">
+                          <Clock className="w-3 h-3 text-amber-400" />
+                          <span>{subStatus}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Location if present */}
+                  {(s.cityState || s.city || s.address) && (
+                    <div className="flex items-center gap-1 text-[11px] text-stone-400 truncate">
+                      <MapPin className="w-3 h-3 text-stone-500 shrink-0" />
+                      <span className="truncate">{s.cityState || s.city || s.address}</span>
+                    </div>
+                  )}
+
+                  {/* Manage Button */}
+                  <button
+                    onClick={() => handleOpenShopModal(s)}
+                    className="w-full h-10 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-[0.98] text-stone-200 hover:text-white border border-stone-800 hover:border-stone-700 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    <Sliders className="w-3.5 h-3.5 text-brand" />
+                    <span>Manage</span>
+                  </button>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* Desktop View: Full Table (>= md) */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-sm border-collapse min-w-160">
             <thead>
               <tr className="border-b border-stone-800 text-stone-400 font-bold text-xs uppercase tracking-wider whitespace-nowrap">
                 <th className="py-3 px-4">Code</th>
                 <th className="py-3 px-4">Shop Name</th>
                 <th className="py-3 px-4">Owner Name</th>
                 <th className="py-3 px-4">Location</th>
-                <th className="py-3 px-4">Plan Type</th>
                 <th className="py-3 px-4">Subscription</th>
                 <th className="py-3 px-4 text-center">Actions</th>
-                <th className="py-3 px-4 text-right">Agent Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60">
@@ -197,15 +306,13 @@ export default function AdminOverview() {
                     { width: 'w-40', label: 'Shop Name' },
                     { width: 'w-28', label: 'Owner Name' },
                     { width: 'w-32', label: 'Location' },
-                    { width: 'w-20', label: 'Plan Type' },
-                    { width: 'w-20', label: 'Subscription' },
+                    { width: 'w-24', label: 'Subscription' },
                     { width: 'w-16', label: 'Actions' },
-                    { width: 'w-20', label: 'Agent Status' },
                   ]}
                 />
               ) : recentShops.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-8 text-center text-stone-500 text-sm">
+                  <td colSpan="6" className="py-8 text-center text-stone-500 text-sm">
                     No shops onboarded yet.
                   </td>
                 </tr>
@@ -213,7 +320,6 @@ export default function AdminOverview() {
                 recentShops.map((s) => {
                   const pType = s.planType || s.plan || (s.isDemoAccount ? 'FREE_TRIAL' : 'MONTHLY_299')
                   const subStatus = s.status || (s.isDemoAccount ? 'Demo Active' : 'Active')
-                  const isOnline = Boolean(s.isOnline)
 
                   return (
                     <tr key={s.shopCode || s._id} className="hover:bg-stone-900/60 transition-colors whitespace-nowrap">
@@ -228,46 +334,6 @@ export default function AdminOverview() {
                       </td>
                       <td className="py-4 px-4 text-xs font-medium text-stone-400">
                         {s.cityState || s.city || s.address || '—'}
-                      </td>
-                      <td className="py-4 px-4">
-                        {pType === 'FREE_TRIAL' || s.isDemoAccount ? (
-                          <div className="flex flex-col gap-1.5 items-start">
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full bg-amber-950/90 text-amber-300 border border-amber-800/80 shadow-xs whitespace-nowrap">
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span>Free Demo</span>
-                            </span>
-                            <AdminDemoTimer
-                              demoExpiresAt={s.demoExpiresAt}
-                              createdAt={s.createdAt}
-                              status={subStatus}
-                              planType="FREE_TRIAL"
-                            />
-                          </div>
-                        ) : pType === 'YEARLY_799' ? (
-                          <div className="flex flex-col gap-1.5 items-start">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-purple-950/90 text-purple-300 border border-purple-800/80 whitespace-nowrap shadow-xs">
-                              ₹799 / Yr (Yearly)
-                            </span>
-                            <AdminDemoTimer
-                              subscriptionExpiresAt={s.subscriptionExpiresAt}
-                              createdAt={s.createdAt}
-                              status={subStatus}
-                              planType="YEARLY_799"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-1.5 items-start">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-950/90 text-emerald-300 border border-emerald-900/60 whitespace-nowrap shadow-xs">
-                              ₹299 / Mo (Monthly)
-                            </span>
-                            <AdminDemoTimer
-                              subscriptionExpiresAt={s.subscriptionExpiresAt}
-                              createdAt={s.createdAt}
-                              status={subStatus}
-                              planType="MONTHLY_299"
-                            />
-                          </div>
-                        )}
                       </td>
                       <td className="py-4 px-4">
                         {s.isDemoAccount || pType === 'FREE_TRIAL' ? (
@@ -307,17 +373,6 @@ export default function AdminOverview() {
                           <Sliders className="w-3 h-3 text-brand" />
                           <span>Manage</span>
                         </button>
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        {isOnline ? (
-                          <span className="inline-flex items-center gap-1.5 bg-emerald-950/90 text-emerald-300 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-900 whitespace-nowrap">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Online
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 bg-stone-900 text-stone-400 text-[11px] font-extrabold px-3 py-1 rounded-full border border-stone-800 whitespace-nowrap">
-                            <span className="w-2 h-2 rounded-full bg-stone-500" /> Offline
-                          </span>
-                        )}
                       </td>
                     </tr>
                   )

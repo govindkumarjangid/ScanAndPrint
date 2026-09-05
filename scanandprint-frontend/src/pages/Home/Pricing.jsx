@@ -13,7 +13,7 @@ export default function Pricing() {
   const monthlyOriginalPrice = publicSettings?.monthlyOriginalPrice || 499
   const yearlyPrice = publicSettings?.yearlyPrice || 799
   const yearlyOriginalPrice = publicSettings?.yearlyOriginalPrice || 3588
-  const demoDurationHours = publicSettings?.demoDurationHours || 2
+  const demoDurationHours = publicSettings?.demoDurationHours || 48
   const isDemoAvailable = publicSettings?.demoMode ?? true
 
   const monthlyDiscountPercent = monthlyOriginalPrice > monthlyPrice 

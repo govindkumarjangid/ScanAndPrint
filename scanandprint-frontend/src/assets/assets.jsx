@@ -346,9 +346,9 @@ export const faqItems = [
 // Pricing & Billing Specific FAQs (Used on Pricing Page)
 export const pricingFaqItems = [
   {
-    question: 'What is the difference between the 2-Hour Demo, Monthly ₹299, and Yearly ₹799 plans?',
+    question: 'What is the difference between the 48-Hour Demo, Monthly ₹199, and Yearly ₹999 plans?',
     answer:
-      'The 2-Hour Demo gives you instant 100% free access to test live printing without entering any payment info. The Monthly Plan (₹299/mo) offers affordable 30-day renewals. The Yearly Plan (₹799/yr) gives 365 days of unlimited access with a 78% discount and priority WhatsApp support.',
+      'The 48-Hour Demo gives you instant 100% free access to test live printing without entering any payment info. The Monthly Plan (₹199/mo) offers affordable 30-day renewals. The Yearly Plan (₹999/yr) gives 365 days of unlimited access with a 78% discount and priority WhatsApp support.',
   },
   {
     question: 'Are there any hidden transaction cuts or commission fees on print earnings?',
@@ -358,7 +358,7 @@ export const pricingFaqItems = [
   {
     question: 'Can I start on the Free Demo and upgrade to Monthly or Yearly plan later?',
     answer:
-      'Yes, you can test everything on the 2-Hour Free Demo and upgrade to Monthly (₹299) or Yearly (₹799) anytime directly from your Shop Owner dashboard.',
+      'Yes, you can test everything on the 48-Hour Free Demo and upgrade to Monthly (₹199) or Yearly (₹999) anytime directly from your Shop Owner dashboard.',
   },
   {
     question: 'How do customers pay, and how do I receive my printing earnings?',
