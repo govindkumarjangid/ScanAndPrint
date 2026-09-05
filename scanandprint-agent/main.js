@@ -434,6 +434,7 @@ function showCounterOrderPopup(jobData) {
   const popupWin = new BrowserWindow({
     width: popupWidth,
     height: popupHeight,
+    useContentSize: true,
     x,
     y,
     show: true,
