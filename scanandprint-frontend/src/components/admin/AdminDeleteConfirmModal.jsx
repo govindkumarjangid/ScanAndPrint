@@ -11,11 +11,8 @@ import {
   Calendar,
   ShieldAlert,
 } from 'lucide-react'
+import { formatDateTime } from '../../utils/dateUtil'
 
-/**
- * Custom Confirmation / Approval Modal for Deletion
- * Provides a high-visibility, dark-themed approval popup with detailed metadata.
- */
 export default function AdminDeleteConfirmModal({
   isOpen,
   onClose,
@@ -35,15 +32,7 @@ export default function AdminDeleteConfirmModal({
   const phone = itemData.phone || itemData.mobile || itemData.customerPhone || '—'
   const jobId = itemData.jobId || itemData.paymentTxnId || itemData._id || '—'
   const amount = itemData.totalAmount ?? itemData.amount ?? 0
-  const createdAt = itemData.createdAt
-    ? new Date(itemData.createdAt).toLocaleString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '—'
+  const createdAt = formatDateTime(itemData.createdAt)
 
   const handleApprove = async () => {
     setIsDeleting(true)

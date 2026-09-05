@@ -355,3 +355,25 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--brand-primary);
   color: #FFFFFF;
 }
+
+/* Recharts Focus & Outline Removal (removes click bounding box) */
+.recharts-wrapper,
+.recharts-wrapper:focus,
+.recharts-wrapper:focus-visible,
+.recharts-wrapper:active,
+.recharts-surface,
+.recharts-surface:focus,
+.recharts-surface:focus-visible,
+.recharts-surface:active,
+.recharts-responsive-container,
+.recharts-responsive-container:focus,
+.recharts-responsive-container:focus-visible,
+.recharts-responsive-container:active,
+.recharts-layer,
+.recharts-layer:focus,
+.recharts-layer:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+}
