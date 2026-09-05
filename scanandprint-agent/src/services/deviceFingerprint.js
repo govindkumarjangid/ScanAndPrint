@@ -7,10 +7,6 @@ import si from 'systeminformation'
 let cachedDeviceFingerprint = null
 let cachedDeviceMeta = null
 
-/**
- * Extracts the accurate physical network adapter IPv4 address (e.g., Wi-Fi / Ethernet 10.227.120.67)
- * Filters out all VMware, VirtualBox, WSL, Hyper-V, loopback, and pseudo virtual adapters.
- */
 export async function getAccuratePhysicalIp() {
   try {
     const [defaultIface, ifaces, defaultGw] = await Promise.all([

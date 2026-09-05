@@ -78,17 +78,7 @@ foreach ($p in $printers) {
 `
 
 class PrinterManager {
-  /**
-   * Queries Windows (WMI + PrintManagement) for the REAL, driver-reported
-   * capabilities and live status of every installed printer:
-   *   - supportsColor / supportsDuplex -> read directly from the printer's
-   *     own driver capability list (CapabilityDescriptions) and current
-   *     print configuration. Nothing is guessed by name/model.
-   *   - status -> the live Win32_Printer.PrinterStatus code from the spooler
-   *     (Idle / Printing / Warming Up / Stopped / Offline / Unknown).
-   * Used by the dashboard's "Printers" panel. Not used in the hot print-job
-   * path (see printService.js) since it costs ~1-2s for the whole batch.
-   */
+
   async getPrintersWithCapabilities() {
     if (process.platform !== 'win32') {
       // Non-Windows dev environment: fall back to the basic list so the UI
@@ -163,7 +153,7 @@ class PrinterManager {
     } finally {
       try {
         if (fs.existsSync(scriptPath)) fs.unlinkSync(scriptPath)
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
@@ -520,7 +510,7 @@ class PrinterManager {
       if (fs.existsSync(testFilePath)) {
         try {
           fs.unlinkSync(testFilePath)
-        } catch (e) {}
+        } catch (e) { }
       }
 
       return { success: true, message: `Test page sent to ${printerName || 'Default Printer'}` }

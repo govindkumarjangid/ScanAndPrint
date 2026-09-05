@@ -6,42 +6,21 @@ import configStore from '../store/configStore.js'
 import { ensurePdfBuffer } from '../utils/pdfConverter.js'
 import printerManager from './printerManager.js'
 
-// Valid "side" values accepted by pdf-to-printer / SumatraPDF for duplex printing.
 const VALID_DUPLEX_SIDES = ['duplex', 'duplexshort', 'duplexlong', 'simplex']
 
-/**
- * Resolves whether a job should print in color or monochrome (black & white).
- * `colorType` is treated as the canonical field sent by the backend; anything
- * other than the literal string 'COLOR' is treated as black & white, matching
- * the printer-selection logic already used elsewhere in this file.
- * @param {Object} jobData
- * @returns {boolean} true = print in black & white, false = print in color
- */
 function resolveMonochrome(jobData) {
   const colorType = String(jobData?.colorType || '').toUpperCase().trim()
   return colorType !== 'COLOR'
 }
 
-/**
- * Resolves the duplex ("both sides") print option for a job.
- * Different backend payload versions may use different field names, so we
- * check a small set of known aliases before falling back to single-sided.
- * Always returns an explicit value ('duplex...' or 'simplex') - never
- * undefined - so a job never silently inherits the printer's own saved
- * default side setting.
- * @param {Object} jobData
- * @returns {string} a value accepted by pdf-to-printer's `side` option:
- *   'duplex' | 'duplexshort' | 'duplexlong' | 'simplex'.
- */
 function resolveDuplexSide(jobData) {
   // Explicit side/duplex-mode string, e.g. 'duplex', 'duplexshort', 'duplexlong', 'simplex'.
   const explicitSide = String(
     jobData?.side || jobData?.duplexMode || jobData?.printSide || ''
   ).toLowerCase().trim()
 
-  if (VALID_DUPLEX_SIDES.includes(explicitSide)) {
+  if (VALID_DUPLEX_SIDES.includes(explicitSide))
     return explicitSide
-  }
 
   // Boolean-style flags used by the customer web app / backend for "print on both sides".
   const isDuplexRequested =
@@ -52,20 +31,13 @@ function resolveDuplexSide(jobData) {
     jobData?.printSides === 'double' ||
     jobData?.sides === 'double'
 
-  if (isDuplexRequested) {
-    return 'duplex'
-  }
+  if (isDuplexRequested) return 'duplex';
 
-  // No duplex requested -> explicitly force single-sided. We must NOT leave
-  // this undefined: if a printer's Windows driver has duplex saved as its own
-  // current/default setting, an omitted `side` option would silently let a
-  // single-sided order print double-sided. Sending 'simplex' guarantees the
-  // job always prints exactly what the customer paid for, regardless of
-  // whatever the printer's own last-used setting happens to be.
   return 'simplex'
 }
 
 class PrintService {
+  
   constructor() {
     this.tempDir = path.join(process.env.TEMP || '/tmp', 'scan-and-print-jobs')
     this.ensureTempDir()
@@ -73,20 +45,13 @@ class PrintService {
 
   ensureTempDir() {
     try {
-      if (!fs.existsSync(this.tempDir)) {
+      if (!fs.existsSync(this.tempDir))
         fs.mkdirSync(this.tempDir, { recursive: true })
-      }
     } catch (err) {
       console.error('Error creating temp directory:', err)
     }
   }
 
-  /**
-   * Execute silent print job downloaded from Cloud Server / Storage
-   * @param {Object} jobData - { jobId, fileUrl, downloadUrl, colorType, copies, pages,
-   *   targetPrinterName, duplex/isDuplex/doubleSided/side/duplexMode (any one of these
-   *   is accepted to request double-sided printing - see resolveDuplexSide()) }
-   */
   async executePrintJob(jobData) {
     const { jobId, fileUrl, downloadUrl, colorType, copies = 1, targetPrinterName } = jobData
     console.log(`[PrintService] 🖨️ Processing Job #${jobId}...`, {
@@ -198,9 +163,9 @@ class PrintService {
             try {
               const defP = await ptp.getDefaultPrinter()
               if (defP) selectedPrinter = defP
-            } catch (e) {}
+            } catch (e) { }
           }
-        } catch (pErr) {}
+        } catch (pErr) { }
       }
 
       // Resolve color and duplex ("both sides") settings from the incoming job data.
@@ -218,6 +183,10 @@ class PrintService {
         silent: true,
         monochrome,
         side: duplexSide, // always explicit ('duplex...' or 'simplex') - see resolveDuplexSide()
+      }
+
+      if (jobData?.paperSize) {
+        printOptions.paperSize = jobData.paperSize
       }
 
       if (selectedPrinter) {

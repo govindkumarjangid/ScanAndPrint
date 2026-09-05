@@ -334,6 +334,20 @@
           <span class="spec-chip-val" id="val-duplex">Single-sided</span>
         </div>
       </div>
+      <div class="spec-chip chip-pages" id="chip-paper">
+        <i class='bx bx-file-blank' id="icon-paper"></i>
+        <div class="spec-chip-text">
+          <span class="spec-chip-label">Paper</span>
+          <span class="spec-chip-val" id="val-paper">A4</span>
+        </div>
+      </div>
+      <div class="spec-chip chip-copies" id="chip-type">
+        <i class='bx bx-briefcase-alt-2' id="icon-type"></i>
+        <div class="spec-chip-text">
+          <span class="spec-chip-label">Type</span>
+          <span class="spec-chip-val" id="val-type">Document</span>
+        </div>
+      </div>
     </div>
 
     <div class="amount-row">
@@ -442,6 +456,13 @@
       document.getElementById('val-duplex').textContent = isDuplex ? 'Double-sided' : 'Single-sided'
       duplexChip.classList.toggle('is-single', !isDuplex)
       duplexIcon.className = 'bx ' + (isDuplex ? 'bx-duplicate' : 'bx-file-blank')
+
+      document.getElementById('val-paper').textContent = jobData?.paperSize || 'A4'
+      
+      let jobTypeDisplay = 'Document'
+      if (jobData?.jobType === 'PHOTO_SHEET') jobTypeDisplay = `Photos (${jobData?.photoCount || 0})`
+      else if (jobData?.jobType === 'RESUME') jobTypeDisplay = 'Resume'
+      document.getElementById('val-type').textContent = jobTypeDisplay
 
       document.getElementById('val-amount-num').textContent = `₹${amount}`
     }
